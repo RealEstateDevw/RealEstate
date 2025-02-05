@@ -1,0 +1,15 @@
+sqlalchemy~=2.0.37
+fastapi~=0.115.8
+jinja2
+python-dotenv
+python-jose
+pydantic~=2.10.6
+PyJWT~=2.10.1
+passlib~=1.7.4
+Authlib~=1.4.1
+uvicorn
+bcrypt
+python-multipart
+email-validator
+starlette~=0.45.3
+jinja2

@@ -25,7 +25,6 @@ def get_all_or_exact_lead_db(lid=0):
             raise e
 
 
-
 def update_lead_db(lid, change_info, new_info):
     with next(get_db()) as db:
         try:
@@ -57,4 +56,3 @@ def delete_lead_db(lid):
             return False
         except Exception as e:
             raise e
-
