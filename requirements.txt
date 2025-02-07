@@ -13,3 +13,4 @@ python-multipart
 email-validator
 starlette~=0.45.3
 jinja2
+alembic~=1.14.1

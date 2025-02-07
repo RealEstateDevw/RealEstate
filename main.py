@@ -5,6 +5,7 @@ from starlette.responses import RedirectResponse
 from starlette.staticfiles import StaticFiles
 
 from backend.api.users.main import user_router
+from backend.api.users.schemas import ROLE_REDIRECTS
 from backend.core.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password
 from backend.core.deps import get_current_user, get_current_user_from_cookie
 from backend.database import Base, engine
@@ -12,7 +13,8 @@ from fastapi import FastAPI, Request, HTTPException, Form, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from backend.database.userservice import get_user_by_login
+from backend.database.attendanceservice import has_user_checked_in, register_attendance
+from backend.database.userservice import get_user_by_login, get_all_users
 
 Base.metadata.create_all(bind=engine)
 
@@ -22,6 +24,7 @@ app.include_router(user_router)
 
 templates = Jinja2Templates(directory="frontend")
 app.mount("/media", StaticFiles(directory="media"), name="media")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -67,10 +70,15 @@ async def login(
 
     # Генерируем JWT-токен с временем жизни ACCESS_TOKEN_EXPIRE_MINUTES
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    token = create_access_token(data={"sub": user.login}, expires_delta=access_token_expires)
-
-    # Создаем RedirectResponse на страницу /home
-    response = RedirectResponse(url="/home", status_code=status.HTTP_302_FOUND)
+    token = create_access_token(data={"sub": user.login, "role_id": user.role_id}, expires_delta=access_token_expires)
+    redirect_url = ROLE_REDIRECTS.get(
+        user.role_id,
+        "/dashboard/default"  # Дефолтный редирект если роль не найдена
+    )
+    response = RedirectResponse(
+        url=redirect_url,
+        status_code=status.HTTP_303_SEE_OTHER  # Более правильный код для редиректа после POST
+    )
 
     # Устанавливаем токен в HTTP-only cookie (если требуется для дальнейшей авторизации)
     response.set_cookie(key="access_token", value=f"Bearer {token}", httponly=True)
@@ -78,9 +86,27 @@ async def login(
 
 
 # 3. Простой эндпоинт /home для отображения страницы после входа
-@app.get("/home", response_class=HTMLResponse)
+@app.get("/profile", response_class=HTMLResponse)
 async def home(request: Request, current_user=Depends(get_current_user_from_cookie)):
-    return templates.TemplateResponse("profile.html", {"request": request, "data": current_user})
+    return templates.TemplateResponse("profile.html", {"request": request, "user": current_user})
+
+
+@app.get("/dashboard/sales", response_class=HTMLResponse)
+async def sales_dashboard(request: Request, current_user=Depends(get_current_user_from_cookie)):
+    if current_user.role_id != 1:
+        return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
+    if not has_user_checked_in(current_user.id):
+        # Если пользователь ещё не зашел сегодня, регистрируем вход
+        register_attendance(current_user.id, "check_in")
+    return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
+
+
+@app.get("/dashboard/admin", response_class=HTMLResponse)
+async def admin(request: Request, current_user=Depends(get_current_user_from_cookie), all_users=Depends(get_all_users)):
+    if current_user.role.name != "admin":
+        return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
+    return templates.TemplateResponse("main_admin.html",
+                                      {"request": request, "user": current_user, "all_users": all_users})
 
 
 # Эндпоинт для выхода из системы (logout)

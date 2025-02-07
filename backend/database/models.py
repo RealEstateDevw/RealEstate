@@ -30,9 +30,24 @@ class User(Base):
     work_end_time = Column(Time, nullable=True)  # Время окончания работы
     work_days = Column(JSON, nullable=False)  # Рабочие дни (например, ["ПН", "ВТ", "СР"])
     role_id = Column(Integer, ForeignKey('roles.id'))  # Связь с таблицей ролей
-    hashed_password = Column(String, nullable=False)  # Хеш пароля
+    hashed_password = Column(String, nullable=False) # Хеш пароля
+    reg_date = Column(DateTime, default=datetime.now)
     # Связи
-    role = relationship('Role', back_populates='users')
+    role = relationship('Role', back_populates='users', lazy="subquery")
+    attendances = relationship("Attendance", back_populates="user", lazy='joined')
+
+
+class Attendance(Base):
+    __tablename__ = 'attendances'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    date = Column(Date, nullable=False)
+    check_in = Column(Time, nullable=True)
+    check_out = Column(Time, nullable=True)
+    status = Column(String, nullable=True)  # например, "присутствовал", "опоздал", "отсутствовал"
+
+    # Опционально: связь с пользователем
+    user = relationship("User", back_populates="attendances")
 
 
 # Таблица доступов (может быть привязана к пользователю или роли)

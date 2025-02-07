@@ -1,0 +1,322 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            background: url("media/Фото 1.png") lightgray 50% / cover no-repeat;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+        }
+
+        .logo {
+            color: #0066FF;
+            font-size: 48px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+                width: 80%;
+    max-width: 500px;
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    border-radius: 50px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-bar {
+            border: none;
+    padding: 12px;
+    width: 500px;
+    border-radius: 50px;
+        background-color: #f0f0f0;
+
+    color: rgba(0, 0, 0, 0.50);
+    leading-trim: both;
+    text-edge: cap;
+    font-family: "Vela Sans GX";
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+        }
+.search{
+display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px;
+}
+.user-icon{
+ display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 5rem;
+    width: 5rem;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+}
+        .user-icon svg{
+            width: 40px;
+            height: 40px;
+            fill: #3b82f6;
+            border-radius: 50%;
+        }
+        .profile-icon {
+            width: 32px;
+            height: 32px;
+            background: #0066FF;
+            border-radius: 50%;
+        }
+
+        .main-content {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+
+        }
+
+        .name {
+            font-size: 36px;
+            font-weight: 600;
+        }
+
+        .date {
+            color: #666;
+            font-size: 36px;
+        }
+
+        .badge {
+            display: flex;
+            gap: 10px;
+
+        }
+
+        .badge-item {
+            padding: 29px 30px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 60px;
+border: 1px solid #FFF;
+
+background: rgba(245, 245, 245, 0.90);
+
+backdrop-filter: blur(25px);
+        }
+
+        .personal-info {
+            padding: 24px;
+            margin-bottom: 24px;
+            border-radius: 30px;
+background: rgba(245, 245, 245, 0.90);
+
+backdrop-filter: blur(25px);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .info-item {
+                display: flex;
+    grid-template-columns: 120px 1fr;
+    gap: 10px;
+
+
+
+    border-radius: 55px;
+    background: #FFF;
+    height: 50px;
+    align-items: center;
+    flex-shrink: 0;
+    justify-content: space-between;
+    padding: 17px 20px;
+        }
+
+        .info-label {
+            color: #666;
+        }
+
+        .themes {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .theme-item {
+            border-radius: 8px;
+            width: 200px;
+            height: 80px;
+            overflow: hidden;
+        }
+
+        .work-schedule {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+
+
+        .info-label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .info-item-schedule {
+                display: flex;
+    grid-template-columns: 120px 1fr;
+    gap: 10px;
+
+
+
+    border-radius: 55px;
+    background: #FFF;
+    height: 50px;
+    align-items: center;
+    flex-shrink: 0;
+    justify-content: space-between;
+    padding: 17px 20px;
+    width:50%;
+        }
+
+        .days {
+            display: flex;
+            gap: 9px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .day {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .day.active {
+            background-color: #e74c3c;
+            color: #ffffff;
+        }
+
+        @media (max-width: 600px) {
+            .work-schedule {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .days {
+                justify-content: flex-start;
+            }
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-item h3 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .stat-item {
+        border-radius: 20px;
+    background: rgba(255, 255, 255, 0.90);
+    backdrop-filter: blur(25px);
+    padding: 20px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .container-theme {
+            display: flex;
+            gap: 16px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .text-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .text-checkbox span {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .text-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #6c63ff;
+            border-radius: 4px;
+            background-color: #e0e7ff;
+            cursor: pointer;
+        }
+
+        .text-checkbox input[type="checkbox"]:checked {
+            background-color: #6c63ff;
+        }
+
+        .images-container {
+            display: flex;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .image-box {
+            flex: 1;
+            border-radius: 35px;
+            overflow: hidden;
+        }
+
+        .image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
