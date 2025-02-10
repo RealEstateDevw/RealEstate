@@ -5,6 +5,7 @@ from starlette.responses import RedirectResponse
 from starlette.staticfiles import StaticFiles
 
 from backend.api.users.main import user_router
+from backend.api.leads.main import router as leads_router
 from backend.api.users.schemas import ROLE_REDIRECTS
 from backend.core.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password
 from backend.core.deps import get_current_user, get_current_user_from_cookie
@@ -21,6 +22,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc")
 
 app.include_router(user_router)
+app.include_router(leads_router)
 
 templates = Jinja2Templates(directory="frontend")
 app.mount("/media", StaticFiles(directory="media"), name="media")
@@ -70,7 +72,7 @@ async def login(
 
     # Генерируем JWT-токен с временем жизни ACCESS_TOKEN_EXPIRE_MINUTES
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    token = create_access_token(data={"sub": user.login, "role_id": user.role_id}, expires_delta=access_token_expires)
+    token = create_access_token(data={"sub": user.login, "role_id": user.role_id}, expires_delta=timedelta(minutes=60))
     redirect_url = ROLE_REDIRECTS.get(
         user.role_id,
         "/dashboard/default"  # Дефолтный редирект если роль не найдена
@@ -98,7 +100,17 @@ async def sales_dashboard(request: Request, current_user=Depends(get_current_use
     if not has_user_checked_in(current_user.id):
         # Если пользователь ещё не зашел сегодня, регистрируем вход
         register_attendance(current_user.id, "check_in")
-    return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
+    return templates.TemplateResponse("sales-dashboard.html", {"request": request, "user": current_user})
+
+
+@app.get("/dashboard/sales/add-lead", response_class=HTMLResponse)
+async def add_lead(request: Request, current_user=Depends(get_current_user_from_cookie)):
+    if current_user.role_id != 1:
+        return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
+    if not has_user_checked_in(current_user.id):
+        # Если пользователь ещё не зашел сегодня, регистрируем вход
+        register_attendance(current_user.id, "check_in")
+    return templates.TemplateResponse("add-lead-sales.html", {"request": request, "user": current_user})
 
 
 @app.get("/dashboard/admin", response_class=HTMLResponse)
@@ -107,6 +119,13 @@ async def admin(request: Request, current_user=Depends(get_current_user_from_coo
         return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
     return templates.TemplateResponse("main_admin.html",
                                       {"request": request, "user": current_user, "all_users": all_users})
+
+
+@app.get("/dashboard/admin/add_user", response_class=HTMLResponse)
+async def add_user(request: Request, current_user=Depends(get_current_user_from_cookie)):
+    if current_user.role.name != "admin":
+        return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
+    return templates.TemplateResponse("register-employer.html", {"request": request, "user": current_user})
 
 
 # Эндпоинт для выхода из системы (logout)

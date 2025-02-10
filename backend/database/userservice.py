@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import List
 
 from sqlalchemy.exc import IntegrityError
@@ -10,11 +10,27 @@ from config import logger
 from fastapi.encoders import jsonable_encoder
 
 
+def parse_time(time_str: str) -> time:
+    return datetime.strptime(time_str, "%H:%M:%S").time()
+
+
+# Пример использования
+
 # Функция для добавления нового пользователя
 def add_user(user_data: UserCreate) -> User:
     with next(get_db()) as db:
         try:
-            work_days_list = [{"name": day.name, "active": day.active} for day in user_data.work_days]
+            work_days_list = [
+                {"name": "ПН", "active": False},
+                {"name": "ВТ", "active": False},
+                {"name": "СР", "active": False},
+                {"name": "ЧТ", "active": False},
+                {"name": "ПТ", "active": False},
+                {"name": "СБ", "active": True},
+                {"name": "ВС", "active": True}
+            ]
+            work_start_time = parse_time("00:00:00")
+            work_end_time = parse_time("23:59:59")
             """Создаёт нового пользователя в базе данных."""
             new_user = User(
                 first_name=user_data.first_name,
@@ -23,9 +39,9 @@ def add_user(user_data: UserCreate) -> User:
                 login=user_data.login,
                 phone=user_data.phone,
                 email=user_data.email,
-                company=user_data.company,
-                work_start_time=user_data.work_start_time,
-                work_end_time=user_data.work_end_time,
+                company="RealEstate",
+                work_start_time=work_start_time,
+                work_end_time=work_end_time,
                 work_days=work_days_list,
                 # Используем уже вычисленный захешированный пароль
                 hashed_password=user_data.hashed_password,
@@ -218,3 +234,49 @@ def register_attendance(user_id: int, action: str) -> 'Attendance':
         db.commit()
         db.refresh(attendance)
         return attendance
+
+
+def get_by_role_employees(role_id: int) -> List[User]:
+    with next(get_db()) as db:
+        users = db.query(User).filter(User.role_id == role_id).all()
+        users_data = []
+        for user in users:
+            print(user.role.name)
+            is_user_at_w = is_user_at_work(user.id)
+            user_dict = {"id": user.id,
+                         "first_name": user.first_name,
+                         "last_name": user.last_name,
+                         "work_days": user.work_days,
+                         "work_start_time": user.work_start_time.strftime("%H:%M"),
+                         "work_end_time": user.work_end_time.strftime("%H:%M"),
+                         "birth_date": user.birth_date,
+                         "login": user.login,
+                         "role": user.role.name,
+                         "phone": user.phone,
+                         "email": user.email,
+                         "company": user.company,
+                         "work_status": "Рабочий" if is_work_day(user) else "Выходной",
+                         "checkin_time": is_user_at_w,
+                         "registration_date": user.reg_date.strftime("%d.%m.%Y"),
+                         }
+            # Вычисляем статус
+            users_data.append(user_dict)
+
+        return jsonable_encoder(users_data)
+
+
+def get_all_roles() -> List[Role]:
+    with next(get_db()) as db:
+        return db.query(Role).filter(Role.id != 5).all()
+
+
+def delete_user(user_id: int) -> bool:
+    with next(get_db()) as db:
+        try:
+            db.query(Attendance).filter(Attendance.user_id == user_id).delete()
+            db.query(User).filter(User.id == user_id).delete()
+            db.commit()
+            return True
+        except Exception:
+            db.rollback()
+            raise

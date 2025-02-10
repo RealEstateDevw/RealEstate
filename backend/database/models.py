@@ -26,12 +26,12 @@ class User(Base):
     phone = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     company = Column(String, nullable=False)
-    work_start_time = Column(Time, nullable=True)  # Время начала работы
-    work_end_time = Column(Time, nullable=True)  # Время окончания работы
+    work_start_time = Column(Time, nullable=True, default="12:00:00")  # Время начала работы
+    work_end_time = Column(Time, nullable=True, default="23:59:59")  # Время окончания работы
     work_days = Column(JSON, nullable=False)  # Рабочие дни (например, ["ПН", "ВТ", "СР"])
     role_id = Column(Integer, ForeignKey('roles.id'))  # Связь с таблицей ролей
-    hashed_password = Column(String, nullable=False) # Хеш пароля
-    reg_date = Column(DateTime, default=datetime.now)
+    hashed_password = Column(String, nullable=False)  # Хеш пароля
+    reg_date = Column(DateTime, default=datetime.now())
     # Связи
     role = relationship('Role', back_populates='users', lazy="subquery")
     attendances = relationship("Attendance", back_populates="user", lazy='joined')

@@ -1,17 +1,22 @@
 from datetime import timedelta
-from fastapi import APIRouter, HTTPException, Depends, status
+from typing import List, Optional
+
+from fastapi import APIRouter, HTTPException, Depends, status, Query
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
 
 from backend.core.deps import get_current_user
+from backend.database import get_db
+from backend.database.models import User
 from backend.database.userservice import add_user, get_user_by_login, add_role, get_user_by_id, get_all_users, \
-    update_user
+    update_user, get_by_role_employees, get_all_roles, delete_user
 from backend.api.users.schemas import UserCreate, UserRead, Token, UserUpdate
 from backend.core.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password, get_password_hash
 
 user_router = APIRouter(prefix="/api/users")
 
 
-@user_router.post("/", response_model=UserRead)
+@user_router.post("/add_user", response_model=UserRead)
 async def register_user(user: UserCreate):
     # Проверяем, существует ли уже пользователь с таким логином
     if get_user_by_login(login=user.login):
@@ -28,7 +33,11 @@ async def register_user(user: UserCreate):
     # Обратите внимание, что функция add_user ожидает объект, у которого есть атрибут hashed_password.
 
     new_user = add_user(UserCreate(**user_data))
-    return new_user
+    return {
+        **new_user.__dict__,
+        "role": new_user.role.name if new_user.role else None,  # Возвращаем название роли, если оно есть
+        "role_id": new_user.role_id
+    }
 
 
 @user_router.post("/token", response_model=Token)
@@ -76,3 +85,49 @@ async def get_all_users_api():
 async def update_user_api(user_id: int, user: UserUpdate):
     user = update_user(user_id, user)
     return user
+
+
+@user_router.get("/employees", response_model=List[UserRead])
+async def get_employees(role_id: Optional[int] = Query(None)):
+    """
+    Эндпоинт для получения списка сотрудников с фильтрацией по должности (role).
+    Если роль не указана, возвращаем всех сотрудников.
+    """
+    if role_id:
+        return get_by_role_employees(role_id=role_id)
+    return get_all_users()
+
+
+@user_router.get("/roles")
+async def get_roles():
+    roles = get_all_roles()
+    return roles
+
+
+@user_router.delete("/delete_user")
+async def delete_user_api(user_id: int):
+    user = delete_user(user_id)
+    return user
+
+
+@user_router.post("/reset_password")
+async def reset_password(user_id: int, db: Session = Depends(get_db)):
+    # Находим пользователя по user_id
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    # Назначаем временный пароль и хешируем его
+    temporary_password = "qwerty123"
+    user.hashed_password = get_password_hash(temporary_password)
+
+    # Сохраняем изменения в базе данных
+    db.commit()
+
+    return {
+        "message": "Пароль успешно сброшен",
+        "temporary_password": temporary_password,
+        "user_id": user.id,
+        "user_login": user.login
+    }

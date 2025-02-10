@@ -29,7 +29,7 @@ class UserCreate(BaseModel):
     company: str
     work_start_time: Optional[time] = None
     work_end_time: Optional[time] = None
-    work_days: List[WorkDay]
+    work_days: List[WorkDay] = None
     role_id: Optional[int] = None
     hashed_password: str  # открытый пароль, который мы потом захешируем
 
@@ -73,6 +73,7 @@ class UserRead(BaseModel):
     work_end_time: Optional[time] = None
     work_days: Optional[List[WorkDay]] = None
     role_id: Optional[int] = None
+    role: Optional[str] = None
 
     class Config:
         from_attributes = True  # чтобы можно было возвращать объекты SQLAlchemy напрямую

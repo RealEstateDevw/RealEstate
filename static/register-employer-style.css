@@ -1,0 +1,298 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+}
+
+a {
+    text-decoration: none;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+}
+
+
+.logo {
+    color: #0066FF;
+    font-size: 48px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+
+.search {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px;
+    width: 80%;
+
+
+}
+
+.user-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 5rem;
+    width: 5rem;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+}
+
+.user-icon svg {
+    width: 40px;
+    height: 40px;
+    fill: #3b82f6;
+    border-radius: 50%;
+}
+
+.back-button {
+    color: #1a73e8;
+
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    max-width: 500px;
+    cursor: pointer;
+
+
+    border-radius: 50px;
+    border: 1px solid #0066FF;
+    padding: 23px 24px 23px 24px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+
+.main-form {
+    max-width: 1000px;
+    margin: 0 auto;
+margin-top: 50px;
+}
+
+.input-row {
+    display: flex;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    align-self: stretch;
+}
+
+.input-field {
+    font-size: 24px;
+    padding: 29px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1 0 0;
+
+    border-radius: 60px;
+    border: 1px solid #FFF;
+
+    background: rgba(245, 245, 245, 0.90);
+}
+
+
+.dropdown-list {
+    list-style: none;
+    padding: 10px 0;
+    margin: 0;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 295px;
+    width: 100%;
+    display: block;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    visibility: hidden;
+    z-index: 1;
+}
+
+ul#dropdownList {
+
+    display: flex;
+    max-width: 320px;
+    padding: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    background: rgba(245, 245, 245, 0.90);
+}
+
+
+
+.dropdown-list li {
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    font-size: 24px;
+    cursor: pointer;
+    min-height: 45px;
+    color: #333;
+    background: #FFF;
+    border-radius: 20px;
+    min-width: 280px;
+    gap: 15px;
+}
+
+.dropdown-list li i {
+    color: #216BF4;
+    margin-right: 10px;
+}
+
+.dropdown-list li:hover {
+    background-color: #f0f8ff;
+}
+
+.dropdown-list.visible {
+    max-height: 200px;
+    visibility: visible;
+    overflow-y: scroll;
+}
+
+.hidden {
+    max-height: 0;
+}
+
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.info-item {
+    display: flex;
+
+    gap: 10px;
+
+
+
+    border-radius: 55px;
+    background: #FFF;
+
+    align-items: center;
+    flex-shrink: 0;
+    justify-content: space-between;
+    padding: 17px 20px;
+}
+
+.info-label {
+    color: #666;
+}
+
+.info-input {
+    background: transparent;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 16px;
+    min-width: 100px;
+}
+
+.section-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.profile-form-info {
+    display: flex;
+    padding: 20px;
+    flex-direction: column;
+
+    gap: 20px;
+    align-self: stretch;
+
+
+    border-radius: 30px;
+    background: rgba(245, 245, 245, 0.90);
+
+    backdrop-filter: blur(25px);
+}
+
+.password-field{
+    display: flex;
+
+padding: 17px 20px;
+justify-content: space-between;
+align-items: center;
+flex: 1 0 0;
+
+border-radius: 57px;
+background: #FFF;
+}
+.password-input{
+    background: transparent;
+    border: none;
+    padding: 15px;
+
+    font-size: 16px;
+    min-width: 100px;
+}
+.password-input::selection{
+    border: none;
+}
+.button-row, .button-row-lead{
+    display: flex;
+align-items: center;
+align-content: center;
+gap: 10px;
+align-self: stretch;
+flex-wrap: wrap;
+}
+
+.button-info{
+    display: flex;
+
+min-width: 220px;
+padding: 20px;
+flex-direction: column;
+justify-content: space-between;
+align-items: flex-start;
+flex: 1 0 0;
+
+
+font-family: "Vela Sans GX";
+font-size: 24px;
+border-radius: 20px;
+background: #FFF;
+
+backdrop-filter: blur(25px);
+}
+
+.register-button{
+    color: #216BF4;
+    
+}
+.register-button:hover{
+    border: 2px solid #216BF4
+}
+.import-button:hover{
+    border: 2px solid #000000
+}
+
+.highlight-error {
+    border: 2px solid red;
+    animation: blink 0.5s ease-in-out alternate 4;
+}
+
+@keyframes blink {
+    0% {
+        background-color: rgba(255, 0, 0, 0.1);
+    }
+    100% {
+        background-color: rgba(255, 0, 0, 0.3);
+    }
+}

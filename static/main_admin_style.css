@@ -4,38 +4,45 @@
     box-sizing: border-box;
     font-family: 'Inter', sans-serif;
 }
-input{
+
+input {
     border: none;
     outline: none;
     background-color: transparent;
-    
+
+
+}
+a {
+    text-decoration: none;
+    color: rgb(255, 255, 255);
+
 
 }
 
-button{
+button {
     border: none;
     outline: none;
     background-color: transparent;
 }
 
-#rightPanel{
+#rightPanel {
     display: none;
 }
 
-#rightPanel.active{
-display:block;
- padding: 24px;
+#rightPanel.active {
+    display: block;
+    padding: 24px;
     border-radius: 16px;
     border-radius: 30px;
-background: rgba(245, 245, 245, 0.90);
+    background: rgba(245, 245, 245, 0.90);
 
-backdrop-filter: blur(25px);
+    backdrop-filter: blur(25px);
 }
 
 .employee-item.active {
-            border-color: #216BF4;
-            background-color: #f8f9fa;
-        }
+    border-color: #216BF4;
+    background-color: #f8f9fa;
+}
 
 body {
     padding: 20px;
@@ -66,6 +73,7 @@ body {
 
 
 }
+
 .filter-bar {
     background-color: #fff;
     padding: 15px;
@@ -165,27 +173,31 @@ body {
 }
 
 .register-btn {
-    background-color: #1a73e8;    color: white;
+    background-color: #1a73e8;
+    color: white;
 
-    display: flex
-    ;
-        align-items: center;
-        gap: 15px;
-        width: 80%;
-        max-width: 500px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 80%;
+    max-width: 500px;
+    cursor: pointer;
 
 
-        border-radius: 50px;
-        border: none;
-        padding: 23px 24px 23px 24px;
-        display: flex
-    ;
-        flex-direction: row;
-        justify-content: flex-start;
-    
+    border-radius: 50px;
+    border: none;
+    padding: 23px 24px 23px 24px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+
 }
 
-.register-btn span{
+.register-btn:hover {
+    background-color: #216BF4;
+}
+
+.register-btn a {
     font-size: 24px;
     font-weight: 600;
 
@@ -203,12 +215,12 @@ body {
     padding: 24px;
     border-radius: 16px;
     border-radius: 30px;
-background: rgba(245, 245, 245, 0.90);
+    background: rgba(245, 245, 245, 0.90);
 
-backdrop-filter: blur(25px);
+    backdrop-filter: blur(25px);
 }
 
-.unite-section{
+.unite-section {
     background-color: #ffffff;
     padding: 24px;
 
@@ -217,7 +229,7 @@ backdrop-filter: blur(25px);
     margin-bottom: 35px;
 }
 
-.section-title-main{
+.section-title-main {
     font-size: 24px;
     font-weight: 600;
     margin-bottom: 20px;
@@ -332,18 +344,18 @@ backdrop-filter: blur(25px);
     gap: 16px;
 }
     */
-.form-update{
+.form-update {
     display: flex;
     gap: 10px;
-    
+
     padding: 29px 10px;
-} 
+}
 
 .admin-header {
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
-    
+
     justify-content: space-between;
     background-color: #ffffff;
     border-radius: 30px;
@@ -365,7 +377,8 @@ backdrop-filter: blur(25px);
 
 
 }
-.form-info-data{
+
+.form-info-data {
     display: flex;
     gap: 10px;
 
@@ -381,21 +394,25 @@ backdrop-filter: blur(25px);
     justify-content: center;
     align-items: center;
     background-color: #d1e9ff;
-    
-}
-.icon-profile:hover, .icon-edit:hover{
-    transform: scale(1.1);
-    cursor: pointer;
-    
 
 }
+
+.icon-profile:hover,
+.icon-edit:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+
+
+}
+
 .notification {
     position: fixed;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
     padding: 15px 30px;
-    background-color: #4CAF50; /* Зеленый цвет */
+    background-color: #4CAF50;
+    /* Зеленый цвет */
     color: white;
     font-size: 16px;
     border-radius: 5px;
@@ -407,7 +424,8 @@ backdrop-filter: blur(25px);
 
 .notification.visible {
     opacity: 1;
-    top: 40px; /* Смещение вниз при появлении */
+    top: 40px;
+    /* Смещение вниз при появлении */
 }
 
 .notification.hidden {
@@ -458,7 +476,8 @@ backdrop-filter: blur(25px);
 
 }
 
-.input-group-password, .reset-group-password {
+.input-group-password,
+.reset-group-password {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -472,7 +491,8 @@ backdrop-filter: blur(25px);
 
 .password-input-container {
     display: flex;
-    align-items: center;  background: #f6f6f6;
+    align-items: center;
+    background: #f6f6f6;
     padding: 10px 15px;
     border-radius: 25px;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -524,14 +544,15 @@ backdrop-filter: blur(25px);
     .text-profile {
         font-size: 1.5vh;
     }
-    
+
 }
 
 @media (max-width: 1870px) {
-     .form-info-data {
+    .form-info-data {
         width: 100%;
     }
 }
+
 .reset-btn {
     background: #ff4444;
     color: white;
@@ -541,6 +562,7 @@ backdrop-filter: blur(25px);
     cursor: pointer;
     width: 100%;
 }
+
 .work-schedule {
     display: flex;
     gap: 25px;
@@ -555,20 +577,20 @@ backdrop-filter: blur(25px);
 }
 
 .info-item-schedule {
-        display: flex;
-grid-template-columns: 120px 1fr;
-gap: 10px;
+    display: flex;
+    grid-template-columns: 120px 1fr;
+    gap: 10px;
 
 
 
-border-radius: 55px;
-background: #f6f6f6;
-height: 50px;
-align-items: center;
-flex-shrink: 0;
-justify-content: space-between;
-padding: 17px 20px;
-width:50%;
+    border-radius: 55px;
+    background: #f6f6f6;
+    height: 50px;
+    align-items: center;
+    flex-shrink: 0;
+    justify-content: space-between;
+    padding: 17px 20px;
+    width: 50%;
 }
 
 .days {
@@ -603,8 +625,8 @@ width:50%;
 .action-button {
     padding: 15px;
     border-radius: 20px;
-background: #FFF;
-backdrop-filter: blur(25px);
+    background: #FFF;
+    backdrop-filter: blur(25px);
     cursor: pointer;
     font-size: 14px;
     color: #212529;

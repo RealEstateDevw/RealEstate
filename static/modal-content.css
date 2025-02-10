@@ -1,0 +1,169 @@
+.modal{
+    display: flex;
+justify-content: center;
+align-items: center;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.5);
+z-index: 1000;
+opacity: 0;
+visibility: hidden;
+transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal.visible {
+    opacity: 1;
+    visibility: visible;
+}
+.modal-content {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 30px;
+    display: flex
+;
+    gap: 30px;
+    width: 60%;
+    max-width: 1000px;
+    /* text-align: center; */
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+    flex-direction: column;
+}
+.modal-sure{
+    border-radius: 10px;
+background: #F7F8FC;
+display: flex;
+padding: 17px 20px;
+flex-direction: column;
+align-items: flex-start;
+gap: 20px;
+flex: 1 0 0;
+}
+
+.modal-icon {
+    font-size: 40px;
+    color: #216BF4;
+    margin-bottom: 15px;
+}
+
+.modal-title {
+    font-size: 32px;
+    margin: 0 0 15px;
+    color: #1A1A1A;
+}
+
+.modal-description {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.btn {
+    padding: 17px 20px;
+    border: none;
+    border-radius: 57px;
+    font-size: 16px;
+    cursor: pointer;
+    flex: 1 0 0;
+    text-align: left;
+}
+.password-container {
+    display: flex;
+    justify-content: space-between ;
+    gap: 10px;
+}
+.copy-button {
+    display: flex;
+    gap: 5px;
+}
+.btn.cancel {
+    color: #333;
+    flex-grow: 1;
+background: #F7F8FC;
+}
+
+.btn.confirm {
+    background-color: #216BF4;
+    color: white;
+    flex-grow: 1;
+}
+.btn.danger {
+    background-color: #ff4444;
+    color: white;
+    flex-grow: 1;
+}
+
+.btn.danger:hover {
+    background-color: #ff0000;
+}
+
+.btn.cancel:hover {
+    background-color: #D6D6D6;
+}
+
+.btn.confirm:hover {
+    background-color: #1A54C4;
+}
+
+/* Показать модальное окно */
+.modal.visible {
+opacity: 1;
+visibility: visible;
+}
+
+.role-options {
+    display: flex;
+align-items: center;
+gap: 10px;
+align-self: stretch;
+    margin: 20px 0;
+}
+
+.role-button {
+    cursor: pointer;
+    font-size: 16px;
+    background-color: #f0f0f0;
+    transition: background-color 0.3s;
+    display: flex;
+
+padding: 17px 20px;
+justify-content: center;
+align-items: center;
+gap: 10px;
+flex: 1 0 0;
+border-radius: 57px;
+}
+
+.role-button.active {
+    background-color: #216BF4;
+    color: white;
+}
+
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #36f421;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    /* visibility: hidden; */
+    width: fit-content;
+    height: min-content;
+}
+
+.notification.show {
+    opacity: 1;
+    visibility: visible;
+}

@@ -59,4 +59,65 @@
             });
         });
 
-    
+        async function filterEmployees() {
+            const roleId = document.getElementById('roleFilter').value;
+        
+            try {
+                // Формируем URL с параметром role_id
+                const response = await fetch(`/api/users/employees${roleId ? `?role_id=${roleId}` : ''}`);
+                const employees = await response.json();
+        
+                // Очищаем текущий список сотрудников
+                const employeeList = document.querySelector('.employee-list');
+                employeeList.innerHTML = '';
+        
+                // Генерируем новый список сотрудников
+                employees.forEach(user => {
+                    const workStatus = user.work_status === 'Рабочий' && user.checkin_time
+                        ? `<span style="color: green; font-size: 12px;">●</span> Был на работе`
+                        : user.work_status === 'Выходной'
+                        ? `<span style="color: gray; font-size: 12px;">●</span> Выходной`
+                        : `<span style="color: red; font-size: 12px;">●</span> Отсутствовал`;
+                    const employeeItem = `
+                        <div class="employee-item" onclick=showUserDetails(${user.id}) data-user-id="${user.id}" data-user-id-main="${user.id}">
+                            <div class="employee-name">
+                                ${user.last_name} ${user.first_name}
+                                <div class="status">
+                                    ${workStatus}
+                                    <i class="fas fa-chevron-right"></i>
+                                </div>
+                            </div>
+                            <div class="employee-position">${user.role || 'Без должности'}</div>
+                        </div>
+                    `;
+        
+                    employeeList.innerHTML += employeeItem;
+                });
+        
+            } catch (error) {
+                console.error('Ошибка при фильтрации сотрудников:', error);
+            }
+        }
+        async function loadRoles() {
+            try {
+                const response = await fetch('/api/users/roles');  // Предполагаем, что есть эндпоинт для получения списка ролей
+                const roles = await response.json();
+        
+                const roleFilter = document.getElementById('roleFilter');
+                
+                // Заполняем список ролей
+                roles.forEach(role => {
+                    const option = document.createElement('option');
+                    option.value = role.id;  // Используем ID роли
+                    option.textContent = role.name;
+                    roleFilter.appendChild(option);
+                });
+        
+            } catch (error) {
+                console.error('Ошибка при загрузке ролей:', error);
+            }
+        }
+        window.onload = () => {
+            filterEmployees();
+            loadRoles();
+        };
