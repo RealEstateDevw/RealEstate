@@ -83,19 +83,19 @@
         <div class="option-grid">
             <div class="option-item">
                 <span class="label">Метров²</span>
-                <span class="value">180</span>
+                <input type="number" required class="value" min="1" placeholder="180">
             </div>
             <div class="option-item">
                 <span class="label">Количество комнат</span>
-                <span class="value">5</span>
+                <input type="number" required class="value" min="1" placeholder="5">
             </div>
             <div class="option-item">
                 <span class="label">Этаж</span>
-                <span class="value gray">0</span>
+                <input type="number" required class="value gray" placeholder="0">
             </div>
             <div class="option-item">
                 <span class="label">Номер квартиры</span>
-                <span class="value">98</span>
+                <input type="number" required class="value" placeholder="98">
             </div>
         </div>
 
@@ -140,12 +140,12 @@
         
     </div>
     <div class="button-row-lead">
-        <button class="previous-button" type="button">
+        <a class="previous-button" type="button" href="{{ url_for('sales_dashboard') }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
                 <path d="M26.6668 16H5.3335M5.3335 16L13.3335 8M5.3335 16L13.3335 24" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             Назад
-        </button>
+        </a>
         <button class="register-lead-button" type="submit">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
                 <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M4.3335 16C4.3335 15.4477 4.78122 15 5.3335 15H17.6668V17H5.3335C4.78122 17 4.3335 16.5523 4.3335 16Z" fill="#216BF4"/>
@@ -159,5 +159,25 @@
     
 
     <script src="/static/add-lead-scripts.js"></script>
+    <script>
+         // Список всех регионов Узбекистана
+    const regions = [
+        "Ташкент", "Каракалпакстан", "Андижанская область", "Бухарская область",
+        "Джизакская область", "Кашкадарьинская область", "Навоийская область",
+        "Наманганская область", "Самаркандская область", "Сурхандарьинская область",
+        "Сырдарьинская область", "Ферганская область", "Хорезмская область"
+    ];
+
+    // Получаем селект
+    const regionSelect = document.getElementById("regionSelect");
+
+    // Добавляем регионы в селект
+    regions.forEach(region => {
+        const option = document.createElement("option");
+        option.value = region;
+        option.textContent = region;
+        regionSelect.appendChild(option);
+    });
+    </script>
 </body>
 </html>

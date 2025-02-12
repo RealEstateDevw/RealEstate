@@ -28,6 +28,13 @@ backdrop-filter: blur(25px);
     font-weight: 700;
     color: #000;
     margin-top: 5px;
+        border: none;
+    width: 100%;
+}
+
+#regionSelect{
+    width: 50%;
+    text-align: -webkit-match-parent;
 }
 
 .value.gray {
@@ -238,4 +245,12 @@ background: rgba(245, 245, 245, 0.90);
 
 .button-row-lead{
     margin-top: 20px;
+}
+
+.error{
+    color: red;
+    font-size: 14px;
+}
+.input-error{
+    border: 1px solid red;
 }

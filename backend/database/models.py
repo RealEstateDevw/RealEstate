@@ -1,11 +1,12 @@
 from datetime import datetime
 
+from backend.api.leads.schemas import LeadState, LeadStatus
 from backend.database import Base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Time, ARRAY, Date, JSON
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Time, ARRAY, Date, JSON, Float, Enum
 from sqlalchemy.orm import relationship
+from enum import Enum as PyEnum
 
 
-# model User
 class Role(Base):
     __tablename__ = 'roles'
     id = Column(Integer, primary_key=True)
@@ -35,6 +36,7 @@ class User(Base):
     # Связи
     role = relationship('Role', back_populates='users', lazy="subquery")
     attendances = relationship("Attendance", back_populates="user", lazy='joined')
+    leads = relationship("Lead", back_populates="user")
 
 
 class Attendance(Base):
@@ -65,3 +67,53 @@ class Access(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, name='{self.user_id}')>"
+
+
+
+
+class Lead(Base):
+    __tablename__ = 'leads_prototype'
+
+    id = Column(Integer, primary_key=True)
+    full_name = Column(String, nullable=False)
+
+    # Contact info
+    phone = Column(String, nullable=False)
+    region = Column(String, nullable=False)  # г.Ташкент, г.Бухара и т.д.
+    contact_source = Column(String, nullable=False)  # Instagram, Facebook, Telegram, etc.
+
+    # Lead classification
+    status = Column(Enum(LeadStatus), nullable=False)
+    state = Column(Enum(LeadState), nullable=False)
+
+    # Property details (if applicable)
+    square_meters = Column(Integer, nullable=True)
+    rooms = Column(Integer, nullable=True)
+    floor = Column(Integer, nullable=True)
+
+    # Financial details
+    total_price = Column(Float, nullable=False)  # Предварительная сумма
+    currency = Column(String, nullable=False, default="UZS")
+    payment_type = Column(String, nullable=False)  # Рассрочка/Полная
+    monthly_payment = Column(Float, nullable=True)  # For installment plans
+    installment_period = Column(Integer, nullable=True)  # количество месяцев рассрочки
+    installment_markup = Column(Float, nullable=True)  # процент переплаты (например, 10%)
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+
+    # Relations
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user = relationship("User", back_populates="leads")
+
+    # Additional fields for lead management
+    notes = Column(String, nullable=True)  # For storing additional information
+    next_contact_date = Column(DateTime, nullable=True)
+
+    def __repr__(self):
+        return f"<Lead(id={self.id}, name='{self.full_name}')>"
+
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+

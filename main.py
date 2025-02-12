@@ -4,9 +4,10 @@ from starlette import status
 from starlette.responses import RedirectResponse
 from starlette.staticfiles import StaticFiles
 
+from backend import init_roles
 from backend.api.users.main import user_router
 from backend.api.leads.main import router as leads_router
-from backend.api.users.schemas import ROLE_REDIRECTS
+from backend.api.users.schemas import ROLE_REDIRECTS, UserRead
 from backend.core.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password
 from backend.core.deps import get_current_user, get_current_user_from_cookie
 from backend.database import Base, engine
@@ -17,8 +18,6 @@ from fastapi.templating import Jinja2Templates
 from backend.database.attendanceservice import has_user_checked_in, register_attendance
 from backend.database.userservice import get_user_by_login, get_all_users
 
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc")
 
 app.include_router(user_router)
@@ -27,6 +26,13 @@ app.include_router(leads_router)
 templates = Jinja2Templates(directory="frontend")
 app.mount("/media", StaticFiles(directory="media"), name="media")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.on_event("startup")
+def on_startup():
+    """Функция, которая выполняется при старте сервера."""
+    Base.metadata.create_all(bind=engine)  # Создание таблиц, если их нет
+    init_roles()
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -93,7 +99,12 @@ async def home(request: Request, current_user=Depends(get_current_user_from_cook
     return templates.TemplateResponse("profile.html", {"request": request, "user": current_user})
 
 
-@app.get("/dashboard/sales", response_class=HTMLResponse)
+@app.get("/user/me", response_model=UserRead)
+async def read_users_me(current_user=Depends(get_current_user_from_cookie)):
+    return current_user
+
+
+@app.get("/dashboard/sales", response_class=HTMLResponse, name="sales_dashboard")
 async def sales_dashboard(request: Request, current_user=Depends(get_current_user_from_cookie)):
     if current_user.role_id != 1:
         return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
@@ -115,7 +126,7 @@ async def add_lead(request: Request, current_user=Depends(get_current_user_from_
 
 @app.get("/dashboard/admin", response_class=HTMLResponse)
 async def admin(request: Request, current_user=Depends(get_current_user_from_cookie), all_users=Depends(get_all_users)):
-    if current_user.role.name != "admin":
+    if current_user.role.name != "Админ":
         return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
     return templates.TemplateResponse("main_admin.html",
                                       {"request": request, "user": current_user, "all_users": all_users})
@@ -123,7 +134,7 @@ async def admin(request: Request, current_user=Depends(get_current_user_from_coo
 
 @app.get("/dashboard/admin/add_user", response_class=HTMLResponse)
 async def add_user(request: Request, current_user=Depends(get_current_user_from_cookie)):
-    if current_user.role.name != "admin":
+    if current_user.role.name != "Админ":
         return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
     return templates.TemplateResponse("register-employer.html", {"request": request, "user": current_user})
 

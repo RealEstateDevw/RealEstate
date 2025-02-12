@@ -7,7 +7,7 @@ from backend.core.auth import SECRET_KEY
 from backend.database.userservice import get_user_by_login
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/token")
 
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -35,7 +35,6 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return user
 
-# dependencies.py (например, можно создать отдельный модуль или разместить внутри main.py)
 
 
 async def get_current_user_from_cookie(

@@ -1,7 +1,6 @@
-# backend/api/users/schemas.py
 from datetime import date, time
 from enum import IntEnum
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import BaseModel, EmailStr
 
 
@@ -60,6 +59,11 @@ class UserUpdate(BaseModel):
         orm_mode = True
 
 
+class RoleRead(BaseModel):
+    id: int
+    name: str
+
+
 class UserRead(BaseModel):
     id: int
     first_name: str
@@ -73,7 +77,7 @@ class UserRead(BaseModel):
     work_end_time: Optional[time] = None
     work_days: Optional[List[WorkDay]] = None
     role_id: Optional[int] = None
-    role: Optional[str] = None
+    role: Union[RoleRead, str] = None
 
     class Config:
         from_attributes = True  # чтобы можно было возвращать объекты SQLAlchemy напрямую
@@ -96,4 +100,3 @@ ROLE_REDIRECTS = {
     UserRole.MOP: "/dashboard/mop",
     UserRole.ADMIN: "/dashboard/admin",
 }
-
