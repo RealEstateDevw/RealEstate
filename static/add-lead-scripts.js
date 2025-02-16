@@ -127,6 +127,11 @@ document.getElementById("employeeForm").addEventListener("submit", async functio
         showRoleError();
         isValid = false;
     }
+    let total_price = parseFloat(document.getElementById("amountInput").value.replace(/,/g, "")) || 0;
+    let installment_period = parseInt(document.getElementById("manualMonthsInput").value) || 0;
+let installment_markup = 10;
+monthly_payment = total_price * (1 + installment_markup / 100) / installment_period;
+
     // Получаем данные из формы
     const leadData = {
         full_name: document.getElementById("fullName").value,
@@ -138,12 +143,12 @@ document.getElementById("employeeForm").addEventListener("submit", async functio
         square_meters: parseInt(document.querySelector(".option-item input[placeholder='180']").value) || null,
         rooms: parseInt(document.querySelector(".option-item input[placeholder='5']").value) || null,
         floor: parseInt(document.querySelector(".option-item input[placeholder='0']").value) || null,
-        total_price: parseFloat(document.getElementById("amountInput").value.replace(/,/g, "")) || 0, // Убираем запятые
+        total_price: total_price, // Убираем запятые
         currency: document.querySelector(".currency-button.active").getAttribute("data-currency"),
         payment_type: document.querySelector(".installment-button.active").textContent.trim(),
-        monthly_payment: null, // Можно добавить расчет
-        installment_period: parseInt(document.getElementById("manualMonthsInput").value) || null,
-        installment_markup: null, // Можно добавить расчет
+        monthly_payment: monthly_payment, // Можно добавить расчет
+        installment_period: installment_period,
+        installment_markup: installment_markup, // Можно добавить расчет
         notes: "",
         next_contact_date: null,
         user_id: currentUser.id // Получаем ID текущего пользователя
@@ -160,7 +165,9 @@ document.getElementById("employeeForm").addEventListener("submit", async functio
 
         const result = await response.json();
         if (response.ok) {
+
             alert("Лид успешно добавлен!");
+            
         } else {
             console.error("Ошибка при добавлении лида:", result);
             alert("Ошибка: " + (result.detail || "Не удалось добавить лид"));

@@ -1,0 +1,132 @@
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller CRM Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link rel="stylesheet" href="/static/mop-dashboard.css">
+</head>
+
+<body>
+    <header class="header">
+        <a href="#" class="logo">CRM</a>
+        <div class="search">
+            <button class="nav-item" onclick="toggleInactive()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M4.47721 17.0383C3.66363 18.2935 3.99941 20.0388 4.67097 23.5293C5.1544 26.0421 5.39612 27.2984 6.23364 28.1321C6.45093 28.3485 6.69405 28.5403 6.95813 28.7036C7.97593 29.3332 9.32719 29.3332 12.0297 29.3332H21.3036C24.0061 29.3332 25.3575 29.3332 26.3752 28.7036C26.6393 28.5403 26.8824 28.3485 27.0997 28.1321C27.9372 27.2984 28.1789 26.0421 28.6624 23.5293C29.3339 20.0388 29.6697 18.2935 28.8561 17.0383C28.6485 16.7179 28.3924 16.428 28.0961 16.1776C26.9348 15.1967 25.0577 15.1967 21.3036 15.1967H12.0297C8.27556 15.1967 6.39851 15.1967 5.23723 16.1776C4.94088 16.428 4.68484 16.7179 4.47721 17.0383ZM12.9269 22.9075C12.9269 22.3752 13.3835 21.9436 13.9468 21.9436H19.3864C19.9496 21.9436 20.4063 22.3752 20.4063 22.9075C20.4063 23.4397 19.9496 23.8713 19.3864 23.8713H13.9468C13.3835 23.8713 12.9269 23.4397 12.9269 22.9075Z" fill="black"/>
+                    <path opacity="0.5" d="M4.76835 16.6461C4.91036 16.4781 5.0672 16.3213 5.23731 16.1776C6.39859 15.1967 8.27564 15.1967 12.0298 15.1967H21.3037C25.0578 15.1967 26.9349 15.1967 28.0962 16.1776C28.2667 16.3217 28.4239 16.4789 28.5663 16.6476V13.0077C28.5663 11.7958 28.5663 10.7904 28.4526 9.98873C28.3326 9.14271 28.0709 8.39276 27.4453 7.77659C27.3433 7.67608 27.2355 7.58068 27.1227 7.49075C26.4403 6.94696 25.6223 6.72459 24.6963 6.62143C23.8042 6.52206 22.6803 6.52208 21.3026 6.5221H20.8323C19.5229 6.5221 19.0534 6.51448 18.6282 6.40709C18.3783 6.34401 18.1387 6.25592 17.9137 6.14503C17.5347 5.95821 17.2045 5.67682 16.277 4.85508L15.6449 4.29503C15.3794 4.05984 15.1983 3.89932 15.0042 3.75672C14.1713 3.14504 13.1571 2.77508 12.0953 2.68711C11.8481 2.66663 11.5958 2.66664 11.2182 2.66668L11.0629 2.66667C10.2087 2.66652 9.64495 2.66643 9.15544 2.74826C7.01564 3.10595 5.28531 4.6019 4.86384 6.58099C4.76796 7.03124 4.76811 7.54712 4.76833 8.29136L4.76835 16.6461Z" fill="black"/>
+                  </svg>
+                <span>Неактуальные</span>
+            </button>
+            <div class="nav-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M24 10.6667C24 15.0849 20.4183 18.6667 16 18.6667C11.5817 18.6667 8 15.0849 8 10.6667C8 6.24838 11.5817 2.66666 16 2.66666C20.4183 2.66666 24 6.24838 24 10.6667Z" fill="#FF8000"/>
+                    <path opacity="0.7" d="M18.1062 18.3865C17.4352 18.5692 16.7289 18.6667 15.9998 18.6667C12.6222 18.6667 9.73349 16.5736 8.56008 13.6136C5.16374 14.5381 2.6665 17.6441 2.6665 21.3333C2.6665 25.7517 6.24822 29.3333 10.6665 29.3333C15.0848 29.3333 18.6665 25.7517 18.6665 21.3333C18.6665 20.2927 18.4678 19.2985 18.1062 18.3865Z" fill="#00FF55"/>
+                    <path opacity="0.2" d="M18.1064 18.3861C18.468 19.2981 18.6667 20.2924 18.6667 21.3331C18.6667 23.7024 17.6367 25.8312 16 27.296C17.4153 28.5628 19.2844 29.3331 21.3333 29.3331C25.7516 29.3331 29.3333 25.7513 29.3333 21.3331C29.3333 17.6439 26.8361 14.5379 23.4397 13.6133C22.5196 15.9344 20.5447 17.7224 18.1064 18.3861Z" fill="black"/>
+                  </svg>
+                <span>Фильтрация:</span>
+                <select>
+                    <option>Все</option>
+                </select>
+            </div>
+
+            <div class="search-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"
+                    class="search-icon">
+                    <circle opacity="0.5" cx="15.3337" cy="15.3333" r="12.6667" stroke="black" stroke-width="1.5" />
+                    <path opacity="0.5" d="M26.667 26.6667L29.3337 29.3333" stroke="black" stroke-width="1.5"
+                        stroke-linecap="round" />
+                </svg>
+                <input type="text" class="searchInput" id="searchInput" placeholder="Поиск по продажнику или лиду">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+            <div class="user-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon">
+                    <path
+                        d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z" />
+                </svg>
+            </div>
+        </div>
+
+    </header>
+
+    <div class="dashboard">
+        <!-- Card 1 -->
+        <div class="card-mop">
+            <h3>Посмотреть общий отчет за сегодня</h3>
+            <a href="#" class="button">Перейти <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+                <path d="M6 3.83332L10 8.49999L6 13.1667" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg></a>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="card-mop">
+            <h3>Поступило лидов за сегодня</h3>
+            <div class="stats">
+                <span class="number">125</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33" fill="none">
+                    <path d="M29.3334 9.83334L19.4938 19.6129C18.1637 20.9351 17.4985 21.596 16.6735 21.596C15.8486 21.5959 15.1835 20.9347 13.8537 19.6123L13.5346 19.2949C12.2035 17.9713 11.5379 17.3095 10.7124 17.3099C9.88683 17.3101 9.22176 17.9724 7.89164 19.2969L2.66675 24.5M29.3334 9.83334V17.2277M29.3334 9.83334H21.8906" stroke="#00CC22" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+            <div class="previous">53 за предыдущий день</div>
+
+            </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="card-mop">
+            <h3>Отработано лидов за сегодня</h3>
+            <div class="stats">
+                <span class="number">24</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33" fill="none">
+                    <path d="M29.3332 24.5L19.4936 14.7204C18.1634 13.3983 17.4982 12.7373 16.6733 12.7374C15.8484 12.7375 15.1833 13.3987 13.8534 14.7211L13.5344 15.0384C12.2032 16.362 11.5377 17.0239 10.7121 17.0235C9.88658 17.0232 9.22152 16.3609 7.8914 15.0364L2.6665 9.83334M29.3332 24.5V17.1056M29.3332 24.5H21.8904" stroke="#FF0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+            <div class="previous">30 за предыдущий день</div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="columns">
+        <div class="column" data-status="COLD">
+            <div class="column-header" >
+                <div class="column-title">Холодные</div>
+                <div class="lead-count">0 лида</div>
+            </div>
+<div class="lead-list">
+            
+        </div>
+        </div>
+
+        <div class="column" data-status="WARM">
+            <div class="column-header" >
+                <div class="column-title">Тёплые</div>
+                <div class="lead-count">0 лида</div>
+            </div>
+            <!-- Add cards for warm leads -->
+            <div class="lead-list">
+            
+            </div>
+
+        </div>
+
+        <div class="column" data-status="HOT">
+            <div class="column-header" >
+                <div class="column-title">Горячие</div>
+                <div class="lead-count">0 лидов</div>
+            </div>
+
+            <!-- Add cards for hot leads -->
+            <div class="lead-list">
+            
+            </div>
+        </div>
+    </div>
+
+   
+    <script src="/static/mop-dashboard.js"></script>
+</body>
+
+</html>

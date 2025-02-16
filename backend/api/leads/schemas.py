@@ -1,5 +1,5 @@
-from pydantic import BaseModel, validator, Field, field_validator
-from typing import Optional, List
+from pydantic import BaseModel, Field
+from typing import Optional
 from datetime import datetime
 from enum import Enum
 
@@ -34,13 +34,12 @@ class LeadBase(BaseModel):
     payment_type: str
     monthly_payment: Optional[float] = None
     installment_period: Optional[int] = None
-    installment_markup: Optional[float] = None
+    installment_markup: Optional[float] = 10
     notes: Optional[str] = None
     next_contact_date: Optional[datetime] = None
 
     class Config:
         use_enum_values = True  # Это важно для корректной сериализации
-
 
 
 class LeadCreate(LeadBase):
@@ -91,3 +90,22 @@ class LeadSearchResponse(BaseModel):
     class Config:
         orm_mode = True
         use_enum_values = True
+
+
+class CommentBase(BaseModel):
+    text: str
+    is_internal: bool = False
+
+
+class CommentCreate(CommentBase):
+    lead_id: int
+
+
+class CommentResponse(CommentBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    author_name: str
+
+    class Config:
+        from_attributes = True

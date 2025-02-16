@@ -196,6 +196,8 @@ border-radius: 50%;
 }
 
 .column {
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);;
     background: white;
     border-radius: 30px;
     padding: 20px;
@@ -268,12 +270,12 @@ line-height: normal;
     color: #2563eb;
 }
 
-.instagram { color: #E1306C; }
-.telegram { color: #0088cc; }
-.whatsapp { color: #25D366; }
-.viber { color: #665CAC; }
-.facebook { color: #1877F2; }
-.skype { color: #00AFF0; }
+.Instagram { color: #E1306C; }
+.Telegram { color: #0088cc; }
+.Whatsapp { color: #25D366; }
+.Viber { color: #665CAC; }
+.Facebook { color: #1877F2; }
+.Skype { color: #00AFF0; }
 
 .elements-info{
 font-family: "Vela Sans GX";

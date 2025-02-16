@@ -6,7 +6,6 @@ from authlib.jose import jwt, JoseError
 from backend.core.auth import SECRET_KEY
 from backend.database.userservice import get_user_by_login
 
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/token")
 
 
@@ -36,9 +35,8 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     return user
 
 
-
 async def get_current_user_from_cookie(
-    access_token: str = Cookie(None),
+        access_token: str = Cookie(None),
 ):
     if access_token is None:
         raise HTTPException(

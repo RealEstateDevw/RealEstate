@@ -2,7 +2,8 @@ from datetime import datetime
 
 from backend.api.leads.schemas import LeadState, LeadStatus
 from backend.database import Base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Time, ARRAY, Date, JSON, Float, Enum
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Time, ARRAY, Date, JSON, Float, Enum, Text, \
+    Boolean
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 
@@ -37,6 +38,7 @@ class User(Base):
     role = relationship('Role', back_populates='users', lazy="subquery")
     attendances = relationship("Attendance", back_populates="user", lazy='joined')
     leads = relationship("Lead", back_populates="user")
+    comments = relationship("Comment", back_populates="author")
 
 
 class Attendance(Base):
@@ -64,6 +66,7 @@ class Access(Base):
     # Связи
     role = relationship('Role')
     user = relationship('User')
+
 
     def __repr__(self):
         return f"<User(id={self.id}, name='{self.user_id}')>"
@@ -111,9 +114,40 @@ class Lead(Base):
     notes = Column(String, nullable=True)  # For storing additional information
     next_contact_date = Column(DateTime, nullable=True)
 
+    messages = relationship("ChatMessage", back_populates="lead", cascade="all, delete-orphan")
+    comments = relationship("Comment", back_populates="lead")
+
     def __repr__(self):
         return f"<Lead(id={self.id}, name='{self.full_name}')>"
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads_prototype.id"))  # Связь с лидами
+    source = Column(String, nullable=False)  # 'instagram' или 'telegram'
+    message = Column(String, nullable=False)  # Текст сообщения
+    sender = Column(String, nullable=False)  # Отправитель (например, username)
+    timestamp = Column(String, nullable=False)  # Время сообщения
+
+    lead = relationship("Lead", back_populates="messages")
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(Text, nullable=False)
+    is_internal = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    lead_id = Column(Integer, ForeignKey("leads_prototype.id"))
+    author_id = Column(Integer, ForeignKey("users.id"))
+
+    lead = relationship("Lead", back_populates="comments")
+    author = relationship("User", back_populates="comments")

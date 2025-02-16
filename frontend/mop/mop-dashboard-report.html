@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller CRM Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link rel="stylesheet" href="/static/mop-dashboard.css">
+</head>
+
+<body>
+    <header class="header">
+        <a href="#" class="logo">CRM</a>
+        <div class="search">
+            <div class="nav-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M24 10.6667C24 15.0849 20.4183 18.6667 16 18.6667C11.5817 18.6667 8 15.0849 8 10.6667C8 6.24838 11.5817 2.66666 16 2.66666C20.4183 2.66666 24 6.24838 24 10.6667Z" fill="#FF8000"/>
+                    <path opacity="0.7" d="M18.1062 18.3865C17.4352 18.5692 16.7289 18.6667 15.9998 18.6667C12.6222 18.6667 9.73349 16.5736 8.56008 13.6136C5.16374 14.5381 2.6665 17.6441 2.6665 21.3333C2.6665 25.7517 6.24822 29.3333 10.6665 29.3333C15.0848 29.3333 18.6665 25.7517 18.6665 21.3333C18.6665 20.2927 18.4678 19.2985 18.1062 18.3865Z" fill="#00FF55"/>
+                    <path opacity="0.2" d="M18.1064 18.3861C18.468 19.2981 18.6667 20.2924 18.6667 21.3331C18.6667 23.7024 17.6367 25.8312 16 27.296C17.4153 28.5628 19.2844 29.3331 21.3333 29.3331C25.7516 29.3331 29.3333 25.7513 29.3333 21.3331C29.3333 17.6439 26.8361 14.5379 23.4397 13.6133C22.5196 15.9344 20.5447 17.7224 18.1064 18.3861Z" fill="black"/>
+                  </svg>
+                <span>Фильтрация:</span>
+                <select>
+                    <option>Все</option>
+                </select>
+            </div>
+
+            <div class="search-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"
+                    class="search-icon">
+                    <circle opacity="0.5" cx="15.3337" cy="15.3333" r="12.6667" stroke="black" stroke-width="1.5" />
+                    <path opacity="0.5" d="M26.667 26.6667L29.3337 29.3333" stroke="black" stroke-width="1.5"
+                        stroke-linecap="round" />
+                </svg>
+                <input type="text" class="searchInput" id="searchInput" placeholder="Поиск по продажнику или лиду">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+            <div class="user-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon">
+                    <path
+                        d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z" />
+                </svg>
+            </div>
+        </div>
+
+    </header>
+
+    <div class="columns">
+        <div class="column" data-status="SALES">
+            <div class="column-header" >
+                <div class="column-title">Продажники</div>
+            </div>
+<div class="lead-list">
+    <button class="all-report-button" type="button" >Все <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+        <path d="M9 5.5L15 12.5L9 19.5" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg></button>
+            <div class="saller-item">
+                <div class="saller-info">
+                    <div class="saller-name">Иван Иванович</div>
+                    <div class="saller-position"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+                        <rect y="0.5" width="16" height="16" rx="8" fill="#00FF55"/>
+                        </svg>Был на работе  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                        <path d="M9 5.5L15 12.5L9 19.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg></div>
+                </div>
+                <div class="lead-count">
+                    <div class="come-lead">
+                        <span>Поступило</span>
+                        <span>0</span>
+
+                    </div>
+                    <div class="come-lead">
+                        <span>Отработано</span>
+                        <span>0</span>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        </div>
+
+        <div class="column" data-status="COME">
+            <div class="column-header" >
+                <div class="column-title">Поступления</div>
+                <div class="lead-count">0 лида</div>
+            </div>
+            <!-- Add cards for warm leads -->
+            <div class="lead-list">
+                <div class="card">
+                <div class="card-header">
+                    <div class="name">Иван Иванович</div>
+                    <div class="date">01.01.2023</div>
+                </div>
+                <hr class="divider">
+                <div class="contact-info">
+                    <span class="messenger elements-info Instagram">Instagram</span>
+                    <span class="location elements-info">Москва</span>
+                    <span class="phone elements-info">+7 (999) 999-99-99</span>
+                </div>
+                <hr class="divider">
+                <div class="payment-info">Вид оплаты: Наличные</div>
+                <div class="payment-info">Предварительная сумма: 1000</div>
+                <hr class="divider">
+                <div class="whose-lead">Ответственный менеджер: Сахибов Нурмат</div>
+                <hr class="divider">
+
+                <div class="status">
+                    <div class="status-indicator">
+                        <span class="status-dot" style="background-color: #00FF55"></span>
+                        <span>Обработано</span>
+                    </div>
+                    <a href="/dashboard/lead/${lead.id}" class="open-card">Открыть карточку</a>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <div class="column" data-status="GO">
+            <div class="column-header" >
+                <div class="column-title">Отработано</div>
+                <div class="lead-count">0 лидов</div>
+            </div>
+
+            <!-- Add cards for hot leads -->
+            <div class="lead-list">
+            
+            </div>
+        </div>
+    </div>
+
+   
+    <script src="/static/mop-dashboard.js"></script>
+</body>
+
+</html>

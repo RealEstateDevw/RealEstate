@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, or_
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 from fastapi.encoders import jsonable_encoder
 
 from backend.api.leads.schemas import LeadCreate, LeadStatus, LeadState, LeadUpdate
-from backend.database.models import Lead
+from backend.database.models import Lead, User
 
 
 class LeadCRUD:
@@ -91,3 +91,32 @@ class LeadCRUD:
                 Lead.region.ilike(search_query)
             )
         ).limit(limit).all()
+
+    def combined_search(db: Session, query: str, limit: int = 10) -> List[Union[Lead, User]]:
+        """
+        Search both leads and users by the provided query.
+        """
+        search_query = f"%{query}%"
+
+        # Query Leads
+        leads = db.query(Lead).filter(
+            or_(
+                Lead.full_name.ilike(search_query),
+                Lead.phone.ilike(search_query),
+                Lead.region.ilike(search_query)
+            )
+        ).limit(limit).all()
+
+        # Query Users
+        users = db.query(User).filter(
+            or_(
+                User.first_name.ilike(search_query),
+                User.last_name.ilike(search_query),
+                User.phone.ilike(search_query),
+                User.email.ilike(search_query)
+            )
+        ).limit(limit).all()
+
+        # Combine and limit results
+        combined_results = (leads + users)[:limit]
+        return combined_results

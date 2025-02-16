@@ -100,3 +100,11 @@ ROLE_REDIRECTS = {
     UserRole.MOP: "/dashboard/mop",
     UserRole.ADMIN: "/dashboard/admin",
 }
+
+
+class UserSearchResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    phone: Optional[str]
+    email: Optional[str]

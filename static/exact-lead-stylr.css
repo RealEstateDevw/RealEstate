@@ -1,0 +1,223 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: #f5f5f7;
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+
+
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+}
+
+.client-info {
+    background-color: #f5f5f7;
+    
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.client-header {
+    color: #000;
+
+font-family: "Vela Sans GX";
+font-size: 48px;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+    margin-bottom: 20px;
+}
+
+span {
+    display: inline-flex;
+    align-items: center;
+
+    background-color: white;
+
+    
+    padding: 8px 15px;
+    border-radius: 15px;
+
+}
+
+.tag {
+    color: #FF3399;
+}
+
+.line{
+    height: 1px;
+    width: 100%;
+    background-color: #E5E5E5;
+    margin: 20px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+    font-size: 20px;
+}
+
+.info-box {
+    background-color: white;
+
+    padding: 15px;
+    border-radius: 15px;
+}
+
+
+.info-box-tag {
+    background-color: white;
+    align-items: center;
+    display: flex;
+    padding: 4px 10px;
+    justify-content: center;
+
+    border-radius: 15px;
+}
+
+.info-label {
+    color: #666;
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.info-value {
+    font-weight: 600;
+    font-size: 36px;
+}
+
+.price {
+    color: #0066FF;
+    font-size: 24px;
+    font-weight: 600;
+    margin-top: 20px;
+}
+
+.price-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    margin-top: 20px;
+}
+
+.price-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: black;
+}
+
+.price-main {
+    font-size: 40px;
+    font-weight: bold;
+    color: #1877F2; /* Синий цвет */
+    margin-top: 4px;
+}
+
+.currency {
+    font-size: 20px;
+}
+
+.divider {
+    border: none;
+    height: 1px;
+    background: #ddd;
+    margin: 12px 0;
+}
+
+.price-subtitle {
+    font-size: 20px;
+    color: #555;
+}
+
+.price-monthly {
+    font-size: 40px;
+    font-weight: bold;
+    margin-top: 4px;
+}
+
+.months {
+    font-size: 16px;
+    color: black;
+}
+.chat-section {
+    background-color: #f5f5f7;
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.message {
+    background-color: #F5F5F7;
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    max-width: 80%;
+}
+
+.message.sent {
+    background-color: #0066FF;
+    color: white;
+    margin-left: auto;
+}
+
+.time {
+    font-size: 12px;
+    color: #666;
+    text-align: right;
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.action-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border-radius: 20px;
+    background: #FFF;
+    
+    backdrop-filter: blur(25px);
+    cursor: pointer;
+    text-align: center;
+}
+
+
+.massenger-info{
+    color: #000;
+
+font-family: "Vela Sans GX";
+font-size: 48px;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+opacity: 0.5;
+}
