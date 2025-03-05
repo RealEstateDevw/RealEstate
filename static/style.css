@@ -7,67 +7,134 @@
 
         body {
             background-color: #f8f9fa;
-            background: url("media/Фото 1.png") lightgray 50% / cover no-repeat;
+
+            padding: 20px;
         }
+        a {
+            text-decoration: none;
+            color: #ffffff;
+         }
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-
-            margin-bottom: 20px;
         }
-
+        
         .logo {
             color: #0066FF;
             font-size: 48px;
             font-weight: 600;
             text-decoration: none;
         }
-
+        
         .search-container {
             display: flex;
             align-items: center;
             gap: 15px;
                 width: 80%;
-    max-width: 500px;
-    background-color: #f0f0f0;
-    padding: 10px 20px;
-    border-radius: 50px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .search-bar {
-            border: none;
-    padding: 12px;
-    width: 500px;
-    border-radius: 50px;
+        max-width: 500px;
         background-color: #f0f0f0;
-
-    color: rgba(0, 0, 0, 0.50);
-    leading-trim: both;
-    text-edge: cap;
-    font-family: "Vela Sans GX";
-    font-size: 24px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: normal;
+        padding: 10px 20px;
+        border-radius: 50px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-.search{
-display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 15px;
-}
-.user-icon{
- display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 5rem;
-    width: 5rem;
-    background-color: #f0f0f0;
-    border-radius: 50%;
-}
+        
+        .searchInput {
+            border: none;
+        padding: 12px;
+        width: 500px;
+        border-radius: 50px;
+        background-color: #f0f0f0;
+        
+        color: rgba(0, 0, 0, 0.50);
+        
+        font-family: "Vela Sans GX";
+        font-size: 24px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: normal;
+        }
+        .search{
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 15px;
+        }
+        .searchInput:focus {
+            outline: none;
+        
+        }
+        
+        
+        
+        .search-results {
+            position: absolute;
+            top: 105px;
+        
+            background-color: #f0f0f0;
+            width: 25%;
+        
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            padding: 10px;
+            z-index: 1;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            gap: 20px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .result-item:hover {
+            background-color: #e0e7ff;
+        }
+        
+        .result-name {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .result-role {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #f0f4ff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a73e8;
+            width: 35%;
+            max-width: 185px;
+        }
+        
+        .result-role-icon {
+            width: 20px;
+            height: 20px;
+        }
+        
+        
+        .user-icon{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 5rem;
+        width: 5rem;
+        background-color: #f0f0f0;
+        border-radius: 50%;
+        }
         .user-icon svg{
             width: 40px;
             height: 40px;
@@ -79,6 +146,35 @@ display: flex;
             height: 32px;
             background: #0066FF;
             border-radius: 50%;
+        }
+        
+        .register-btn {
+            background-color: #1a73e8;
+            color: white;
+        
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+        
+        
+            border-radius: 50px;
+            border: none;
+            padding: 23px 24px 23px 24px;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+        
+        }
+        
+        .register-btn:hover {
+            background-color: #216BF4;
+        }
+        
+        .register-btn a {
+            font-size: 24px;
+            font-weight: 600;
+        
         }
 
         .main-content {
@@ -310,8 +406,9 @@ backdrop-filter: blur(25px);
         }
 
         .image-box {
-            flex: 1;
-            border-radius: 35px;
+            flex: 1 0 0;
+            max-height: 55px;
+            border-radius: 57px;
             overflow: hidden;
         }
 

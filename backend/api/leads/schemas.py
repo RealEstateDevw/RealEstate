@@ -11,12 +11,12 @@ class LeadStatus(str, Enum):
 
 
 class LeadState(str, Enum):
-    POSTPONED = "POSTPONED"
-    IN_PROCESSING = "IN_PROCESSING"
+    NEW = "NEW"
+    PROCESSED = "PROCESSED"
     IN_WORK = "IN_WORK"
     SENT = "SENT"
     WAITING_RESPONSE = "WAITING_RESPONSE"
-    DECLINED = "DECLINED"
+    CLOSED = "CLOSED"
 
 
 class LeadBase(BaseModel):
@@ -109,3 +109,6 @@ class CommentResponse(CommentBase):
 
     class Config:
         from_attributes = True
+
+
+

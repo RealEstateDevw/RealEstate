@@ -8,8 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../static/main_admin_style.css">
-    <link rel="stylesheet" href="../static/modal-content.css">
+    <link rel="stylesheet" href="/static/main_admin_style.css">
+    <link rel="stylesheet" href="/static/modal-content.css">
 
 </head>
 
@@ -498,7 +498,7 @@
 
             const roleElement = document.querySelector('.text-profile.blue');
             if (roleElement) {
-                roleElement.textContent = user.role || '';
+                roleElement.textContent = user.role.name || '';
             }
 
             // Функция для обновления полей

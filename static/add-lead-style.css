@@ -225,6 +225,7 @@ background: #FEFEFE;
 }
 
 .previous-button, .register-lead-button{
+    color: #000;
     display: flex;
 padding: 29px 30px;
 align-items: center;

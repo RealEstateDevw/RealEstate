@@ -61,6 +61,10 @@ justify-content: flex-end;
 align-items: center;
 gap: 15px;
 }
+.searchInput:focus {
+    outline: none;
+
+}
 
 
 
@@ -69,6 +73,7 @@ gap: 15px;
     top: 105px;
 
     background-color: #f0f0f0;
+    width: 25%;
 
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
@@ -111,6 +116,8 @@ gap: 15px;
     font-size: 14px;
     font-weight: 500;
     color: #1a73e8;
+    width: 35%;
+    max-width: 185px;
 }
 
 .result-role-icon {
@@ -198,7 +205,7 @@ border-radius: 50%;
 .column {
     overflow-y: auto;
     max-height: calc(100vh - 200px);;
-    background: white;
+
     border-radius: 30px;
     padding: 20px;
     display: flex;
@@ -239,6 +246,34 @@ align-self: stretch;
 
 border-radius: 20px;
 background: #FFF;
+}
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: move;
+}
+
+.card.dragging {
+    opacity: 0.5;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Тень на перетаскиваемую карточку */
+    transform: scale(1.02); /* Немного увеличиваем размер */
+}
+
+/* Стили для колонок при наведении (drag-over) */
+.column.drag-over {
+    border: 2px dashed #2196F3; /* Обводка при наведении */
+    background-color: #f5faff; /* Лёгкий фон для наглядности */
+    transition: border 0.3s ease, background-color 0.3s ease;
+}
+
+/* Анимация для сброса карточки */
+@keyframes dropAnimation {
+    0% { transform: scale(1.1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.card.animate-drop {
+    animation: dropAnimation 0.5s ease-out;
 }
 
 .card-header {

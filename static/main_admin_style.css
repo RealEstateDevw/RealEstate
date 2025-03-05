@@ -18,6 +18,9 @@ a {
 
 
 }
+.dynamicInput{
+    text-align: right;
+}
 
 button {
     border: none;

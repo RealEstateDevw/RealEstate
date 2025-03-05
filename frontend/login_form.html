@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/login_form.css">
+    <title>Document</title>
+</head>
+<body>
+    <div class="logo">CRM Logo</div>
+    
+    <form action="/login" method="post" class="login-container">
+        <div class="login-title">Вход в аккаунт</div>
+        
+        <div class="input-group">
+            <label for="Логин:" class="input-label">Логин: 
+                <input type="text" class="input-field"  id="username" name="username" required>
+            </label>
+           
+        </div>
+        
+        <div class="input-group passw  ord-container">
+            
+            <label for="" class="input-label">Пароль:
+                <input type="password" class="input-field"  id="passwordField" name="password" required>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" onclick="togglePasswordVisibility()" style="
+                right: 45px;
+                position: absolute;
+            ">
+                    <path opacity="0.5" d="M2 12C2 13.6394 2.42496 14.1915 3.27489 15.2957C4.97196 17.5004 7.81811 20 12 20C16.1819 20 19.028 17.5004 20.7251 15.2957C21.575 14.1915 22 13.6394 22 12C22 10.3606 21.575 9.80853 20.7251 8.70433C19.028 6.49956 16.1819 4 12 4C7.81811 4 4.97196 6.49956 3.27489 8.70433C2.42496 9.80853 2 10.3606 2 12Z" fill="black"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.25 12C8.25 9.92893 9.92893 8.25 12 8.25C14.0711 8.25 15.75 9.92893 15.75 12C15.75 14.0711 14.0711 15.75 12 15.75C9.92893 15.75 8.25 14.0711 8.25 12ZM9.75 12C9.75 10.7574 10.7574 9.75 12 9.75C13.2426 9.75 14.25 10.7574 14.25 12C14.25 13.2426 13.2426 14.25 12 14.25C10.7574 14.25 9.75 13.2426 9.75 12Z" fill="black"/>
+                  </svg>
+            </label>
+           
+        </div>
+        
+        <div class="button-container">
+            <button class="back-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                    <path d="M40 24H8M8 24L20 12M8 24L20 36" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                Назад
+            </button>
+            <button class="login-button" type="submit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                    <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M6.5 24C6.5 23.1716 7.17158 22.5 8 22.5H26.5V25.5H8C7.17158 25.5 6.5 24.8284 6.5 24Z" fill="#216BF4"/>
+                    <path d="M26.5 25.5V36C26.5 36.6068 26.8654 37.1536 27.426 37.3858C27.9864 37.618 28.6316 37.4898 29.0606 37.0608L41.0606 25.0608C41.342 24.7794 41.5 24.3978 41.5 24C41.5 23.6022 41.342 23.2206 41.0606 22.9394L29.0606 10.9394C28.6316 10.5104 27.9864 10.3821 27.426 10.6142C26.8654 10.8464 26.5 11.3934 26.5 12V22.5V25.5Z" fill="#216BF4"/>
+                  </svg>
+                Войти в аккаунт
+
+            </button>
+        
+      </form>
+
+      <script>
+         function togglePasswordVisibility() {
+            const passwordField = document.getElementById('passwordField');
+
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+            } else {
+                passwordField.type = 'password';
+            }
+        }
+      </script>
+</body>
+</html>

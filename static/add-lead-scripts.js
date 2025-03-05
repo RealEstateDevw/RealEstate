@@ -139,7 +139,7 @@ monthly_payment = total_price * (1 + installment_markup / 100) / installment_per
         region: document.getElementById("regionSelect").value,
         contact_source: document.getElementById("selectedRole").textContent.trim(), // Источник лида
         status: "COLD",  // Выбор статуса
-        state: "POSTPONED",    // Выбор состояния
+        state: "NEW",    // Выбор состояния
         square_meters: parseInt(document.querySelector(".option-item input[placeholder='180']").value) || null,
         rooms: parseInt(document.querySelector(".option-item input[placeholder='5']").value) || null,
         floor: parseInt(document.querySelector(".option-item input[placeholder='0']").value) || null,
@@ -155,7 +155,8 @@ monthly_payment = total_price * (1 + installment_markup / 100) / installment_per
     };
 
     try {
-        const response = await fetch("/api/leads/", {
+        // 1. Создаём лид
+        const leadResponse = await fetch("/api/leads/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -163,15 +164,92 @@ monthly_payment = total_price * (1 + installment_markup / 100) / installment_per
             body: JSON.stringify(leadData),
         });
 
-        const result = await response.json();
-        if (response.ok) {
-
-            alert("Лид успешно добавлен!");
-            
-        } else {
-            console.error("Ошибка при добавлении лида:", result);
-            alert("Ошибка: " + (result.detail || "Не удалось добавить лид"));
+        const leadResult = await leadResponse.json();
+        if (!leadResponse.ok) {
+            console.error("Ошибка при добавлении лида:", leadResult);
+            alert("Ошибка: " + (leadResult.detail || "Не удалось добавить лид"));
+            return;
         }
+
+        const leadId = leadResult.id; // Получаем ID созданного лида
+
+        // 2. Если это рассрочка, создаём план платежей и первоначальный платеж
+        if (leadData.payment_type === "Рассрочка" && leadData.installment_period) {
+            // Создаём план рассрочки (если API поддерживает InstallmentPlan)
+            const installmentPlanData = {
+                lead_id: leadId,
+                total_amount: leadData.total_price,
+                number_of_payments: leadData.installment_period,
+                start_date: new Date().toISOString()
+            };
+
+            const installmentPlanResponse = await fetch("/api/finance/installments/plan", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(installmentPlanData),
+            });
+
+            const installmentPlanResult = await installmentPlanResponse.json();
+            if (!installmentPlanResponse.ok) {
+                console.error("Ошибка при создании плана рассрочки:", installmentPlanResult);
+                alert("Ошибка: Не удалось создать план рассрочки");
+                return;
+            }
+
+            // Создаём первоначальный платеж (initial payment)
+            const initialPaymentData = {
+                lead_id: leadId,
+                amount: leadData.monthly_payment,
+                due_date: new Date().toISOString(),
+                payment_type: "installment"
+            };
+
+            const initialPaymentResponse = await fetch("/api/finance/payments/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(initialPaymentData),
+            });
+
+            const initialPaymentResult = await initialPaymentResponse.json();
+            if (!initialPaymentResponse.ok) {
+                console.error("Ошибка при создании первоначального платежа:", initialPaymentResult);
+                alert("Ошибка: Не удалось создать первоначальный платеж");
+                return;
+            }
+        }
+        // 3. Если это единовременный платеж, создаём полный платеж
+        else if (leadData.payment_type === "Единовременно") {
+            const fullPaymentData = {
+                lead_id: leadId,
+                amount: leadData.total_price,
+                due_date: new Date().toISOString(),
+                payment_type: "full"
+            };
+
+            const fullPaymentResponse = await fetch("/api/finance/payments/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(fullPaymentData),
+            });
+
+            const fullPaymentResult = await fullPaymentResponse.json();
+            if (!fullPaymentResponse.ok) {
+                console.error("Ошибка при создании полного платежа:", fullPaymentResult);
+                alert("Ошибка: Не удалось создать полный платеж");
+                return;
+            }
+        }
+
+        alert("Лид успешно добавлен!");
+        // Можно добавить сброс формы или перенаправление
+        document.getElementById("employeeForm").reset();
+
     } catch (error) {
         console.error("Ошибка сети:", error);
         alert("Ошибка сети! Проверьте подключение к серверу.");

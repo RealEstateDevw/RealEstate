@@ -6,28 +6,19 @@
     <title>CRM</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="stylesheet" href="static/style.css">
-
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+    body {
+        background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+        transition: background 0.5s ease;
+    }
+</style>
 </head>
 <body>
-    <header class="header">
-        <a href="#" class="logo">CRM</a>
-        <div class="search">
-        <div class="search-container">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" class="search-icon">
-  <circle opacity="0.5" cx="15.3337" cy="15.3333" r="12.6667" stroke="black" stroke-width="1.5"/>
-  <path opacity="0.5" d="M26.667 26.6667L29.3337 29.3333" stroke="black" stroke-width="1.5" stroke-linecap="round"/>
-</svg>
-            <input type="text" class="search-bar" placeholder="Поиск по продажнику или лиду">
-
-        </div>
-            <div class="user-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon">
-            <path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z"/>
-        </svg>
-</div>
-            </div>
-    </header>
+    {% include 'partials/header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
 
     <main class="main-content">
         <div class="profile-header">
@@ -78,23 +69,23 @@
             </div>
 
             <h2 class="section-title" style="margin-top: 24px;">Темы</h2>
-           <div class="container-theme">
-        <!-- Текст и чекбокс -->
+            <div class="container-theme">
+        <!-- Текст и чекбокс для "Без фона" -->
         <div class="text-checkbox">
             <span>Без фона</span>
-            <input type="checkbox" checked>
+            <input type="checkbox" id="noBackground" {% if not user.background_theme %}checked{% endif %}>
         </div>
 
         <!-- Контейнер изображений -->
         <div class="images-container">
             <div class="image-box">
-                <img src="media/Фото 1.png" alt="Nature 1">
+                <img src="/static/media/unsplash_2mKYEVGA4jE.png" alt="Nature 1" data-theme="/static/media/unsplash_2mKYEVGA4jE.png">
             </div>
             <div class="image-box">
-                <img src="media/Фото 1.png" alt="Nature 2">
+                <img src="/static/media/unsplash_BGXhuJIbx78.png" alt="Nature 2" data-theme="/static/media/unsplash_BGXhuJIbx78.png"> <!-- Укажи реальный путь -->
             </div>
             <div class="image-box">
-                <img src="media/Фото 1.png" alt="Nature 3">
+                <img src="/static/media/unsplash_XHEWVJVHr6g.png" alt="Nature 3" data-theme="/static/media/unsplash_XHEWVJVHr6g.png"> <!-- Укажи реальный путь -->
             </div>
         </div>
     </div>
@@ -128,5 +119,76 @@
             </div>
         </section>
     </main>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const noBackgroundCheckbox = document.getElementById("noBackground");
+        const imageBoxes = document.querySelectorAll(".image-box img");
+
+        // Устанавливаем текущую тему при загрузке
+        const currentTheme = "{% if user.background_theme %}{{ user.background_theme }}{% else %}none{% endif %}";
+        if (currentTheme === "none") {
+            noBackgroundCheckbox.checked = true;
+            imageBoxes.forEach(img => img.classList.remove("selected"));
+        } else {
+            imageBoxes.forEach(img => {
+                if (img.getAttribute("data-theme") === currentTheme) {
+                    img.classList.add("selected");
+                } else {
+                    img.classList.remove("selected");
+                }
+            });
+        }
+
+        // Обработчик для чекбокса "Без фона"
+        noBackgroundCheckbox.addEventListener("change", async (e) => {
+            const newTheme = e.target.checked ? null : ""; // null для "без фона", пустая строка для дефолтного фона
+            await updateBackgroundTheme(newTheme);
+        });
+
+        // Обработчик для выбора изображения
+        imageBoxes.forEach(img => {
+            img.addEventListener("click", async () => {
+                const newTheme = img.getAttribute("data-theme");
+                noBackgroundCheckbox.checked = false; // Снимаем галочку "Без фона"
+                await updateBackgroundTheme(newTheme);
+                // Обновляем стили выбранного изображения
+                imageBoxes.forEach(i => i.classList.remove("selected"));
+                img.classList.add("selected");
+            });
+        });
+
+
+        // Функция для отправки запроса на обновление темы
+        async function updateBackgroundTheme(theme) {
+
+            try {
+                const response = await fetch("/api/users/update_user?user_id={{ user.id }}", {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ background_theme: theme })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    // Перезагружаем страницу или обновляем фон динамически (опционально)
+                    window.location.reload(); // Или используй JavaScript для динамического изменения фона
+                } else {
+                    showNotification("Ошибка: " + (result.detail || "Не удалось обновить тему"), "error");
+                }
+            } catch (error) {
+                console.error("Ошибка сети:", error);
+                showNotification("Ошибка сети! Проверьте подключение к серверу.", "error");
+            }
+        }
+
+        // Функция уведомления (предполагается, что она уже существует)
+        
+    });
+</script>
+<script src="/static/search-lead-scripts.js">
+
+</script>
 </body>
 </html>

@@ -4,6 +4,13 @@
     align-items: center;
 
 }
+body{
+    margin: 0;
+}
+
+body{
+    padding: 20px;
+}
 
 a {
     text-decoration: none;
@@ -199,12 +206,13 @@ ul#dropdownList {
     border-radius: 12px;
     font-size: 16px;
     min-width: 100px;
+    text-align: right;
 }
 
 .section-title {
     font-size: 24px;
     font-weight: 600;
-    margin-bottom: 20px;
+
 }
 
 .profile-form-info {
@@ -232,7 +240,29 @@ flex: 1 0 0;
 
 border-radius: 57px;
 background: #FFF;
+border: none;
 }
+.wait-for-payment{
+    display: flex;
+    background: #FFF;
+
+padding: 17px 20px;
+justify-content: space-between;
+align-items: center;
+flex: 1 0 0;
+border-radius: 57px;
+}
+.button-group{
+    display: flex;
+    gap: 10px;
+
+    justify-content: space-between;
+    align-items: center;
+    flex: 1 0 0;
+    
+    border-radius: 57px;
+}
+
 .password-input{
     background: transparent;
     border: none;
@@ -296,3 +326,21 @@ backdrop-filter: blur(25px);
         background-color: rgba(255, 0, 0, 0.3);
     }
 }
+
+.check-for-payment{
+    display: flex;
+    width: 475px;
+min-width: 220px;
+padding: 20px;
+flex-direction: column;
+justify-content: space-between;
+align-items: flex-start;
+
+border-radius: 20px;
+background: #FFF;
+
+backdrop-filter: blur(25px);
+}
+
+
+

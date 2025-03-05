@@ -1,0 +1,102 @@
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller CRM Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link rel="stylesheet" href="/static/mop-dashboard.css">
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+
+        .card{
+            cursor: default;
+        }
+
+        .card.overdue {
+  border: 2px solid #ff0000; /* Красная рамка для карточки */
+}
+
+.name.overdue-name {
+  color: #ff0000; /* Красный цвет для имени */
+}
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <a href="#" class="logo">CRM</a>
+        <div class="search">
+            <div class="nav-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M9.27992 2.66666C9.83661 2.66666 10.2879 3.07994 10.2879 3.58974V5.45176C11.182 5.43588 12.1842 5.43588 13.3119 5.43588H18.6878C19.8154 5.43588 20.8177 5.43588 21.7118 5.45176V3.58974C21.7118 3.07994 22.163 2.66666 22.7197 2.66666C23.2765 2.66666 23.7277 3.07994 23.7277 3.58974V5.53343C25.6622 5.67528 26.9321 6.02343 27.8652 6.87783C28.7981 7.73222 29.1782 8.89518 29.3332 10.6667V12H2.6665V10.6667C2.82141 8.89518 3.20157 7.73222 4.13456 6.87783C5.06756 6.02343 6.33748 5.67528 8.27192 5.53343V3.58974C8.27192 3.07994 8.72321 2.66666 9.27992 2.66666Z" fill="#216BF4"/>
+                    <path opacity="0.5" d="M29.3336 18.6667V16C29.3336 14.8813 29.3166 12.887 29.2994 12H2.67471C2.65751 12.887 2.67442 14.8813 2.67442 16V18.6667C2.67442 23.6949 2.67442 26.2092 4.23607 27.7712C5.79774 29.3333 8.31118 29.3333 13.3381 29.3333H18.67C23.6968 29.3333 26.2102 29.3333 27.772 27.7712C29.3336 26.2092 29.3336 23.6949 29.3336 18.6667Z" fill="#216BF4"/>
+                    <path d="M24 22C24 23.1045 23.1045 24 22 24C20.8955 24 20 23.1045 20 22C20 20.8955 20.8955 20 22 20C23.1045 20 24 20.8955 24 22Z" fill="#216BF4"/>
+                  </svg>
+            </div>
+
+            <div class="search-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"
+                    class="search-icon">
+                    <circle opacity="0.5" cx="15.3337" cy="15.3333" r="12.6667" stroke="black" stroke-width="1.5" />
+                    <path opacity="0.5" d="M26.667 26.6667L29.3337 29.3333" stroke="black" stroke-width="1.5"
+                        stroke-linecap="round" />
+                </svg>
+                <input type="text" class="searchInput" id="searchInput" placeholder="Поиск по сотруднику или выплате">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+            <div class="user-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon">
+                    <path
+                        d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z" />
+                </svg>
+            </div>
+        </div>
+
+    </header>
+
+    
+
+    <div class="columns">
+  <div class="column" data-status="SALES">
+    <div class="column-header">
+      <div class="column-title">Продажники</div>
+    </div>
+    <div class="lead-list">
+      <button class="all-report-button" type="button">
+        Все
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+          <path d="M9 5.5L15 12.5L9 19.5" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <!-- Список продавцов будет добавлен динамически -->
+    </div>
+  </div>
+
+  <div class="column" data-status="installment">
+    <div class="column-header">
+      <div class="column-title">Рассрочка</div>
+      <div class="lead-count">0</div>
+    </div>
+    <div class="lead-list"></div>
+  </div>
+
+  <div class="column" data-status="paid">
+    <div class="column-header">
+      <div class="column-title">Оплачено</div>
+      <div class="lead-count">0</div>
+    </div>
+    <div class="lead-list"></div>
+  </div>
+</div>
+    
+   <script src="/static/finance-scripts-all.js"></script>
+
+</body>
+
+</html>

@@ -45,7 +45,7 @@ def add_user(user_data: UserCreate) -> User:
                 work_days=work_days_list,
                 # Используем уже вычисленный захешированный пароль
                 hashed_password=user_data.hashed_password,
-                role_id=1
+                role_id=user_data.role_id
             )
             db.add(new_user)
             db.commit()
@@ -91,9 +91,10 @@ def is_work_day(user) -> bool:
     # Поиск текущего дня в расписании
     for day in user.work_days:
         if day.get("name") == today_name:
+
             return day.get("active", False)
     # Если расписание не содержит запись для текущего дня, можно считать его выходным
-    return False
+    return True
 
 
 def is_user_at_work(user_id: int) -> bool:
@@ -110,7 +111,7 @@ def is_user_at_work(user_id: int) -> bool:
         today = date.today()
         attendance = db.query(Attendance).filter(Attendance.user_id == user_id,
                                                  Attendance.date == today).first()
-        if attendance and attendance.check_in and not attendance.check_out:
+        if attendance and attendance.check_in:
             return True
         return False
 
@@ -130,13 +131,14 @@ def get_all_users() -> List[dict]:
                          "work_end_time": user.work_end_time.strftime("%H:%M"),
                          "birth_date": user.birth_date,
                          "login": user.login,
-                         "role": user.role.name,
+                         "role": user.role,
                          "phone": user.phone,
                          "email": user.email,
                          "company": user.company,
-                         "work_status": "Рабочий" if is_work_day(user) else "Выходной",
+                         "work_status": "Выходной" if is_work_day(user) else "Рабочий",
                          "checkin_time": is_user_at_w,
                          "registration_date": user.reg_date.strftime("%d.%m.%Y"),
+                         "background_theme": user.background_theme
                          }
             # Вычисляем статус
             users_data.append(user_dict)
@@ -189,7 +191,11 @@ def add_role(name: str) -> Role:
 def get_user_by_login(login: str) -> User:
     with next(get_db()) as db:
         """Получает пользователя по логину."""
-        return db.query(User).filter(User.login == login).first()
+        user = db.query(User).filter(User.login == login).first()
+        # user.last_login = datetime.utcnow()
+        # db.commit()
+        # db.refresh(user)
+        return user
 
 
 def register_attendance(user_id: int, action: str) -> 'Attendance':
@@ -251,11 +257,11 @@ def get_by_role_employees(role_id: int) -> List[User]:
                          "work_end_time": user.work_end_time.strftime("%H:%M"),
                          "birth_date": user.birth_date,
                          "login": user.login,
-                         "role": user.role.name,
+                         "role": user.role,
                          "phone": user.phone,
                          "email": user.email,
                          "company": user.company,
-                         "work_status": "Рабочий" if is_work_day(user) else "Выходной",
+                         "work_status": "Выходной" if is_work_day(user) else "Рабочий",
                          "checkin_time": is_user_at_w,
                          "registration_date": user.reg_date.strftime("%d.%m.%Y"),
                          }

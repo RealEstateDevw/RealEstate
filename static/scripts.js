@@ -87,7 +87,7 @@
                                     <i class="fas fa-chevron-right"></i>
                                 </div>
                             </div>
-                            <div class="employee-position">${user.role || 'Без должности'}</div>
+                            <div class="employee-position">${user.role.name || 'Без должности'}</div>
                         </div>
                     `;
         
@@ -100,7 +100,7 @@
         }
         async function loadRoles() {
             try {
-                const response = await fetch('/api/users/roles');  // Предполагаем, что есть эндпоинт для получения списка ролей
+                const response = await fetch('/api/users/roles');
                 const roles = await response.json();
         
                 const roleFilter = document.getElementById('roleFilter');

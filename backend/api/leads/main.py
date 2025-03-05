@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Query, Depends, HTTPException
 from typing import List, Optional
 from sqlalchemy.orm import Session
@@ -7,11 +9,13 @@ from backend.api.leads.schemas import LeadSearchResponse, LeadInDB, LeadUpdate, 
 from backend.core.deps import get_current_user_from_cookie
 from backend.database import get_db
 from backend.database.models import Comment, User
-from backend.database.sales_service.crud import LeadCRUD
+from backend.database.sales_service.crud import LeadCRUD, LeadStatisticsService, InactiveLeadsService, LeadFilterService
 
 router = APIRouter(prefix="/api/leads")
 
 lead_crud = LeadCRUD()
+
+
 
 
 @router.get("/search", response_model=List[LeadSearchResponse])
@@ -28,11 +32,24 @@ async def search_leads(
     return results
 
 
+@router.get("/inactive")
+async def get_inactive_leads(db: Session = Depends(get_db)):
+    service = InactiveLeadsService(db)
+    return service.get_inactive_leads()
+
+
+@router.get("/filter")
+async def filter_leads(
+        user_id: Optional[int] = Query(None),
+        db: Session = Depends(get_db)
+):
+    service = LeadFilterService(db)
+    return service.get_filtered_leads(user_id)
+
+
 @router.post("/", response_model=LeadInDB)
 async def create_lead(lead: LeadCreate, db: Session = Depends(get_db)):
-    print(lead.monthly_payment, lead.installment_markup)
     return lead_crud.create_lead(db, lead)
-
 
 
 @router.get("/{lead_id}", response_model=LeadInDB)
@@ -116,3 +133,9 @@ async def create_comment(comment: CommentCreate, db: Session = Depends(get_db),
     db_comment.author_name = db_comment.author.first_name
 
     return db_comment
+
+
+@router.get("/lead-statistics/daily")
+async def get_daily_statistics(db: Session = Depends(get_db)):
+    service = LeadStatisticsService(db)
+    return service.get_daily_statistics()

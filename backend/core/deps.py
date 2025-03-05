@@ -35,6 +35,8 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     return user
 
 
+
+
 async def get_current_user_from_cookie(
         access_token: str = Cookie(None),
 ):

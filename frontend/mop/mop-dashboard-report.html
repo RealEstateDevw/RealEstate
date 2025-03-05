@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="/static/sales-dashboard-style.css">
     <link rel="stylesheet" href="/static/mop-dashboard.css">
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+    </style>
 </head>
 
 <body>
@@ -53,86 +59,37 @@
                 <div class="column-title">Продажники</div>
             </div>
 <div class="lead-list">
-    <button class="all-report-button" type="button" >Все <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+    <button class="all-report-button selected" type="button" >Все <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
         <path d="M9 5.5L15 12.5L9 19.5" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg></button>
-            <div class="saller-item">
-                <div class="saller-info">
-                    <div class="saller-name">Иван Иванович</div>
-                    <div class="saller-position"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-                        <rect y="0.5" width="16" height="16" rx="8" fill="#00FF55"/>
-                        </svg>Был на работе  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
-                        <path d="M9 5.5L15 12.5L9 19.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg></div>
-                </div>
-                <div class="lead-count">
-                    <div class="come-lead">
-                        <span>Поступило</span>
-                        <span>0</span>
-
-                    </div>
-                    <div class="come-lead">
-                        <span>Отработано</span>
-                        <span>0</span>
-
-                    </div>
-                </div>
-
-            </div>
+            
         </div>
         </div>
 
-        <div class="column" data-status="COME">
-            <div class="column-header" >
+        <div class="column" data-status="INCOMING">
+            <div class="column-header">
                 <div class="column-title">Поступления</div>
                 <div class="lead-count">0 лида</div>
             </div>
-            <!-- Add cards for warm leads -->
             <div class="lead-list">
-                <div class="card">
-                <div class="card-header">
-                    <div class="name">Иван Иванович</div>
-                    <div class="date">01.01.2023</div>
-                </div>
-                <hr class="divider">
-                <div class="contact-info">
-                    <span class="messenger elements-info Instagram">Instagram</span>
-                    <span class="location elements-info">Москва</span>
-                    <span class="phone elements-info">+7 (999) 999-99-99</span>
-                </div>
-                <hr class="divider">
-                <div class="payment-info">Вид оплаты: Наличные</div>
-                <div class="payment-info">Предварительная сумма: 1000</div>
-                <hr class="divider">
-                <div class="whose-lead">Ответственный менеджер: Сахибов Нурмат</div>
-                <hr class="divider">
-
-                <div class="status">
-                    <div class="status-indicator">
-                        <span class="status-dot" style="background-color: #00FF55"></span>
-                        <span>Обработано</span>
-                    </div>
-                    <a href="/dashboard/lead/${lead.id}" class="open-card">Открыть карточку</a>
-                </div>
+                <!-- Cards will be dynamically inserted here -->
             </div>
         </div>
-        </div>
-
-        <div class="column" data-status="GO">
-            <div class="column-header" >
+    
+        <div class="column" data-status="PROCESSED">
+            <div class="column-header">
                 <div class="column-title">Отработано</div>
                 <div class="lead-count">0 лидов</div>
             </div>
-
-            <!-- Add cards for hot leads -->
             <div class="lead-list">
-            
+                <!-- Cards will be dynamically inserted here -->
             </div>
         </div>
     </div>
 
    
-    <script src="/static/mop-dashboard.js"></script>
+    <script src="/static/mop-dashboard-main.js"></script>
+    <script src="/static/mop-dashboard-report.js"></script>
 </body>
 
 </html>

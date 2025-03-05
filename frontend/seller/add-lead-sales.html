@@ -9,20 +9,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/register-employer-style.css">
     <link rel="stylesheet" href="/static/add-lead-style.css">
+    <link rel="stylesheet" href="/static/sales-dashboard-style.css">
 
+    <style>
+    body {
+        background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+        transition: background 0.5s ease;
+    }
+</style>
 </head>
 <body>
-    <header class="header">
-        <a href="#" class="logo">Main Admin</a>
-        <div class="search">
-            <div class="user-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon">
-                    <path
-                        d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z" />
-                </svg>
-            </div>
-        </div>
-    </header>
+    <div id="notification" class="notification" style="display: none;">
+        <span id="notification-message"></span>
+        <button id="close-notification" class="close-btn">&times;</button>
+    </div>
+    {% include 'partials/header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
 
     <form class="main-form" id="employeeForm">
         <div class="input-row">
@@ -179,5 +184,8 @@
         regionSelect.appendChild(option);
     });
     </script>
+    <script src="/static/search-lead-scripts.js">
+
+</script>
 </body>
 </html>

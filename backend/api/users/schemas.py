@@ -29,7 +29,7 @@ class UserCreate(BaseModel):
     work_start_time: Optional[time] = None
     work_end_time: Optional[time] = None
     work_days: List[WorkDay] = None
-    role_id: Optional[int] = None
+    role_id: Optional[int] = 1
     hashed_password: str  # открытый пароль, который мы потом захешируем
 
     class Config:
@@ -54,6 +54,7 @@ class UserUpdate(BaseModel):
     work_end_time: Optional[time] = None
     work_days: Optional[List[str]] = None
     role_id: Optional[int] = None
+    background_theme: Optional[str] = None
 
     class Config:
         orm_mode = True
@@ -78,6 +79,9 @@ class UserRead(BaseModel):
     work_days: Optional[List[WorkDay]] = None
     role_id: Optional[int] = None
     role: Union[RoleRead, str] = None
+    background_theme: Optional[str] = None
+    checkin_time: Optional[bool] = None
+    work_status: Optional[str] = None
 
     class Config:
         from_attributes = True  # чтобы можно было возвращать объекты SQLAlchemy напрямую
@@ -92,12 +96,16 @@ class Token(BaseModel):
 class UserRole(IntEnum):
     SALES = 1
     MOP = 2
+    ROP = 3
+    FINANCE = 4
     ADMIN = 5
 
 
 ROLE_REDIRECTS = {
     UserRole.SALES: "/dashboard/sales",
     UserRole.MOP: "/dashboard/mop",
+    UserRole.ROP: "/dashboard/rop",
+    UserRole.FINANCE: "/dashboard/finance",
     UserRole.ADMIN: "/dashboard/admin",
 }
 

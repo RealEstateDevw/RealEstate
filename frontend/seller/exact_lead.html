@@ -9,42 +9,40 @@
     <link rel="stylesheet" href="/static/exact-lead-stylr.css">
     <link rel="stylesheet" href="/static/sales-dashboard-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-
+    <style>
+        .notification {
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            max-width: 500px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: white;
+            margin-left: 15px;
+            padding: 0;
+            line-height: 1;
+        }
+        body {
+        background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+        transition: background 0.5s ease;
+    }
+        </style>
 </head>
 <body>
-        <header class="header">
-        <a href="#" class="logo">CRM</a>
-        <div class="search">
-            <div class="search-container">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"
-                    class="search-icon">
-                    <circle opacity="0.5" cx="15.3337" cy="15.3333" r="12.6667" stroke="black" stroke-width="1.5" />
-                    <path opacity="0.5" d="M26.667 26.6667L29.3337 29.3333" stroke="black" stroke-width="1.5"
-                        stroke-linecap="round" />
-                </svg>
-                <input type="text" class="searchInput" id="searchInput" placeholder="Поиск по лиду">
-                <div id="searchResults" class="search-results"></div>
-            </div>
-            <button class="register-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
-                    <path
-                        d="M24 17H8C7.45333 17 7 16.5467 7 16C7 15.4533 7.45333 15 8 15H24C24.5467 15 25 15.4533 25 16C25 16.5467 24.5467 17 24 17Z"
-                        fill="white" />
-                    <path
-                        d="M16 25C15.4533 25 15 24.5467 15 24V8C15 7.45333 15.4533 7 16 7C16.5467 7 17 7.45333 17 8V24C17 24.5467 16.5467 25 16 25Z"
-                        fill="white" />
-                </svg>
-                <a href="/dashboard/sales/add-lead">Добавить сделку</a>
-            </button>
-            <div class="user-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon">
-                    <path
-                        d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z" />
-                </svg>
-            </div>
-        </div>
+    <div id="notification" class="notification" style="display: none;">
+        <span id="notification-message"></span>
+        <button id="close-notification" class="close-btn">&times;</button>
+    </div>
+    {% include 'partials/header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
 
-    </header>
 <input type="text" id="leadId" value="{{ lead.id }}" hidden="true">
     <div class="main-content">
         <div class="client-info">
@@ -153,7 +151,7 @@
             </div>
 
             <div class="actions">
-                <button class="action-button" type="button" >
+                <button class="action-button fix-client" type="button" data-lead-id="{{ lead.id }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
                         <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M32.4376 9.67511L38.367 15.6103C42.3908 19.6381 44.4028 21.652 43.9334 23.823C43.4638 25.9938 40.8 26.9946 35.4724 28.9962L31.7844 30.382C30.3576 30.918 29.6442 31.186 29.0936 31.6628C28.8524 31.8716 28.6368 32.108 28.4508 32.367C28.026 32.959 27.8238 33.6944 27.419 35.165C26.4986 38.5102 26.0384 40.1828 24.9426 40.8082C24.4808 41.0716 23.9584 41.2098 23.4268 41.209C22.1654 41.2072 20.9398 39.9804 18.4888 37.527L15.5568 34.5922L13.3987 32.4326L10.5695 29.6C8.13396 27.162 6.91618 25.943 6.90826 24.6892C6.90484 24.147 7.0456 23.6138 7.31608 23.1442C7.94176 22.0578 9.60214 21.6 12.9229 20.6846C14.3962 20.2784 15.1329 20.0754 15.725 19.649C15.9907 19.4577 16.2324 19.2351 16.4448 18.9858C16.9182 18.4304 17.1813 17.7123 17.7075 16.2762L19.0434 12.6301C21.0172 7.24311 22.0042 4.54961 24.1808 4.06937C26.3576 3.58915 28.3842 5.61781 32.4376 9.67511Z" fill="#216BF4"/>
                         <path d="M6.60472 43.5528L15.5568 34.5922L13.3987 32.4326L4.4469 41.393C3.85103 41.9894 3.85103 42.9564 4.4469 43.5528C5.04276 44.1494 6.00886 44.1494 6.60472 43.5528Z" fill="#216BF4"/>
@@ -180,6 +178,9 @@
         </div>
     </div>
     <script src="/static/exact-lead-scripts.js"></script>
+    <script src="/static/search-lead-scripts.js">
+
+</script>
 
 </body>
 </html>

@@ -5,9 +5,10 @@ from fastapi import APIRouter, HTTPException, Depends, status, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from backend.core.deps import get_current_user
+from backend.core.deps import get_current_user, get_current_user_from_cookie
 from backend.database import get_db
 from backend.database.models import User
+from backend.database.sales_service.crud import SalesLeadsService
 from backend.database.userservice import add_user, get_user_by_login, add_role, get_user_by_id, get_all_users, \
     update_user, get_by_role_employees, get_all_roles, delete_user
 from backend.api.users.schemas import UserCreate, UserRead, Token, UserUpdate
@@ -38,6 +39,8 @@ async def register_user(user: UserCreate):
         "role": new_user.role.name if new_user.role else None,  # Возвращаем название роли, если оно есть
         "role_id": new_user.role_id
     }
+
+
 
 
 @user_router.post("/token", response_model=Token)
@@ -131,3 +134,12 @@ async def reset_password(user_id: int, db: Session = Depends(get_db)):
         "user_id": user.id,
         "user_login": user.login
     }
+
+
+@user_router.get("/sales/stats")
+async def get_sales_stats(
+        user_id: Optional[int] = Query(None),
+        db: Session = Depends(get_db)
+):
+    service = SalesLeadsService(db)
+    return service.get_sales_stats(user_id)

@@ -2,70 +2,7 @@
 
 
 
-        document.addEventListener("DOMContentLoaded", function () {
-            const searchInput = document.getElementById('searchInput');
-        const searchResults = document.getElementById('searchResults');
-
-        console.log('Элемент найден:', searchInput); 
-        // Обработчик ввода текста
-        searchInput.addEventListener('input', async () => {
-            const query = searchInput.value.trim();
-
-            if (query === '') {
-                searchResults.style.display = 'none';
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/leads/search?query=${encodeURIComponent(query)}`);
-                if (!response.ok) {
-                    throw new Error('Ошибка при получении данных');
-                }
-
-                const results = await response.json();
-                displayResults(results);
-            } catch (error) {
-                console.error('Ошибка при поиске:', error);
-                searchResults.innerHTML = '<div class="no-results">Произошла ошибка при загрузке данных</div>';
-                searchResults.style.display = 'block';
-            }
-        });
-    });
-
-        // Функция отображения результатов
-        function displayResults(results) {
-            const searchResults = document.getElementById('searchResults');
-            searchResults.innerHTML = '';  // Очищаем список результатов
         
-            if (results.length === 0) {
-                searchResults.innerHTML = '<div class="no-results">Нет результатов</div>';
-                searchResults.style.display = 'block';
-            } else {
-                results.forEach(result => {
-                    console.log(result);
-                    const item = document.createElement('div');
-                    item.classList.add('result-item');
-        
-                    item.innerHTML = `
-                        <div class="result-name">${result.full_name}</div>
-                        <div class="result-role">
-                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-  <path fill-rule="evenodd" clip-rule="evenodd" d="M10 4H14C17.7712 4 19.6569 4 20.8284 5.17157C22 6.34315 22 8.22876 22 12C22 15.7712 22 17.6569 20.8284 18.8284C19.6569 20 17.7712 20 14 20H10C6.22876 20 4.34315 20 3.17157 18.8284C2 17.6569 2 15.7712 2 12C2 8.22876 2 6.34315 3.17157 5.17157C4.34315 4 6.22876 4 10 4ZM13.25 9C13.25 8.58579 13.5858 8.25 14 8.25H19C19.4142 8.25 19.75 8.58579 19.75 9C19.75 9.41421 19.4142 9.75 19 9.75H14C13.5858 9.75 13.25 9.41421 13.25 9ZM14.25 12C14.25 11.5858 14.5858 11.25 15 11.25H19C19.4142 11.25 19.75 11.5858 19.75 12C19.75 12.4142 19.4142 12.75 19 12.75H15C14.5858 12.75 14.25 12.4142 14.25 12ZM15.25 15C15.25 14.5858 15.5858 14.25 16 14.25H19C19.4142 14.25 19.75 14.5858 19.75 15C19.75 15.4142 19.4142 15.75 19 15.75H16C15.5858 15.75 15.25 15.4142 15.25 15ZM11 9C11 10.1046 10.1046 11 9 11C7.89543 11 7 10.1046 7 9C7 7.89543 7.89543 7 9 7C10.1046 7 11 7.89543 11 9ZM9 17C13 17 13 16.1046 13 15C13 13.8954 11.2091 13 9 13C6.79086 13 5 13.8954 5 15C5 16.1046 5 17 9 17Z" fill="#216BF4"/>
-</svg>
-                            Лид
-                        </div>
-                    `;
-        
-                    // Обработчик клика на элемент
-                    item.addEventListener('click', () => {
-                        console.log(`Вы выбрали: ${result.name}`);
-                    });
-        
-                    searchResults.appendChild(item);
-                });
-                searchResults.style.display = 'block';
-            }
-        };
 
         let currentUser = null;
 
@@ -119,6 +56,10 @@
                 console.warn(`Колонка для статуса "${status}" не найдена.`);
                 return;
             }
+            console.log("Updating column:", status, leads);
+        
+            // Очищаем список перед обновлением
+            column.innerHTML = '';
         
             // Обновляем счётчик лидов
             leadCount.textContent = `${leads.length} ${getLeadWord(leads.length)}`;
@@ -126,6 +67,10 @@
             leads.forEach(lead => {
                 const card = document.createElement("div");
                 card.classList.add("card");
+                card.setAttribute('draggable', true); // Включаем возможность перетаскивания
+                card.setAttribute('data-lead-id', lead.id); // Добавляем ID лида для идентификации
+                card.setAttribute('data-status', lead.status); // Текущий статус лида
+        
                 card.innerHTML = `
                     <div class="card-header">
                         <div class="name">${lead.full_name || "Без имени"}</div>
@@ -143,12 +88,118 @@
                             <span class="status-dot" style="background-color: ${getStatusColor(lead.state)};"></span>
                             <span>${getStatusText(lead.state)}</span>
                         </div>
-                        <a href="/dashboard/lead/${lead.id}" class="open-card">Открыть карточку</a>
+                        <a href="/dashboard/sales/lead/${lead.id}" class="open-card">Открыть карточку</a>
                     </div>
                 `;
+        
+                // Добавляем обработчики для перетаскивания
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+        
                 column.appendChild(card);
             });
         }
+        
+        // Обработчики событий для drag-and-drop
+        let draggedLead = null;
+        
+        function handleDragStart(e) {
+            draggedLead = e.target;
+            e.dataTransfer.setData('text/plain', draggedLead.getAttribute('data-lead-id')); // Передаём ID лида
+            setTimeout(() => {
+                draggedLead.style.opacity = '0.5'; // Скрываем элемент во время перетаскивания
+            }, 0);
+        }
+        
+        function handleDragEnd(e) {
+            draggedLead.style.opacity = '1'; // Возвращаем видимость после перетаскивания
+            draggedLead = null;
+        }
+        
+        // Обработчики для колонок (drop zones)
+        document.querySelectorAll('.column').forEach(column => {
+            column.addEventListener('dragover', (e) => {
+                e.preventDefault(); // Позволяем сбрасывать элементы
+                column.classList.add('drag-over'); // Добавляем класс для стилизации при наведении
+            });
+        
+            column.addEventListener('dragleave', (e) => {
+                column.classList.remove('drag-over'); // Убираем класс при уходе
+            });
+        
+            column.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                const leadId = e.dataTransfer.getData('text/plain');
+                const newStatus = column.getAttribute('data-status');
+                const currentStatus = draggedLead ? draggedLead.getAttribute('data-status') : null;
+        
+                if (currentStatus === newStatus) {
+                    showNotification("Нельзя перетаскивать лид в ту же колонку!", "error");
+                    return;
+                }
+
+                const validTransitions = {
+                    COLD: ['WARM'], // Холодный -> Тёплый
+                    WARM: ['HOT'],  // Тёплый -> Горячий
+                    HOT: []        // Горячий -> никуда (нельзя возвращаться назад)
+                };
+        
+                if (!validTransitions[currentStatus].includes(newStatus)) {
+                    showNotification(`Нельзя переместить лид из "${getStatusText1(currentStatus)}" в "${getStatusText1(newStatus)}"`, "error");
+                    return;
+                }
+
+                if (!leadId || !newStatus) return;
+                console.log(`Перетаскиваем лид ${leadId} в колонку ${newStatus}`);
+                // Данные для обновления статуса лида
+                const leadUpdateData = {
+                    status: newStatus,
+                    state: "PROCESSED" // Новый статус (COLD, WARM, HOT)
+                };
+        
+                try {
+                    const response = await fetch(`/api/leads/${leadId}`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(leadUpdateData),
+                    });
+        
+                    const result = await response.json();
+                    if (response.ok) {
+                        showNotification(`Статус лида успешно обновлён на '${getStatusText1(newStatus)}'!`, "success");
+                        
+                        // Обновляем интерфейс: перетаскиваем лид в новую колонку
+                        const leadCard = document.querySelector(`.card[data-lead-id="${leadId}"]`);
+                        if (leadCard) {
+                            leadCard.setAttribute('data-status', newStatus); // Обновляем статус в карточке
+                            
+        
+                            // Перемещаем карточку в новую колонку
+                            const newColumn = document.querySelector(`.column[data-status="${newStatus}"] .lead-list`);
+                            newColumn.appendChild(leadCard);
+                            leadCard.classList.add('animate-drop'); // Добавляем класс для анимации
+
+                    // Убираем анимацию после завершения
+                    setTimeout(() => {
+                        leadCard.classList.remove('animate-drop');
+                    }, 500);
+        
+                            // Обновляем счётчики лидов в старой и новой колонках
+                            updateLeadCounts();
+                        }
+                    } else {
+                        console.error("Ошибка при обновлении лида:", result);
+                        showNotification("Ошибка: " + (result.detail || "Не удалось обновить статус лида"), "error");
+                    }
+                } catch (error) {
+                    console.error("Ошибка сети:", error);
+                    showNotification("Ошибка сети! Проверьте подключение к серверу.", "error");
+                }
+                column.classList.remove('drag-over');
+            });
+        });
         
         // Функция для выбора правильного склонения слова "лид"
         function getLeadWord(count) {
@@ -164,35 +215,88 @@
         }
         
         // Функция для подбора цвета статуса
-        function getStatusColor(status) {
+        function getStatusColor(state) {
             const colors = {
-                "COLD": "#00A8E8",
-                "WARM": "#FFB400",
-                "HOT": "#FF5733",
-                "POSTPONED": "orange",
-                "IN_PROCESSING": "blue",
-                "IN_WORK": "purple",
-                "SENT": "green",
-                "WAITING_RESPONSE": "yellow",
-                "DECLINED": "red"
+                'PROCESSED': '#00FF55',
+                'IN_WORK': '#FFA500',
+                'NEW': '#0088FF',
+                'CLOSED': '#FF0000'
             };
-            return colors[status] || "gray";
+            return colors[state] || '#CCCCCC';
+        }
+        function updateLeadCounts() {
+            document.querySelectorAll('.column').forEach(column => {
+                const leads = column.querySelectorAll('.card').length;
+                const leadCount = column.querySelector('.lead-count');
+                if (leadCount) {
+                    leadCount.textContent = `${leads} ${getLeadWord(leads)}`;
+                }
+            });
+        }
+        function getStatusText1(state) {
+            const texts = {
+                'HOT': 'Горячий',
+                'WARM': 'Тёплый',
+                'COLD': 'Холодный'
+            };
+            return texts[state] || state;
+        }
+        function getStatusText(state) {
+            const texts = {
+                'PROCESSED': 'Обработано',
+                'IN_WORK': 'В обработке',
+                'NEW': 'Новый',
+                'CLOSED': 'Закрыт'
+            };
+            return texts[state] || state;
+        }
+        function showNotification(message, type = "success") {
+            const notification = document.getElementById("notification");
+            const notificationMessage = document.getElementById("notification-message");
+            const closeBtn = document.getElementById("close-notification");
+        
+            // Устанавливаем текст уведомления
+            notificationMessage.textContent = message;
+        
+            // Устанавливаем стиль в зависимости от типа (успех или ошибка)
+            if (type === "success") {
+                notification.style.backgroundColor = "#4CAF50"; // Зеленый для успеха
+                notification.style.color = "white";
+            } else {
+                notification.style.backgroundColor = "#f44336"; // Красный для ошибки
+                notification.style.color = "white";
+            }
+        
+            // Показываем уведомление
+            notification.style.display = "flex";
+            notification.style.position = "fixed";
+            notification.style.top = "20px";
+            notification.style.left = "50%";
+            notification.style.transform = "translateX(-50%)";
+            notification.style.padding = "10px 20px";
+            notification.style.borderRadius = "5px";
+            notification.style.zIndex = "1000";
+            notification.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+            notification.style.transition = "opacity 0.5s";
+        
+            // Автоматически скрываем уведомление через 3 секунды
+            setTimeout(() => {
+                notification.style.opacity = "0";
+                setTimeout(() => {
+                    notification.style.display = "none";
+                    notification.style.opacity = "1"; // Сбрасываем opacity для следующего показа
+                }, 500);
+            }, 3000);
+        
+            // Закрытие уведомления по клику на крестик
+            closeBtn.addEventListener('click', () => {
+                notification.style.opacity = "0";
+                setTimeout(() => {
+                    notification.style.display = "none";
+                    notification.style.opacity = "1"; // Сбрасываем opacity для следующего показа
+                }, 500);
+            }, { once: true }); // Убираем слушатель после одного клика, чтобы избежать дублирования
         }
         
-        // Функция для перевода статусов на русский
-        function getStatusText(status) {
-            const translations = {
-                "COLD": "Холодный",
-                "WARM": "Тёплый",
-                "HOT": "Горячий",
-                "POSTPONED": "Отложено",
-                "IN_PROCESSING": "В обработке",
-                "IN_WORK": "В работе",
-                "SENT": "Отправлено",
-                "WAITING_RESPONSE": "Ожидание ответа",
-                "DECLINED": "Отклонено"
-            };
-            return translations[status] || "Неизвестный статус";
-        }
 // Загружаем данные при открытии страницы
 document.addEventListener("DOMContentLoaded", loadLeads);
