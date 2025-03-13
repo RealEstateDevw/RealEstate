@@ -1,21 +1,30 @@
+import os
 from datetime import timedelta, datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, File, UploadFile
 from sqlalchemy.orm import Session, joinedload
+from pathlib import Path as P
 
 from backend import get_db
+from backend.api.leads.main import lead_crud
 from backend.api.leads.schemas import LeadStatus, LeadState
+from backend.api.mop.schemas import SearchResponse
 from backend.database.finance_service.crud import LeadRepository, PaymentRepository, TransactionRepository, \
     FinanceStatisticsRepository, ExpenseRepository, InstallmentPaymentRepository
-from backend.database.models import InstallmentPayment, Expense, Lead, Payment
+from backend.database.models import InstallmentPayment, Expense, Lead, Payment, CheckPhotoExpense
 from backend.database.sales_service.crud import LeadDetailService
+from config import logger
 
 router = APIRouter(prefix="/api/finance")
 
 from backend.api.finance.schemas import PaymentResponse, PaymentCreate, InstallmentPlanCreate, TransactionCreate, \
     TransactionResponse, ExpenseResponse, ExpenseCreate, DashboardStats, ManagerStats, LeadFinanceResponse, \
     PaymentStatus
+
+UPLOAD_DIR = "static/media/uploads"
+P(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
+MAX_FILE_SIZE = 10 * 1024 * 1024
 
 
 def get_repositories(db: Session = Depends(get_db)):
@@ -27,6 +36,28 @@ def get_repositories(db: Session = Depends(get_db)):
         "expense": ExpenseRepository(db),
         "stats": FinanceStatisticsRepository(db)
     }
+
+
+@router.get("/search", response_model=SearchResponse)
+async def search_leads_and_users(
+        query: str = Query(..., min_length=1, description="Search query"),
+        limit: int = Query(10, ge=1, le=50, description="Maximum number of results to return"),
+        db: Session = Depends(get_db)
+):
+    """
+    Search leads and users by name, phone, email, or region.
+    Returns a unified list of matching results.
+    """
+    try:
+        results = lead_crud.combined_search_finance(db=db, query=query, limit=limit)
+        return results
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка при поиске: {str(e)}"
+        )
+
+    return results
 
 
 @router.get("/stats", response_model=dict)
@@ -152,7 +183,46 @@ async def create_expense(
         expense: ExpenseCreate,
         repos: dict = Depends(get_repositories)
 ):
+    logger.info(expense.dict())
     return repos["expense"].create_expense(expense.dict())
+
+
+# Эндпоинт для добавления чека
+@router.post("/expenses/{expense_id}/check-photo")
+async def add_check_photo(
+        expense_id: int,
+        photo: UploadFile = File(...),
+        db: Session = Depends(get_db)
+):
+    try:
+        # Проверяем, существует ли расход
+        expense = db.query(Expense).filter(Expense.id == expense_id).first()
+        if not expense:
+            raise HTTPException(status_code=404, detail="Расход не найден")
+        if photo.size > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail="Файл слишком большой. Максимальный размер: 10 МБ.")
+        # Сохраняем файл чека
+        file_extension = photo.filename.split('.')[-1]
+        file_path = os.path.join(UPLOAD_DIR,
+
+                                 f"check_expense_{expense_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.{file_extension}")
+        with open(file_path, "wb") as f:
+            f.write(await photo.read())
+
+        # Создаем запись в таблице check_photos
+        check_photo = CheckPhotoExpense(
+            expense_id=expense_id,
+            photo_path=file_path,
+            created_at=datetime.utcnow()
+        )
+        db.add(check_photo)
+        db.commit()
+        db.refresh(check_photo)
+
+        return {"message": "Чек успешно добавлен", "check_photo_id": check_photo.id}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка при добавлении чека: {str(e)}")
 
 
 @router.get("/statistics/dashboard", response_model=DashboardStats)

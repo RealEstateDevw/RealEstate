@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +17,7 @@
             min-width: 300px;
             max-width: 500px;
         }
-        
+
         .close-btn {
             background: none;
             border: none;
@@ -27,12 +28,82 @@
             padding: 0;
             line-height: 1;
         }
+
         body {
-        background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
-        transition: background 0.5s ease;
-    }
-        </style>
+            background: {
+                % if user and user.background_theme %
+            }
+
+            url('{{ user.background_theme }}') lightgray 50% / cover no-repeat {
+                % else %
+            }
+
+            #ffffff {
+                % endif %
+            }
+
+            ;
+            transition: background 0.5s ease;
+        }
+
+        .container-button {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .contract-input {
+            border-radius: 57px;
+            padding: 5px 10px;
+
+            width: 100%;
+        }
+
+        .modal {
+            overflow-y: auto;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #f5f5f7;
+            margin: 10% auto;
+            padding: 20px;
+            width: 70%;
+            max-width: 500px;
+            border-radius: 30px;
+            height: fit-content;
+            backdrop-filter: blur(25px);
+        }
+
+        .btn {
+            padding: 17px 20px;
+            border: none;
+            border-radius: 57px;
+            font-size: 16px;
+            cursor: pointer;
+            flex: 1 0 0;
+            background: white;
+
+        }
+
+        .btn.active {
+            background-color: #216BF4;
+        }
+
+        #contractForm {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+    </style>
 </head>
+
 <body>
     <div id="notification" class="notification" style="display: none;">
         <span id="notification-message"></span>
@@ -43,11 +114,11 @@
         {% block content %}{% endblock %}
     </main>
 
-<input type="text" id="leadId" value="{{ lead.id }}" hidden="true">
+    <input type="text" id="leadId" value="{{ lead.id }}" hidden="true">
     <div class="main-content">
         <div class="client-info">
             <h1 class="client-header">{{ lead.full_name }} </h1>
-    <hr class="divider">
+            <hr class="divider">
 
             <div class="info-grid">
                 <div class="info-box-tag">
@@ -63,11 +134,11 @@
                     <span>{{ lead.created_at.strftime('%d.%m.%Y') }}</span>
                 </div>
             </div>
-            
-           
+
+
             <hr class="divider">
 
-            
+
 
             <div class="info-grid">
                 <div class="info-box">
@@ -91,11 +162,16 @@
             <div class="price-card">
                 <div class="price-title">Предварительная сумма</div>
                 <div class="price-main">{{ "{:,.0f}".format(lead.total_price)}} сум</div>
-                
+
                 <hr class="divider">
-                
+                {% if lead.monthly_payment %}
                 <div class="price-subtitle">Мес. оплата с учетом {{ lead.installment_markup }}% переплаты.</div>
-                <div class="price-monthly">{{ "{:,.0f}".format(lead.monthly_payment)}} сум {{ lead.installment_period }} мес</div>
+
+                <div class="price-monthly">{{ "{:,.0f}".format(lead.monthly_payment)}} сум {{ lead.installment_period }}
+                    мес </div>
+                {% else %}
+
+                {% endif %}
             </div>
         </div>
 
@@ -122,7 +198,7 @@
 
             <div id="comments-container" class="space-y-4  overflow-y-auto mb-4 mt-10">
                 <!-- Comments will be inserted here -->
-                 
+
             </div>
 
             <div class="space-y-2">
@@ -132,18 +208,14 @@
                         Внутренний комментарий
                     </label>
                 </div>
-                
+
                 <div class="flex gap-2">
-                    <textarea 
-                        id="comment-input"
-                        placeholder="Введите комментарий..."
-                        class="flex-1 min-h-[80px] p-2 border rounded-lg resize-none"
-                    ></textarea>
-                    <button 
-                        id="send-comment"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 self-end"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <textarea id="comment-input" placeholder="Введите комментарий..."
+                        class="flex-1 min-h-[80px] p-2 border rounded-lg resize-none"></textarea>
+                    <button id="send-comment"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 self-end">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
                             <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
                         </svg>
                     </button>
@@ -153,34 +225,157 @@
             <div class="actions">
                 <button class="action-button fix-client" type="button" data-lead-id="{{ lead.id }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
-                        <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M32.4376 9.67511L38.367 15.6103C42.3908 19.6381 44.4028 21.652 43.9334 23.823C43.4638 25.9938 40.8 26.9946 35.4724 28.9962L31.7844 30.382C30.3576 30.918 29.6442 31.186 29.0936 31.6628C28.8524 31.8716 28.6368 32.108 28.4508 32.367C28.026 32.959 27.8238 33.6944 27.419 35.165C26.4986 38.5102 26.0384 40.1828 24.9426 40.8082C24.4808 41.0716 23.9584 41.2098 23.4268 41.209C22.1654 41.2072 20.9398 39.9804 18.4888 37.527L15.5568 34.5922L13.3987 32.4326L10.5695 29.6C8.13396 27.162 6.91618 25.943 6.90826 24.6892C6.90484 24.147 7.0456 23.6138 7.31608 23.1442C7.94176 22.0578 9.60214 21.6 12.9229 20.6846C14.3962 20.2784 15.1329 20.0754 15.725 19.649C15.9907 19.4577 16.2324 19.2351 16.4448 18.9858C16.9182 18.4304 17.1813 17.7123 17.7075 16.2762L19.0434 12.6301C21.0172 7.24311 22.0042 4.54961 24.1808 4.06937C26.3576 3.58915 28.3842 5.61781 32.4376 9.67511Z" fill="#216BF4"/>
-                        <path d="M6.60472 43.5528L15.5568 34.5922L13.3987 32.4326L4.4469 41.393C3.85103 41.9894 3.85103 42.9564 4.4469 43.5528C5.04276 44.1494 6.00886 44.1494 6.60472 43.5528Z" fill="#216BF4"/>
-                      </svg>
+                        <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd"
+                            d="M32.4376 9.67511L38.367 15.6103C42.3908 19.6381 44.4028 21.652 43.9334 23.823C43.4638 25.9938 40.8 26.9946 35.4724 28.9962L31.7844 30.382C30.3576 30.918 29.6442 31.186 29.0936 31.6628C28.8524 31.8716 28.6368 32.108 28.4508 32.367C28.026 32.959 27.8238 33.6944 27.419 35.165C26.4986 38.5102 26.0384 40.1828 24.9426 40.8082C24.4808 41.0716 23.9584 41.2098 23.4268 41.209C22.1654 41.2072 20.9398 39.9804 18.4888 37.527L15.5568 34.5922L13.3987 32.4326L10.5695 29.6C8.13396 27.162 6.91618 25.943 6.90826 24.6892C6.90484 24.147 7.0456 23.6138 7.31608 23.1442C7.94176 22.0578 9.60214 21.6 12.9229 20.6846C14.3962 20.2784 15.1329 20.0754 15.725 19.649C15.9907 19.4577 16.2324 19.2351 16.4448 18.9858C16.9182 18.4304 17.1813 17.7123 17.7075 16.2762L19.0434 12.6301C21.0172 7.24311 22.0042 4.54961 24.1808 4.06937C26.3576 3.58915 28.3842 5.61781 32.4376 9.67511Z"
+                            fill="#216BF4" />
+                        <path
+                            d="M6.60472 43.5528L15.5568 34.5922L13.3987 32.4326L4.4469 41.393C3.85103 41.9894 3.85103 42.9564 4.4469 43.5528C5.04276 44.1494 6.00886 44.1494 6.60472 43.5528Z"
+                            fill="#216BF4" />
+                    </svg>
                     <div>Фиксация клиента</div>
                 </button>
-                <button class="action-button" type="button" >
+                <button class="action-button" type="button" onclick="openModalNot({{lead.id}})">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
-                        <path opacity="0.5" d="M6.92894 41.071C9.85786 44 14.5719 44 24 44C33.428 44 38.1422 44 41.071 41.071C44 38.1422 44 33.428 44 24C44 14.5719 44 9.85786 41.071 6.92894C38.1422 4 33.428 4 24 4C14.5719 4 9.85786 4 6.92894 6.92894C4 9.85786 4 14.5719 4 24C4 33.428 4 38.1422 6.92894 41.071Z" fill="#216BF4"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M24 14.5C24.8284 14.5 25.5 15.1716 25.5 16V23.3786L30.0606 27.9394C30.6464 28.5252 30.6464 29.4748 30.0606 30.0606C29.4748 30.6464 28.5252 30.6464 27.9394 30.0606L22.9394 25.0606C22.658 24.7794 22.5 24.3978 22.5 24V16C22.5 15.1716 23.1716 14.5 24 14.5Z" fill="#216BF4"/>
-                      </svg>
+                        <path opacity="0.5"
+                            d="M6.92894 41.071C9.85786 44 14.5719 44 24 44C33.428 44 38.1422 44 41.071 41.071C44 38.1422 44 33.428 44 24C44 14.5719 44 9.85786 41.071 6.92894C38.1422 4 33.428 4 24 4C14.5719 4 9.85786 4 6.92894 6.92894C4 9.85786 4 14.5719 4 24C4 33.428 4 38.1422 6.92894 41.071Z"
+                            fill="#216BF4" />
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M24 14.5C24.8284 14.5 25.5 15.1716 25.5 16V23.3786L30.0606 27.9394C30.6464 28.5252 30.6464 29.4748 30.0606 30.0606C29.4748 30.6464 28.5252 30.6464 27.9394 30.0606L22.9394 25.0606C22.658 24.7794 22.5 24.3978 22.5 24V16C22.5 15.1716 23.1716 14.5 24 14.5Z"
+                            fill="#216BF4" />
+                    </svg>
                     <div>Бронирование</div>
                 </button>
-                <button class="action-button" type="button" >
+                <button class="action-button" type="button" onclick="openModal({{ lead.id }})">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
-                        <path opacity="0.5" d="M6 20C6 12.4575 6 8.6863 8.34314 6.34314C10.6863 4 14.4575 4 22 4H26C33.5424 4 37.3138 4 39.6568 6.34314C42 8.6863 42 12.4575 42 20V28C42 35.5424 42 39.3138 39.6568 41.6568C37.3138 44 33.5424 44 26 44H22C14.4575 44 10.6863 44 8.34314 41.6568C6 39.3138 6 35.5424 6 28V20Z" fill="#216BF4"/>
-                        <path d="M33.0378 33.0026C33.3878 32.7296 33.7052 32.4122 34.3402 31.7772L42.255 23.8624C42.4462 23.6712 42.3586 23.3416 42.103 23.2528C41.1688 22.9288 39.9534 22.3202 38.8166 21.1834C37.6798 20.0466 37.0712 18.8312 36.7472 17.897C36.6584 17.6413 36.3288 17.5537 36.1376 17.7451L28.2228 25.6598C27.5878 26.2948 27.2704 26.6122 26.9974 26.9622C26.6754 27.3752 26.3992 27.8218 26.174 28.2946C25.983 28.6952 25.841 29.1212 25.5572 29.973L25.1902 31.0736L24.6068 32.8236L24.0598 34.4646C23.9202 34.8838 24.0292 35.3458 24.3416 35.6584C24.6542 35.9708 25.1162 36.0798 25.5354 35.9402L27.1764 35.3932L28.9264 34.8098L30.027 34.4428C30.8786 34.159 31.3048 34.017 31.7054 33.826C32.1782 33.6008 32.6248 33.3246 33.0378 33.0026Z" fill="#216BF4"/>
-                        <path d="M44.7331 21.3844C46.4225 19.6951 46.4225 16.9562 44.7331 15.267C43.0439 13.5777 40.3051 13.5777 38.6157 15.267L38.3613 15.5214C38.1157 15.767 38.0045 16.1099 38.0659 16.4517C38.1045 16.6667 38.1759 16.9811 38.3061 17.3561C38.5663 18.1063 39.0577 19.091 39.9835 20.0166C40.9091 20.9424 41.8939 21.4338 42.6439 21.694C43.0191 21.8242 43.3333 21.8956 43.5483 21.9342C43.8901 21.9956 44.2331 21.8844 44.4787 21.6388L44.7331 21.3844Z" fill="#216BF4"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M14.5 18C14.5 17.1716 15.1716 16.5 16 16.5H29C29.8284 16.5 30.5 17.1716 30.5 18C30.5 18.8284 29.8284 19.5 29 19.5H16C15.1716 19.5 14.5 18.8284 14.5 18ZM14.5 26C14.5 25.1716 15.1716 24.5 16 24.5H22C22.8284 24.5 23.5 25.1716 23.5 26C23.5 26.8284 22.8284 27.5 22 27.5H16C15.1716 27.5 14.5 26.8284 14.5 26ZM14.5 34C14.5 33.1716 15.1716 32.5 16 32.5H19C19.8284 32.5 20.5 33.1716 20.5 34C20.5 34.8284 19.8284 35.5 19 35.5H16C15.1716 35.5 14.5 34.8284 14.5 34Z" fill="#216BF4"/>
-                      </svg>
+                        <path opacity="0.5"
+                            d="M6 20C6 12.4575 6 8.6863 8.34314 6.34314C10.6863 4 14.4575 4 22 4H26C33.5424 4 37.3138 4 39.6568 6.34314C42 8.6863 42 12.4575 42 20V28C42 35.5424 42 39.3138 39.6568 41.6568C37.3138 44 33.5424 44 26 44H22C14.4575 44 10.6863 44 8.34314 41.6568C6 39.3138 6 35.5424 6 28V20Z"
+                            fill="#216BF4" />
+                        <path
+                            d="M33.0378 33.0026C33.3878 32.7296 33.7052 32.4122 34.3402 31.7772L42.255 23.8624C42.4462 23.6712 42.3586 23.3416 42.103 23.2528C41.1688 22.9288 39.9534 22.3202 38.8166 21.1834C37.6798 20.0466 37.0712 18.8312 36.7472 17.897C36.6584 17.6413 36.3288 17.5537 36.1376 17.7451L28.2228 25.6598C27.5878 26.2948 27.2704 26.6122 26.9974 26.9622C26.6754 27.3752 26.3992 27.8218 26.174 28.2946C25.983 28.6952 25.841 29.1212 25.5572 29.973L25.1902 31.0736L24.6068 32.8236L24.0598 34.4646C23.9202 34.8838 24.0292 35.3458 24.3416 35.6584C24.6542 35.9708 25.1162 36.0798 25.5354 35.9402L27.1764 35.3932L28.9264 34.8098L30.027 34.4428C30.8786 34.159 31.3048 34.017 31.7054 33.826C32.1782 33.6008 32.6248 33.3246 33.0378 33.0026Z"
+                            fill="#216BF4" />
+                        <path
+                            d="M44.7331 21.3844C46.4225 19.6951 46.4225 16.9562 44.7331 15.267C43.0439 13.5777 40.3051 13.5777 38.6157 15.267L38.3613 15.5214C38.1157 15.767 38.0045 16.1099 38.0659 16.4517C38.1045 16.6667 38.1759 16.9811 38.3061 17.3561C38.5663 18.1063 39.0577 19.091 39.9835 20.0166C40.9091 20.9424 41.8939 21.4338 42.6439 21.694C43.0191 21.8242 43.3333 21.8956 43.5483 21.9342C43.8901 21.9956 44.2331 21.8844 44.4787 21.6388L44.7331 21.3844Z"
+                            fill="#216BF4" />
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M14.5 18C14.5 17.1716 15.1716 16.5 16 16.5H29C29.8284 16.5 30.5 17.1716 30.5 18C30.5 18.8284 29.8284 19.5 29 19.5H16C15.1716 19.5 14.5 18.8284 14.5 18ZM14.5 26C14.5 25.1716 15.1716 24.5 16 24.5H22C22.8284 24.5 23.5 25.1716 23.5 26C23.5 26.8284 22.8284 27.5 22 27.5H16C15.1716 27.5 14.5 26.8284 14.5 26ZM14.5 34C14.5 33.1716 15.1716 32.5 16 32.5H19C19.8284 32.5 20.5 33.1716 20.5 34C20.5 34.8284 19.8284 35.5 19 35.5H16C15.1716 35.5 14.5 34.8284 14.5 34Z"
+                            fill="#216BF4" />
+                    </svg>
                     <div>Заключение договора</div>
                 </button>
             </div>
         </div>
+        <div id="contractModal" class="modal">
+            <div class="modal-content">
+                <h2 class="client-header">Создание договора</h2>
+                <form id="contractForm">
+                    <input type="hidden" name="lead_id" id="lead_id">
+                    <label>Номер договора:</label>
+                    <input type="text" name="contract_number" required class="contract-input">
+                    <label>Дата договора:</label>
+                    <input type="date" name="contractDate" required class="contract-input">
+                    <label>Блок:</label>
+                    <input type="text" name="block" value="0" required class="contract-input">
+                    <label>Этаж:</label>
+                    <input type="number" name="floor" value="0" required class="contract-input">
+                    <label>Номер квартиры:</label>
+                    <input type="number" name="apartmentNumber" value="0" required class="contract-input">
+                    <label>Кол-во комнат:</label>
+                    <input type="number" name="rooms" value="0" required class="contract-input">
+                    <label>Площадь (м²):</label>
+                    <input type="number" name="size" value="0" required class="contract-input">
+                    <label>Общая стоимость:</label>
+                    <input type="text" name="totalPrice"
+                        value="" required class="contract-input">
+                    <label>Стоимость 1 м²:</label>
+                    <input type="text" name="pricePerM2"
+                        value="" required class="contract-input">
+                    <label>Выбор оплаты (%):</label>
+                    <input type="text" name="paymentChoice" value="" required class="contract-input">
+                    <label>Сумма первоначального взноса:</label>
+                    <input type="text" name="initialPayment" id="initialPayment"
+                        value="" required class="contract-input">
+                    <label>Ф/И/О:</label>
+                    <input type="text" name="fullName" required class="contract-input">
+                    <label>Серия паспорта:</label>
+                    <input type="text" name="passportSeries" required class="contract-input">
+                    <label>ПИНФЛ:</label>
+                    <input type="text" name="pinfl" required class="contract-input">
+                    <label>Кем выдан:</label>
+                    <input type="text" name="issuedBy" required class="contract-input">
+                    <label>Адрес прописки:</label>
+                    <input type="text" name="registrationAddress" required class="contract-input">
+                    <label>Номер телефона:</label>
+                    <input type="text" name="phone" required class="contract-input">
+                    <label>Отдел продаж:</label>
+                    <input type="text" name="salesDepartment" required class="contract-input">
+                    <div class="container-button">
+                        <button type="submit" class="btn active">Создать</button>
+                        <button class="btn" type="button" onclick="closeModal()">Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="callbackModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2 class="client-header">Выберите время для звонка</h2>
+                <input type="datetime-local" id="callbackTime" class="contract-input" />
+                <div class="container-button">
+                    <button class="btn active" onclick="saveCallbackTime()">Подтвердить</button>
+                    <button class="btn" onclick="closeModalNot()">Отмена</button>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="/static/exact-lead-scripts.js"></script>
-    <script src="/static/search-lead-scripts.js">
+    <script src="/static/search-lead-scripts.js"></script>
+    <script src="/static/notification-sales.js"></script>
+    <script>
+        function openModal(leadId) {
+            document.getElementById('lead_id').value = leadId;
+            document.getElementById('contractModal').style.display = 'block';
+        }
 
-</script>
+        function closeModal() {
+            document.getElementById('contractModal').style.display = 'none';
+            document.getElementById('contractForm').reset();
+        }
+
+        document.getElementById('contractForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            try {
+                const response = await fetch('/api/leads/contracts/', {
+                    method: 'POST',
+                    body: JSON.stringify(Object.fromEntries(formData)),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail);
+                }
+
+                // Скачивание файла
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = response.headers.get('Content-Disposition')?.split('filename=')[1] || 'contract.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+
+                closeModal();
+                showNotification('Договор успешно создан!', 'success');
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        });
+    </script>
 
 </body>
+
 </html>

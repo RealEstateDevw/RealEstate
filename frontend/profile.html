@@ -6,20 +6,42 @@
     <title>CRM</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/mop-dashboard.css">
+    <link rel="stylesheet" href="/static/finance-dashboard.css">
+
     <style>
+        .shahmatki{
+    background-color: #1a73e8;
+    padding: 20px;
+    border-radius: 50px;
+    font-size: 32px;
+}
     body {
         background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
         transition: background 0.5s ease;
     }
+    
 </style>
 </head>
 <body>
+    {% if user.role_id == 1 %}
     {% include 'partials/header.html' %}
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+{% elif user.role_id == 2 %}
+    {% include 'partials/mop-header.html' %}
+{% elif user.role_id == 3 %}
+    {% include 'partials/rop-header.html' %}
+{% elif user.role_id == 4 %}
+    {% include 'partials/finance-header.html' %}
+{% elif user.role_id == 5 %}
+    {% include 'partials/admin-header.html' %}
+{% endif %}
 
+<main>
+    {% block content %}
+    {% endblock %}
+</main>
     <main class="main-content">
         <div class="profile-header">
             <div class="profile-info">

@@ -14,9 +14,9 @@ router = APIRouter(prefix="/api/mop")
 
 @router.get("/search", response_model=SearchResponse)
 async def search_leads_and_users(
-    query: str = Query(..., min_length=1, description="Search query"),
-    limit: int = Query(10, ge=1, le=50, description="Maximum number of results to return"),
-    db: Session = Depends(get_db)
+        query: str = Query(..., min_length=1, description="Search query"),
+        limit: int = Query(10, ge=1, le=50, description="Maximum number of results to return"),
+        db: Session = Depends(get_db)
 ):
     """
     Search leads and users by name, phone, email, or region.

@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .back-button {
+            font-size: 20px;
+            color: #333;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .filter-button {
+            display: flex;
+            align-items: center;
+            background-color: #f0f2f5;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .filter-button.active {
+            background-color: #e6f0ff;
+            color: #0066ff;
+        }
+
+        .filter-icon {
+            margin-right: 8px;
+            color: #0066ff;
+        }
+
+        .dropdown-icon {
+            margin-left: 5px;
+        }
+
+        .search-container {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: #f0f2f5;
+            border-radius: 20px;
+            padding: 8px 15px;
+            margin-right: 15px;
+        }
+
+        .search-icon {
+            color: #999;
+            margin-right: 8px;
+        }
+
+        .search-input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            width: 120px;
+        }
+
+        .profile-icon {
+            width: 35px;
+            height: 35px;
+            background-color: #0066ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+        
+        #complexes-container {
+    display: none; /* Скрыт по умолчанию */
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+    background-color: #fff; /* Белый фон */
+}
+
+.complex-card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    text-align: center;
+    width: 200px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.complex-card img {
+    width: 100%;
+    border-radius: 5px;
+}
+
+#jk-details-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-width: 1200px;
+    margin: 20px auto;
+  }
+
+  /* Стили для изображения */
+  .jk-render-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  /* Контейнер кнопок */
+  .blocks-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  /* Стили для кнопок */
+  .block-button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .block-button:hover {
+    background-color: #0056b3;
+  }
+
+
+  /* Каждый этаж (floor-container) идёт отдельным блоком */
+.floor-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  background-color: #ffffff;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+/* Метка этажа (цифра) */
+.floor-label {
+  flex-shrink: 0;
+  width: 50px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #424242;
+  text-align: center;
+  margin-right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+}
+
+/* Сетка квартир на этаже */
+.apartment-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem; /* Расстояние между карточками */
+  flex: 1;     /* Занимает всё доступное пространство */
+}
+
+/* Общий стиль карточки квартиры */
+.apartment-card {
+  flex: 0 0 calc(14.28% - 0.5rem); /* 7 карточек в ряд, при необходимости подберите другое значение */
+  box-sizing: border-box;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 0.5rem;
+  min-height: 100px;
+  display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 12px;
+    box-sizing: border-box;
+
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* При наведении делаем карточку чуть «выше» */
+.apartment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  /* Центральный элемент — крупная цена */
+  .card-price {
+    font-size: 24px;
+    margin: 4px 0;  /* Небольшие отступы сверху и снизу */
+    line-height: 1.2;
+  }
+
+  /* Нижняя строка: "47.6 м2" слева, "сум" справа */
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .apartment-card.available {
+    background: #04E762; /* светло-зелёный */
+  border: 1px solid #04E762;
+  color: #fff;
+}
+
+.apartment-card.sold {
+    background: #CCD0D2; /* светло-серый */
+  border: 1px solid #CCD0D2;
+}
+
+.apartment-card.reserved {
+    background: #F5B700; /* светло-серый */
+  border: 1px solid #F5B700;
+  color: #fff;
+}
+
+.apartment-card.unavailable {
+  background-color: #eeeeee;
+  border: 1px solid #bdbdbd;
+}
+/* Кнопка «Назад к выбору блоков» */
+.back-button {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #2196f3;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 999; /* Чтобы кнопка была поверх остальных элементов */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.back-button:hover {
+  background-color: #1976d2;
+}
+        </style>
+</head>
+<body>
+<header class="header">
+        <div class="back-button">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+        <div class="filter-options">
+            <div class="filter-button">
+                <i class="fas fa-filter filter-icon"></i>
+                Шахматка
+            </div>
+            <button class="filter-button"  onclick="showComplexes()">
+                <i class="fas fa-th filter-icon"></i>
+                Шахматка +
+            </button>
+            <div class="filter-button">
+                <i class="fas fa-building filter-icon"></i>
+                Фасады
+            </div>
+            <div class="filter-button">
+                Тип
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </div>
+            <div class="filter-button">
+                Комнат
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </div>
+            <div class="filter-button">
+                Цена
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </div>
+            <div class="filter-button">
+                Площадь
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </div>
+            <div class="filter-button">
+                Акции
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </div>
+        </div>
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Поиск">
+            </div>
+            <div class="profile-icon">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </header>
+    <div id="complexes-container" style="display: none;"></div>
+    <div id="jk-details-container" style="display: none;"></div>
+
+<script>
+    async function fetchData(url, errorMessage) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`${errorMessage}: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(`${errorMessage}:`, error);
+        throw error;
+    }
+}
+async function showComplexes() {
+    try {
+        // Делаем запрос к серверу
+        const response = await fetch('/api/complexes');
+        const result = await response.json();
+
+        if (result.status === "success") {
+            complexesContainer = document.getElementById("complexes-container")
+            // Очищаем контейнер ЖК и делаем его видимым
+            complexesContainer.innerHTML = "";
+            complexesContainer.style.display = "flex";
+
+            // Создаем карточки ЖК
+            result.complexes.forEach(complex => {
+                const card = document.createElement("div");
+                card.className = "complex-card";
+                card.setAttribute("data-jk-name", complex.name); // Указываем имя ЖК
+
+                card.innerHTML = `
+                    <img src="${complex.render}" alt="Рендер ${complex.name}" class="complex-image">
+                    <h3 class="complex-title">${complex.name}</h3>
+                `;
+
+                complexesContainer.appendChild(card);
+            });
+
+            // // Назад на главную
+            // const backButton = document.createElement("button");
+            // backButton.textContent = 'Назад на главную страницу';
+            // backButton.className = 'back-button top-left';
+            // backButton.addEventListener('click', () => {
+            //     complexesContainer.style.display = 'none'; // Скрываем контейнер ЖК
+            //     homeContainer.style.display = 'block'; // Показываем главный контейнер
+            //     if (navbar) navbar.style.display = 'flex'; // Показываем меню
+            //     // Показываем слайды снова
+            //     const slides = document.querySelectorAll(".slide");
+            //     slides.forEach(slide => {
+            //         slide.style.display = "block";
+            //     });
+            // });
+            // complexesContainer.appendChild(backButton);
+        } else {
+            console.error('Ошибка загрузки ЖК: ', result.message);
+            alert('Ошибка загрузки ЖК: ' + result.message);
+        }
+    } catch (error) {
+        console.error("Ошибка загрузки ЖК:", error);
+        alert('Ошибка загрузки ЖК: ' + error.message);
+    }
+}
+
+let globalShaxmatkaData = null;
+let globalRenderImage = null;
+// Глобальная переменная для хранения выбора пользователя
+let userSelection = {
+    totalPrice: null,
+    pricePerM2: null
+};
+// Глобальная переменная для хранения выбора тип оплаты 30,50,70 или 100%
+let selectedPaymentOption = ''; // Явно задайте начальное значение
+// Глобальная переменная для хранения первоначального взноса
+let initialPayment = null;
+console.log('Initial Payment:', initialPayment); // Отладка
+
+// Функция для отображения данных ЖК на сайте
+function showJKDetails(shaxmatkaData, renderImage, jkName) {
+    globalShaxmatkaData = shaxmatkaData; // Сохраняем данные в глобальную переменную
+    globalRenderImage = renderImage; // Сохраняем renderImage в глобальной переменной
+    // Обновляем глобальную переменную
+
+    const complexesContainer = document.getElementById("complexes-container");
+    const jkDetailsContainer = document.getElementById("jk-details-container");
+    jkDetailsContainer.style.maxWidth = "800px"
+
+    // Скрываем другие секции
+
+    complexesContainer.style.display = "none";
+    jkDetailsContainer.style.display = "block";
+
+    // Очищаем контейнер
+    jkDetailsContainer.innerHTML = "";
+    // Логируем путь к изображению
+    console.log(`Проверка пути к изображению: ${renderImage}`);
+
+
+    // Отображаем первую картинку из папки render
+    const image = document.createElement("img");
+    console.log(`Путь к изображению: ${renderImage}`);
+    image.src = renderImage; // Передаём путь к первой картинке
+    image.alt = `Рендер ЖК ${jkName}`;
+    image.className = "jk-render-image";
+    jkDetailsContainer.appendChild(image);
+
+    // Добавляем кнопки блоков
+    const uniqueBlocks = [...new Set(shaxmatkaData.map(row => row[0]))];
+    const blocksContainer = document.createElement("div");
+    blocksContainer.className = "blocks-container";
+
+    uniqueBlocks.forEach(block => {
+        const button = document.createElement("button");
+        button.textContent = `Блок ${block}`;
+        button.className = "block-button";
+        button.addEventListener("click", () => {
+            console.log(`Выбран блок: ${block}`);
+            filterBlockData(shaxmatkaData, block, renderImage, jkName);
+        });
+        blocksContainer.appendChild(button);
+    });
+
+    jkDetailsContainer.appendChild(blocksContainer);
+
+    const backButtonToComplexes = document.createElement("button");
+    backButtonToComplexes.textContent = "Назад к ЖК";
+    backButtonToComplexes.className = "back-button top-left";
+    backButtonToComplexes.addEventListener("click", () => {
+        jkDetailsContainer.style.display = "none";
+        complexesContainer.style.display = "flex";
+    });
+    jkDetailsContainer.appendChild(backButtonToComplexes);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const complexesContainer = document.getElementById("complexes-container");
+
+    complexesContainer.addEventListener('click', async function (event) {
+        const card = event.target.closest(".complex-card");
+        if (card) {
+            const jkName = card.getAttribute("data-jk-name");
+            console.log(`Выбран ЖК: ${jkName}`);
+
+            try {
+                const response = await fetch(`/api/complexes/jk/${jkName}`);
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    console.log("Данные ЖК:", result);
+
+                    // Открываем страницу с ЖК
+                    showJKDetails(result.shaxmatka, result.render, jkName);
+                } else {
+                    alert(`Ошибка: ${result.message}`);
+                }
+            } catch (error) {
+                console.error("Ошибка при загрузке данных ЖК:", error);
+            }
+        }
+    });
+});
+
+function filterBlockData(shaxmatkaData, block, renderImage, jkName) {
+    console.log("Проверка данных shaxmatkaData:", shaxmatkaData);
+    const jkDetailsContainer = document.getElementById("jk-details-container");
+    jkDetailsContainer.style.maxWidth = "100%";
+
+    // Фильтруем данные по блоку
+    const filteredData = shaxmatkaData.filter(row => row[0] === block);
+
+    // Группируем данные по этажам
+    const floors = filteredData.reduce((acc, row) => {
+        const floor = row[6]; // Этаж
+        if (!acc[floor]) acc[floor] = [];
+        acc[floor].push(row);
+        return acc;
+    }, {});
+
+    // Очищаем контейнер
+    jkDetailsContainer.innerHTML = "";
+
+    // Создаем структуру для этажей
+    Object.keys(floors).sort((a, b) => b - a).forEach(floor => {
+        const floorContainer = document.createElement("div");
+        floorContainer.className = "floor-container";
+
+        const floorLabel = document.createElement("div");
+        floorLabel.className = "floor-label";
+        floorLabel.textContent = `${floor}`;
+        floorContainer.appendChild(floorLabel);
+
+        const apartmentGrid = document.createElement("div");
+        apartmentGrid.className = "apartment-grid";
+
+        floors[floor].forEach(row => {
+            const statusMap = {
+                "свободна": "available",
+                "продана": "sold",
+                "бронь": "booked"
+            };
+            const status = row[2].toLowerCase(); // Статус квартиры
+            const mappedStatus = statusMap[status] || "unknown";
+            const apartmentCard = document.createElement("div");
+            apartmentCard.className = `apartment-card ${mappedStatus}`;
+
+            if (!jkName || !block || !row[5]) {
+                console.warn("Некорректные данные для квартиры:", { jkName, block, size: row[5] });
+                return;
+            }
+
+            // Извлекаем количество комнат из row[3]
+            const rooms = row[3] || "Не указано";
+
+            apartmentCard.setAttribute("data-jk-name", jkName);
+            apartmentCard.setAttribute("data-block", block);
+            apartmentCard.setAttribute("data-size", row[5]);
+            apartmentCard.setAttribute("data-floor", row[6]);
+            apartmentCard.setAttribute("data-number", row[4]);
+            apartmentCard.setAttribute("data-rooms", rooms);
+
+            console.log("Filtered Data Row:", row);
+
+            const price = status === "свободна" && row.length > 7
+                ? `от ${Number(row[7]).toLocaleString('ru-RU')} сум`
+                : "";
+            const cleanedPrice = price
+                .replace(/от\s*/gi, "")
+                .replace(/сум\s*/gi, "")
+                .trim();
+
+            apartmentCard.innerHTML = `
+                <div class="card-header">
+                    <span>${row[1] || "Тип не указан"}</span>
+                    <span>№${row[4] || "Номер кв не указан"}</span>
+                </div>
+                <div class="card-price">
+                    ${price 
+                        ? `<p class="card-price">${cleanedPrice}</p>` 
+                        : `<p class="card-status">${row[2] || "Неизвестно"}</p>`}
+                </div>
+                <div class="card-footer">
+                    <span>${row[5] || "-"} м</span>
+                    <span>сум</span>
+                </div>
+            `;
+            apartmentGrid.appendChild(apartmentCard);
+        });
+
+        floorContainer.appendChild(apartmentGrid);
+        jkDetailsContainer.appendChild(floorContainer);
+    });
+
+    // Добавляем кнопку "Назад к выбору блоков"
+    const backButton = document.createElement("button");
+    backButton.textContent = "Назад к выбору блоков";
+    backButton.className = "back-button top-left";
+    backButton.addEventListener("click", () => {
+        jkDetailsContainer.innerHTML = ""; // Очищаем данные блока
+        showJKDetails(shaxmatkaData, renderImage, jkName); // Передаем изображение заново
+    });
+    jkDetailsContainer.appendChild(backButton);
+}
+
+async function fetchPlanImage(jkName, blockName, apartmentSize) {
+    const url = `/api/complexes/plan-image?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(blockName)}&apartmentSize=${encodeURIComponent(apartmentSize)}`;
+    try {
+        const response = await fetch(url);
+        if (response.ok) {
+            return URL.createObjectURL(await response.blob());
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Ошибка загрузки изображения.");
+        }
+    } catch (error) {
+        console.error("Ошибка при загрузке изображения планировки:", error);
+        throw error;
+    }
+}
+
+// Функция для очистки контейнера
+function clearContainer(containerId) {
+    const container = document.getElementById(containerId);
+    if (container) container.innerHTML = '';
+}
+
+// Функция для обновления поля выбора оплаты (30, 50, 70 или 100% оплаты)
+function updatePaymentChoice(paymentPercentage) {
+    selectedPaymentOption = paymentPercentage; // Устанавливаем текущий выбор
+    const paymentChoiceInput = document.querySelector('input[name="paymentChoice"]');
+    if (paymentChoiceInput) {
+        paymentChoiceInput.value = `${paymentPercentage}%`;
+    }
+}
+
+// Функция для обработки клика по карточке квартиры
+document.body.addEventListener('click', async function (event) {
+    if (event.target.classList.contains('apartment-card')) {
+        const card = event.target;
+        const jkName = card.getAttribute("data-jk-name");
+        const blockName = card.getAttribute("data-block");
+        const apartmentSize = card.getAttribute("data-size");
+        const floor = card.getAttribute("data-floor");
+        const apartmentNumber = card.getAttribute("data-number");
+        const rooms = card.getAttribute("data-rooms");
+
+        function updateInitialPayment(amount) {
+            console.log('Updating Initial Payment:', amount);
+            initialPayment = amount;
+            const initialPaymentInput = document.getElementById("initialPayment");
+            if (initialPaymentInput) {
+                initialPaymentInput.value = amount;
+            }
+        }
+
+        if (!jkName || !blockName || !apartmentSize || !floor || !apartmentNumber || !rooms) {
+            console.error("Отсутствуют данные для запроса:", { jkName, blockName, apartmentSize, floor, apartmentNumber, rooms });
+            alert("Не хватает данных для выполнения запроса. Проверьте настройки.");
+            return;
+        }
+
+        try {
+            // 1. Получаем изображение планировки
+            const planImagePath = await fetchPlanImage(jkName, blockName, apartmentSize);
+            console.log(`Путь к изображению: ${planImagePath}`);
+
+            // 2. Получаем данные о квартире
+            const url = `/api/complexes/apartment-info?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(blockName)}&apartmentSize=${encodeURIComponent(apartmentSize)}&floor=${encodeURIComponent(floor)}`;
+const apartmentInfo = await fetchData(url, "Ошибка получения информации о квартире");
+
+            if (apartmentInfo.status === "success") {
+                const { pricePerM2_100, pricePerM2_70, pricePerM2_50, pricePerM2_30, total_price, status, months_left } = apartmentInfo.data;
+
+                // 3. Очищаем контейнер перед отображением данных
+                const jkDetailsContainer = document.getElementById('jk-details-container');
+                clearContainer('jk-details-container');
+
+                // 4. Создаем контейнер для изображения и информации
+                const planInfoContainer = document.createElement('div');
+                planInfoContainer.className = 'plan-info-container';
+
+                // Добавляем изображение планировки
+                const planImage = document.createElement('img');
+                planImage.src = planImagePath;
+                planImage.alt = `Планировка ${blockName}, ${apartmentSize} м²`;
+                planImage.className = 'plan-image';
+                planInfoContainer.appendChild(planImage);
+
+                // Добавляем информацию о квартире
+                const infoCard = document.createElement('div');
+                infoCard.className = 'info-card';
+
+                let priceHTML = "";
+                if (status.toLowerCase() !== "продана") {
+                    priceHTML = `<p><strong>Цена:</strong> от ${pricePerM2_30.toLocaleString()} сум за м²</p>
+                    <p><strong>Общая стоимость:</strong> от ${total_price.toLocaleString()} сум</p>
+                    <p><strong>Рассрочка:</strong> на ${months_left.toLocaleString()} месяцев </p>`;
+                }
+
+                infoCard.innerHTML = `
+                    <h3>Информация о квартире</h3>
+                    <p><strong>ЖК:</strong> ${jkName}</p>
+                    <p><strong>Блок:</strong> ${blockName}</p>
+                    <p><strong>Этаж:</strong> ${floor}</p>
+                    <p><strong>Площадь:</strong> ${apartmentSize} м²</p>
+                    <p><strong>Статус:</strong> ${status}</p>
+                    ${priceHTML}
+                `;
+
+                // Если квартира свободна, добавляем кнопки для расчетов
+                if (status.toLowerCase() === "свободна") {
+                    const buttonsContainer = document.createElement("div");
+                    buttonsContainer.className = "buttons-container";
+
+                    const resultContainer = document.createElement("div");
+                    resultContainer.className = "result-container";
+                    resultContainer.style.marginTop = "10px";
+
+                    // Кнопка 100% Оплата
+                    const fullPaymentButton = document.createElement("button");
+                    fullPaymentButton.textContent = "100% Оплата";
+                    fullPaymentButton.addEventListener("click", () => {
+                        updatePaymentChoice(100);
+                        const fullPrice_100 = pricePerM2_100 * parseFloat(apartmentSize.replace(',', '.'));
+                        const economy = total_price - fullPrice_100;
+                        userSelection.totalPrice = fullPrice_100;
+                        userSelection.pricePerM2 = pricePerM2_100;
+                        console.log('Initial Payment:', initialPayment);
+                        updateInitialPayment(fullPrice_100);
+                        resultContainer.innerHTML = `
+                            <p><strong>Стоимость квартиры:</strong> ${fullPrice_100.toLocaleString()} сум</p>
+                            <p><strong>Экономия:</strong> ${economy.toLocaleString()} сум</p>
+                        `;
+                    });
+                    buttonsContainer.appendChild(fullPaymentButton);
+
+                    // Кнопка Рассрочка
+                    const installmentButton = document.createElement("button");
+                    installmentButton.textContent = "Рассрочка";
+                    installmentButton.addEventListener("click", () => {
+                        const installmentOptions = document.createElement("div");
+                        installmentOptions.className = "installment-options";
+                        installmentOptions.style.marginTop = "10px";
+                        resultContainer.innerHTML = "";
+                        [70, 50, 30].forEach((percentage) => {
+                            const button = document.createElement("button");
+                            button.textContent = `${percentage}% Оплаты`;
+                            button.style.marginRight = "5px";
+                            button.addEventListener("click", () => {
+                                updatePaymentChoice(percentage);
+                                let pricePerM2;
+                                switch (percentage) {
+                                    case 70:
+                                        pricePerM2 = pricePerM2_70;
+                                        break;
+                                    case 50:
+                                        pricePerM2 = pricePerM2_50;
+                                        break;
+                                    case 30:
+                                        pricePerM2 = pricePerM2_30;
+                                        break;
+                                }
+                                const totalPrice_R = pricePerM2 * parseFloat(apartmentSize.replace(',', '.'));
+                                const initialPayment = totalPrice_R * (percentage / 100);
+                                const remaining = totalPrice_R - initialPayment;
+                                const months = months_left;
+                                const monthlyPayment = remaining / months;
+                                const economy = total_price - totalPrice_R;
+                                userSelection.totalPrice = totalPrice_R;
+                                userSelection.pricePerM2 = pricePerM2;
+                                console.log('Initial Payment:', initialPayment);
+                                updateInitialPayment(initialPayment);
+                                resultContainer.innerHTML = `
+                                    <p><strong>${percentage}% Оплаты:</strong></p>
+                                    <p>Стоимость квартиры: ${totalPrice_R.toLocaleString()} сум</p>
+                                    <p>Первоначальный взнос: ${initialPayment.toLocaleString()} сум</p>
+                                    <p>Ежемесячная оплата: ${Math.round(monthlyPayment).toLocaleString()} сум</p>
+                                    ${economy !== 0 ? `<p><strong>Экономия:</strong> ${economy.toLocaleString()} сум</p>` : ""}
+                                `;
+                            });
+                            installmentOptions.appendChild(button);
+                        });
+                        resultContainer.innerHTML = "";
+                        resultContainer.appendChild(installmentOptions);
+                    });
+                    buttonsContainer.appendChild(installmentButton);
+
+                    // Кнопка Гибридная Рассрочка (если подходит площадь)
+                    const allowedHybridSizes = [88.42];
+                    if (allowedHybridSizes.includes(parseFloat(apartmentSize.replace(',', '.')))) {
+                        const hybridButton = document.createElement("button");
+                        hybridButton.textContent = "Гибридная Рассрочка";
+                        hybridButton.addEventListener("click", () => {
+                            updatePaymentChoice(30);
+                            const totalPrice_Hybrid = pricePerM2_30 * parseFloat(apartmentSize.replace(',', '.'));
+                            const initialPayment = totalPrice_Hybrid * 0.3;
+                            const middlePayment = totalPrice_Hybrid * 0.4;
+                            const lastPayment = totalPrice_Hybrid * 0.3;
+                            const months = months_left;
+                            const monthlyPayment = middlePayment / months;
+                            userSelection.totalPrice = totalPrice_Hybrid;
+                            userSelection.pricePerM2 = pricePerM2_30;
+                            console.log('Initial Payment:', initialPayment);
+                            updateInitialPayment(initialPayment);
+                            resultContainer.innerHTML = `
+                                <p><strong>Гибридная Рассрочка:</strong></p>
+                                <p><strong>Стоимость квартиры:</strong> ${totalPrice_Hybrid.toLocaleString()} сум</p>
+                                <p><strong>Первоначальный взнос (30%):</strong> ${Math.round(initialPayment).toLocaleString()} сум</p>
+                                <p><strong>Ежемесячная оплата:</strong> ${Math.round(monthlyPayment).toLocaleString()} сум</p>
+                                <p><strong>Последний платеж (30%):</strong> ${Math.round(lastPayment).toLocaleString()} сум</p>
+                            `;
+                        });
+                        buttonsContainer.appendChild(hybridButton);
+                    }
+
+                    infoCard.appendChild(buttonsContainer);
+                    infoCard.appendChild(resultContainer);
+
+                    // Кнопка "Забронировать"
+                    const reserveButton = document.createElement("button");
+                    reserveButton.textContent = "Забронировать";
+                    reserveButton.className = "reserve-button";
+
+                    const reserveFormContainer = document.createElement("div");
+                    reserveFormContainer.className = "reserve-form-container";
+                    reserveFormContainer.style.display = "none";
+                    reserveFormContainer.style.marginTop = "10px";
+
+                    reserveFormContainer.innerHTML = `
+                        <form class="reserve-form">
+                            <label for="name"><strong>Имя:</strong></label>
+                            <input type="text" id="name" name="name" placeholder="Введите ваше имя" required>
+                            <label for="phone"><strong>Телефон:</strong></label>
+                            <input type="text" id="phone" name="phone" placeholder="Введите ваш телефон" required>
+                            <button type="submit" class="submit-reserve-button">Отправить</button>
+                        </form>
+                    `;
+
+                    reserveButton.addEventListener("click", () => {
+                        reserveFormContainer.style.display = reserveFormContainer.style.display === "none" ? "block" : "none";
+                    });
+
+                    reserveFormContainer.addEventListener("submit", async (event) => {
+                        event.preventDefault();
+                        const name = reserveFormContainer.querySelector("#name").value;
+                        const phone = reserveFormContainer.querySelector("#phone").value;
+                        if (!name || !phone) {
+                            alert("Имя и телефон обязательны для бронирования!");
+                            return;
+                        }
+                        const data = {
+                            name: name,
+                            phone: phone,
+                            apartmentNumber: apartmentNumber,
+                            apartmentDetails: `Этаж: ${floor}, м²: ${apartmentSize}`,
+                            jkName: jkName,
+                            block: blockName
+                        };
+                        try {
+                            const response = await fetch("/api/complexes/lid/register", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(data)
+                            });
+                            const result = await response.json();
+                            if (response.ok && result.status === "success") {
+                                alert("Бронь успешно зарегистрирована!");
+                                reserveFormContainer.style.display = "none";
+                            } else {
+                                alert(`Ошибка бронирования: ${result.message}`);
+                            }
+                        } catch (error) {
+                            console.error("Ошибка при бронировании:", error);
+                            alert("Произошла ошибка при бронировании. Пожалуйста, попробуйте еще раз.");
+                        }
+                    });
+
+                    buttonsContainer.appendChild(reserveButton);
+                    buttonsContainer.appendChild(reserveFormContainer);
+
+                    // Кнопка "Оформить договор"
+                    const contractButton = document.createElement("button");
+                    contractButton.textContent = "Оформить договор";
+                    contractButton.className = "contract-button";
+                    contractButton.addEventListener("click", async () => {
+                        console.log("jkName before passing to modal:", jkName);
+                        async function fetchLastContractNumber(jkName) {
+                            try {
+                                const response = await fetch(`/api/last-contract-number?jkName=${encodeURIComponent(jkName)}`);
+                                if (!response.ok) {
+                                    throw new Error(`Ошибка получения номера договора: ${response.statusText}`);
+                                }
+                                const data = await response.json();
+                                return data.lastContractNumber;
+                            } catch (error) {
+                                console.error('Ошибка при получении номера договора:', error);
+                                throw error;
+                            }
+                        }
+                        const nextContractNumber = await fetchLastContractNumber(jkName);
+                        openContractModal({
+                            jkName: jkName,
+                            block: blockName,
+                            floor: floor,
+                            apartmentNumber: apartmentNumber,
+                            rooms: rooms,
+                            size: parseFloat(apartmentSize.replace(',', '.')),
+                            totalPrice: userSelection.totalPrice,
+                            pricePerM2: userSelection.pricePerM2,
+                            paymentChoice: selectedPaymentOption,
+                            initialPayment: initialPayment,
+                            contractNumber: nextContractNumber || ""
+                        });
+                    });
+                    buttonsContainer.appendChild(contractButton);
+
+                    function openContractModal(prefilledData) {
+                        const modal = document.createElement("div");
+                        modal.className = "custom-modal";
+                        modal.innerHTML = `
+                            <div class="custom-modal-content">
+                                <h3>Оформление договора</h3>
+                                <form id="contract-form">
+                                    <input type="hidden" name="jkName" value="${prefilledData.jkName}">
+                                    <label>Номер договора:</label>
+                                    <input type="text" name="contractNumber" value="${prefilledData.contractNumber || ''}" required>
+                                    <label>Дата договора:</label>
+                                    <input type="date" name="contractDate" required>
+                                    <label>Блок:</label>
+                                    <input type="text" name="block" value="${prefilledData.block}" required>
+                                    <label>Этаж:</label>
+                                    <input type="number" name="floor" value="${prefilledData.floor}" required>
+                                    <label>Номер квартиры:</label>
+                                    <input type="number" name="apartmentNumber" value="${prefilledData.apartmentNumber}" required>
+                                    <label>Кол-во комнат:</label>
+                                    <input type="number" name="rooms" value="${prefilledData.rooms}" required>
+                                    <label>Площадь (м²):</label>
+                                    <input type="number" name="size" value="${prefilledData.size}" required>
+                                    <label>Общая стоимость:</label>
+                                    <input type="text" name="totalPrice" value="${Number(prefilledData.totalPrice).toLocaleString('ru-RU')}" required>
+                                    <label>Стоимость 1 м²:</label>
+                                    <input type="text" name="pricePerM2" value="${Number(prefilledData.pricePerM2).toLocaleString('ru-RU')}" required>  
+                                    <label>Выбор оплаты (%):</label>
+                                    <input type="text" name="paymentChoice" value="${prefilledData.paymentChoice}%" required>  
+                                    <label>Сумма первоначального взноса:</label>
+                                    <input type="text" name="initialPayment" id="initialPayment" value="${Number(prefilledData.initialPayment).toLocaleString('ru-RU')}" required>
+                                    <label>Ф/И/О:</label>
+                                    <input type="text" name="fullName" required>
+                                    <label>Серия паспорта:</label>
+                                    <input type="text" name="passportSeries" required>
+                                    <label>ПИНФЛ:</label>
+                                    <input type="text" name="pinfl" required>
+                                    <label>Кем выдан:</label>
+                                    <input type="text" name="issuedBy" required>
+                                    <label>Адрес прописки:</label>
+                                    <input type="text" name="registrationAddress" required>
+                                    <label>Номер телефона:</label>
+                                    <input type="text" name="phone" required>
+                                    <label>Отдел продаж:</label>
+                                    <input type="text" name="salesDepartment" required>
+                                    <button type="submit">Отправить</button>
+                                </form>
+                                <button class="close-modal">Закрыть</button>
+                            </div>
+                        `;
+                        document.body.appendChild(modal);
+                        modal.querySelector(".close-modal").addEventListener("click", () => {
+                            modal.remove();
+                        });
+                        const form = modal.querySelector("#contract-form");
+                        form.addEventListener("submit", async (event) => {
+                            event.preventDefault();
+                            const formData = new FormData(form);
+                            const data = Object.fromEntries(formData.entries());
+                            console.log('Отправляемые данные:', data);
+                            try {
+                                const response = await fetch("/api/reestr/register_or_update", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(data)
+                                });
+                                const result = await response.json();
+                                if (result.status === "success") {
+                                    alert(result.message);
+                                    modal.remove();
+                                } else {
+                                    alert(`Ошибка: ${result.message}`);
+                                }
+                            } catch (error) {
+                                console.error("Ошибка при обработке договора:", error);
+                                alert("Произошла ошибка. Попробуйте снова.");
+                            }
+                        });
+                    }
+                }
+
+                planInfoContainer.appendChild(infoCard);
+                jkDetailsContainer.appendChild(planInfoContainer);
+                jkDetailsContainer.style.display = 'block';
+
+                // Добавляем кнопку "Назад"
+                const backButton = document.createElement('button');
+                backButton.textContent = 'Назад к выбору квартиры';
+                backButton.className = 'back-button top-left';
+                backButton.addEventListener('click', () => {
+                    clearContainer('jk-details-container');
+                    filterBlockData(globalShaxmatkaData, blockName, globalRenderImage, jkName);
+                    const printButton = document.querySelector(".print-button");
+                    if (printButton) {
+                        printButton.style.display = "none";
+                    }
+                });
+                jkDetailsContainer.appendChild(backButton);
+
+                // Добавляем кнопку "Печать"
+                const printButton = document.createElement("button");
+                printButton.textContent = "Печать";
+                printButton.className = "print-button";
+                printButton.addEventListener("click", () => {
+                    window.print();
+                });
+                jkDetailsContainer.appendChild(printButton);
+
+            } else {
+                alert(apartmentInfo.message || "Ошибка при получении информации о квартире.");
+            }
+        } catch (error) {
+            console.error("Ошибка обработки клика по карточке:", error);
+            alert("Не удалось загрузить данные. Проверьте настройки и повторите попытку.");
+        }
+    }
+});
+</script>
+</body>
+</html>

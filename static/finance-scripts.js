@@ -70,40 +70,68 @@ function showSection(sectionId, element) {
         } else {
             console.log(items);
             container.innerHTML = items.map(item => {
-                // Определяем правильно тип отображаемых данных (лид или закупка)
-                const isLeadPayment = containerId === "leads-payment" || containerId === "leads-paid";
-                const isPurchasePayment = containerId === "purchases-payment" || containerId === "purchases-paid";
-                console.log(item);
-                return `
-                    <div class="card">
-                <div class="card-header">
-                    <div class="name">${item.full_name || item.title || "Без названия"}</div>
-                    <div class="date">${formatDate(item.created_at)}</div>
-                </div>
-                <hr class="divider">
-                <div class="contact-info">
-                    <span class="messenger elements-info ${item.contact_source}">${item.contact_source}</span>
-                    <span class="location elements-info">${item.region}</span>
-                    <span class="phone elements-info">${item.phone}</span>
-                </div>
-                <hr class="divider">
-                <div class="payment-info">Вид оплаты: ${item.payment_type}</div>
-                <div class="payment-info">Предварительная сумма: ${item.total_price.toLocaleString()}</div>
-                <hr class="divider">
-                <div class="whose-lead">Ответственный менеджер: ${item.user.last_name} ${item.user.first_name}</div>
-                <hr class="divider">
-                <div class="status">
-                    <div class="status-indicator">
-                        <span class="status-dot" style="background-color: ${getStatusColor(status)}"></span>
-                        <span>${status === "for-payment" ? "Ожидает оплаты" : status === "paid" ? "Выплачено" : "Закрыто"}</span>
-                    </div>
-                    <a href="/dashboard/sales/lead/${item.id}" class="open-card">Открыть карточку</a>
-                </div>
-            </div>
-                `;
+                // Определяем тип данных: лиды или закупки
+                const isLead = containerId.includes("leads");
+                const isPurchase = containerId.includes("purchases");
+    
+                if (isLead) {
+                    // Генерация HTML для лидов
+                    return `
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="name">${item.full_name || item.title || "Без названия"}</div>
+                                <div class="date">${formatDate(item.created_at)}</div>
+                            </div>
+                            <hr class="divider">
+                            <div class="contact-info">
+                                <span class="messenger elements-info ${item.contact_source}">${item.contact_source}</span>
+                                <span class="location elements-info">${item.region}</span>
+                                <span class="phone elements-info">${item.phone}</span>
+                            </div>
+                            <hr class="divider">
+                            <div class="payment-info">Вид оплаты: ${item.payment_type}</div>
+                            <div class="payment-info">Предварительная сумма: ${item.total_price.toLocaleString()}</div>
+                            <hr class="divider">
+                            <div class="whose-lead">Ответственный менеджер: ${item.user.last_name} ${item.user.first_name}</div>
+                            <hr class="divider">
+                            <div class="status">
+                                <div class="status-indicator">
+                                    <span class="status-dot" style="background-color: ${getStatusColor(status)}"></span>
+                                    <span>${status === "for-payment" ? "Ожидает оплаты" : status === "paid" ? "Выплачено" : "Закрыто"}</span>
+                                </div>
+                                <a href="/dashboard/sales/lead/${item.id}" class="open-card">Открыть карточку</a>
+                            </div>
+                        </div>
+                    `;
+                } else if (isPurchase) {
+                    // Генерация HTML для закупок
+                    return `
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="name">${item.title || "Без названия"}</div>
+                                <div class="date">${formatDate(item.created_at)}</div>
+                            </div>
+                            <hr class="divider">
+                            <div class="payment-info">Описание: ${item.description || "Нет описания"}</div>
+                            <hr class="divider">
+                            <div class="status">
+                                <div class="status-indicator">
+                                    <span class="status-dot" style="background-color: ${getStatusColor(status)}"></span>
+                                    <span>${status === "for-payment" ? "Ожидает оплаты" : status === "paid" ? "Выплачено" : "Закрыто"}</span>
+                                </div>
+                                <span>Сумма: ${item.amount.toLocaleString()} сум</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Если тип данных не определен, выводим сообщение об ошибке
+                    console.error(`Неизвестный тип данных для контейнера с ID ${containerId}`);
+                    return '';
+                }
             }).join('');
         }
-    
+        
+      
         // Обновляем счётчик, если указан
         if (countId) {
             const countElement = document.querySelector(`.column[data-status="${status}"] .lead-count`);

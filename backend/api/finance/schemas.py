@@ -81,12 +81,15 @@ class ExpenseBase(BaseModel):
     description: Optional[str] = None
     payment_date: datetime
 
+
     class Config:
         orm_mode = True
 
 
 class ExpenseCreate(ExpenseBase):
+    status: PaymentStatus
     created_by: int
+
 
 
 class ExpenseResponse(ExpenseBase):

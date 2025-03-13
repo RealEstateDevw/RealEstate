@@ -1,7 +1,10 @@
+import asyncio
 from datetime import timedelta, datetime
 
 from authlib.jose import jwt
 from fastapi.openapi.models import Response
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.inmemory import InMemoryBackend
 from jose import JWTError
 from sqlalchemy.orm import Session
 from starlette import status
@@ -16,6 +19,7 @@ from backend.api.mop.main import router as mop_api_router
 from backend.api.users.schemas import ROLE_REDIRECTS, UserRead
 from backend.core.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password, SECRET_KEY, ALGORITHM
 from backend.core.deps import get_current_user, get_current_user_from_cookie
+from backend.core.google_sheets import schedule_lid_check, load_data_to_cache
 from backend.database import Base, engine, get_db
 from fastapi import FastAPI, Request, HTTPException, Form, Depends
 from fastapi.responses import HTMLResponse
@@ -26,7 +30,10 @@ from backend.crm.seller.main import router as seller_router
 from backend.crm.mop.main import router as mop_router
 from backend.crm.finance.main import router as finance_router
 from backend.api.finance.main import router as finance_api_router
-
+from backend.crm.rop.main import router as rop_router
+from backend.api.rop.main import router as rop_api_router
+from backend.crm.shaxmatki.main import router as shaxmatki_router
+from backend.api.complexes.main import router as shaxmatki_api_router
 
 app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc")
 
@@ -38,6 +45,10 @@ app.include_router(mop_router)
 app.include_router(mop_api_router)
 app.include_router(finance_router)
 app.include_router(finance_api_router)
+app.include_router(rop_router)
+app.include_router(rop_api_router)
+app.include_router(shaxmatki_router)
+app.include_router(shaxmatki_api_router)
 
 
 app.mount("/media", StaticFiles(directory="media"), name="media")
@@ -53,10 +64,15 @@ app.add_middleware(
 
 
 @app.on_event("startup")
-def on_startup():
+async def on_startup():
     """Функция, которая выполняется при старте сервера."""
+    FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache")
+    # Можно также выполнить первоначальную загрузку данных, если необходимо:
+
     Base.metadata.create_all(bind=engine)  # Создание таблиц, если их нет
     init_roles()
+    asyncio.create_task(schedule_lid_check(60, 60))
+    await load_data_to_cache()
 
 
 # @app.get("/", response_class=HTMLResponse)
@@ -152,55 +168,55 @@ async def logout():
     return response
 
 
-# @app.middleware("http")
-# async def auth_middleware(request: Request, call_next):
-#     token = request.cookies.get("access_token")
-#     logger.info(f"Request path: {request.url.path}")
-#     logger.info(f"Cookie token: {token}")
-#
-#     public_paths = ["/login", "/register", "/api/auth/login", "/api/auth/register", "/static"]
-#
-#     if request.url.path in public_paths:
-#         logger.info(f"Public path accessed: {request.url.path}")
-#         return await call_next(request)
-#
-#     if not token:
-#         logger.info("No token found, redirecting to login")
-#         return RedirectResponse(url="/login", status_code=303)
-#
-#     try:
-#         # Извлекаем токен из формата "Bearer {token}"
-#         if token.startswith("Bearer "):
-#             token = token.split(" ")[1]
-#             logger.info(f"Extracted token: {token[:20]}...")
-#
-#         # Проверяем токен
-#         payload = jwt.decode(token, SECRET_KEY)
-#         logger.info(f"Token payload: {payload}")
-#
-#         # Проверяем срок действия
-#         exp = payload.get("exp")
-#         current_time = datetime.utcnow().timestamp()
-#
-#         print(f"Token expires at: {exp}, current time: {current_time}")
-#
-#         if exp and exp < current_time:
-#             logger.info("Token expired")
-#             response = RedirectResponse(url="/login", status_code=303)
-#             response.delete_cookie("access_token")
-#             return response
-#
-#         # Добавляем информацию о пользователе в request.state
-#         request.state.user = payload
-#         logger.info("Token validated successfully")
-#         return await call_next(request)
-#
-#     except JWTError as e:
-#         logger.error(f"JWT Error: {str(e)}")
-#         response = RedirectResponse(url="/login", status_code=303)
-#         response.delete_cookie("access_token")
-#         return response
-#
-#     except Exception as e:
-#         logger.error(f"Auth middleware error: {str(e)}", exc_info=True)
-#         return RedirectResponse(url="/login", status_code=303)
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    token = request.cookies.get("access_token")
+    logger.info(f"Request path: {request.url.path}")
+    logger.info(f"Cookie token: {token}")
+
+    public_paths = ["/login", "/register", "/api/auth/login", "/api/auth/register", "/static"]
+
+    if request.url.path in public_paths:
+        logger.info(f"Public path accessed: {request.url.path}")
+        return await call_next(request)
+
+    # if not token:
+    #     logger.info("No token found, redirecting to login")
+    #     return RedirectResponse(url="/login", status_code=303)
+
+    try:
+        # Извлекаем токен из формата "Bearer {token}"
+        if token.startswith("Bearer "):
+            token = token.split(" ")[1]
+            logger.info(f"Extracted token: {token[:20]}...")
+
+        # Проверяем токен
+        payload = jwt.decode(token, SECRET_KEY)
+        logger.info(f"Token payload: {payload}")
+
+        # Проверяем срок действия
+        exp = payload.get("exp")
+        current_time = datetime.utcnow().timestamp()
+
+        print(f"Token expires at: {exp}, current time: {current_time}")
+
+        if exp and exp < current_time:
+            logger.info("Token expired")
+            response = RedirectResponse(url="/login", status_code=303)
+            response.delete_cookie("access_token")
+            return response
+
+        # Добавляем информацию о пользователе в request.state
+        request.state.user = payload
+        logger.info("Token validated successfully")
+        return await call_next(request)
+
+    except JWTError as e:
+        logger.error(f"JWT Error: {str(e)}")
+        response = RedirectResponse(url="/login", status_code=303)
+        response.delete_cookie("access_token")
+        return response
+
+    except Exception as e:
+        logger.error(f"Auth middleware error: {str(e)}", exc_info=True)
+        return RedirectResponse(url="/login", status_code=303)

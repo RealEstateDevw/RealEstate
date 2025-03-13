@@ -5,68 +5,7 @@ window.onload = () => {
 filterEmployees();
 };
 
-// async function filterEmployees() {
 
-//     try {
-//         // Формируем URL с параметром role_id
-//         const response = await fetch(`/api/users/employees?role_id=1`);
-//         const employees = await response.json();
-
-//         // Очищаем текущий список сотрудников
-//         const leadList = document.querySelector('.lead-list');
-//         leadList.innerHTML = `<button class="all-report-button" type="button">Все 
-//                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
-//                     <path d="M9 5.5L15 12.5L9 19.5" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-//                 </svg>
-//             </button>`;
-
-//         // Генерируем новый список сотрудников
-//         employees.forEach(user => {
-//             const workStatus = user.work_status === 'Рабочий' && user.checkin_time
-//             ? `<rect y="0.5" width="16" height="16" rx="8" fill="#00FF55"/>`
-//             : user.work_status === 'Выходной'
-//             ? `<rect y="0.5" width="16" height="16" rx="8" fill="#A0A0A0"/>`
-//             : `<rect y="0.5" width="16" height="16" rx="8" fill="#FF0000"/>`;
-
-//         const statusText = user.work_status === 'Рабочий' && user.checkin_time
-//             ? 'Был на работе'
-//             : user.work_status === 'Выходной'
-//             ? 'Выходной'
-//             : 'Отсутствовал';
-//             const employeeItem = `
-//                 <div class="saller-item" data-user-id="${user.id}">
-//                     <div class="saller-info">
-//                         <div class="saller-name">${user.last_name} ${user.first_name}</div>
-//                         <div class="saller-position">
-//                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-//                                 ${workStatus}
-//                             </svg>
-//                             ${statusText}
-//                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
-//                                 <path d="M9 5.5L15 12.5L9 19.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-//                             </svg>
-//                         </div>
-//                     </div>
-//                     <div class="lead-count">
-//                         <div class="come-lead">
-//                             <span>Поступило</span>
-//                             <span>0</span>
-//                         </div>
-//                         <div class="come-lead">
-//                             <span>Отработано</span>
-//                             <span>0</span>
-//                         </div>
-//                     </div>
-//                 </div>
-//             `;
-
-//             leadList.innerHTML += employeeItem;
-//         });
-
-//     } catch (error) {
-//         console.error('Ошибка при фильтрации сотрудников:', error);
-//     }
-// }
 async function fetchSalesStats(userId = null) {
     try {
         const url = userId ? `/api/users/sales/stats?user_id=${userId}` : `/api/users/sales/stats`;

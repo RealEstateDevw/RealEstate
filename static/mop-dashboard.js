@@ -7,6 +7,54 @@
 
 let currentUser = null;
 
+function showNotification(message, type = "success") {
+    const notification = document.getElementById("notification");
+    const notificationMessage = document.getElementById("notification-message");
+    const closeBtn = document.getElementById("close-notification");
+
+    // Устанавливаем текст уведомления
+    notificationMessage.textContent = message;
+
+    // Устанавливаем стиль в зависимости от типа (успех или ошибка)
+    if (type === "success") {
+        notification.style.backgroundColor = "#4CAF50"; // Зеленый для успеха
+        notification.style.color = "white";
+    } else {
+        notification.style.backgroundColor = "#f44336"; // Красный для ошибки
+        notification.style.color = "white";
+    }
+
+    // Показываем уведомление
+    notification.style.display = "flex";
+    notification.style.position = "fixed";
+    notification.style.top = "20px";
+    notification.style.left = "50%";
+    notification.style.transform = "translateX(-50%)";
+    notification.style.padding = "10px 20px";
+    notification.style.borderRadius = "5px";
+    notification.style.zIndex = "1000";
+    notification.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+    notification.style.transition = "opacity 0.5s";
+
+    // Автоматически скрываем уведомление через 3 секунды
+    setTimeout(() => {
+        notification.style.opacity = "0";
+        setTimeout(() => {
+            notification.style.display = "none";
+            notification.style.opacity = "1"; // Сбрасываем opacity для следующего показа
+        }, 500);
+    }, 3000);
+
+    // Закрытие уведомления по клику на крестик
+    closeBtn.addEventListener('click', () => {
+        notification.style.opacity = "0";
+        setTimeout(() => {
+            notification.style.display = "none";
+            notification.style.opacity = "1"; // Сбрасываем opacity для следующего показа
+        }, 500);
+    }, { once: true }); // Убираем слушатель после одного клика, чтобы избежать дублирования
+}
+
         async function loadLeads() {
             try {
                 // Получаем текущего пользователя
@@ -263,6 +311,81 @@ function getLeadWord(count) {
     if (count % 10 === 1 && count % 100 !== 11) return "лид";
     if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) return "лида";
     return "лидов";
+}
+
+async function openImportModal() {
+    const modal = document.getElementById('importLeadsModal');
+    modal.style.display = 'flex';
+
+    // Fetch salespeople (users) for the dropdown
+    try {
+        const response = await fetch('/api/users/employees?role_id=1');
+        if (!response.ok) throw new Error('Ошибка загрузки продажников');
+        const salespeople = await response.json();
+
+        const select = document.getElementById('salespersonSelect');
+        select.innerHTML = '<option value="">-- Выберите продажника --</option>';
+        salespeople.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = user.first_name + " " + user.last_name || `ID: ${user.id}`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Ошибка при загрузке продажников:', error);
+        showNotification('Не удалось загрузить список продажников.', 'error');
+    }
+}
+
+// Close the import leads modal
+function closeImportModal() {
+    const modal = document.getElementById('importLeadsModal');
+    modal.style.display = 'none';
+}
+
+async function importLeads() {
+    const form = document.getElementById('importLeadsForm');
+    const formData = new FormData(form);
+
+    const salespersonId = formData.get('salesperson');
+    const googleSheetUrl = formData.get('google_sheet_url') || '';
+    const file = formData.get('lead_file');
+
+    const hasFile = file && file.size > 0 && file.name !== '';
+    const hasUrl = googleSheetUrl.trim() !== '';
+    if (!salespersonId) {
+        showNotification('Пожалуйста, выберите продажника.', 'error');
+        return;
+    }
+
+    if (!hasFile && !hasUrl) {
+        showNotification('Пожалуйста, выберите файл или укажите URL Google Sheets.', 'error');
+        return;
+    }
+
+    if (hasFile && hasUrl) {
+        showNotification('Выберите либо файл, либо URL Google Sheets, но не оба.', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/leads/import', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Ошибка при импорте лидов');
+        }
+
+        showNotification('Лиды успешно импортированы!');
+        closeImportModal();
+        loadLeads(); // Refresh the lead list
+    } catch (error) {
+        console.error('Ошибка при импорте лидов:', error);
+        showNotification(error.message, 'error');
+    }
 }
 
 

@@ -1,7 +1,7 @@
 sqlalchemy~=2.0.37
 fastapi~=0.115.8
 jinja2
-python-dotenv
+python-dotenv~=1.0.1
 python-jose
 pydantic~=2.10.6
 PyJWT~=2.10.1
@@ -14,3 +14,12 @@ email-validator
 starlette~=0.45.3
 jinja2
 alembic~=1.14.1
+pandas~=2.2.3
+openpyxl
+apscheduler~=3.11.0
+gspread~=6.2.0
+google-auth
+google~=3.0.0
+celery~=5.4.0
+xlrd
+google-api-python-client

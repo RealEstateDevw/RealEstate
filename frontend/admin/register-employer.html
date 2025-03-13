@@ -10,10 +10,18 @@
     
     <link rel="stylesheet" href="/static/register-employer-style.css">
     <title>CRM</title>
+
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
-        <a href="#" class="logo">Main Admin</a>
+        <a href="{% if user and user.role.name == 'Продажник' %}/dashboard/sales{% elif user and user.role.name == 'Финансист' %}/dashboard/finance {% elif user and user.role.name == 'Админ' %}/dashboard/admin {% elif user and user.role.name == 'МОП' %}/dashboard/mop {% elif user and user.role.name == 'РОП' %}/dashboard/rop{% else %}/{% endif %}" class="logo">Main Admin</a>
+
         <div class="search">
             <a href="/dashboard/admin" class="back-button">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -21,12 +29,13 @@
                   </svg>
                 Назад
             </a>
-            <div class="user-icon">
+            <a class="user-icon" href="{{ url_for('user_profile') }}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon">
                     <path
                         d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z" />
                 </svg>
-            </div>
+    
+            </a>
         </div>
     </header>
 
@@ -95,13 +104,13 @@
         </div>
 
         <div class="button-row">
-            <button class="import-button button-info" type="button">
+            <!-- <button class="import-button button-info" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="49" viewBox="0 0 48 49" fill="none">
                     <path opacity="0.5" d="M10.0001 13C9.37236 13 8.81102 13.3909 8.59324 13.9796C8.37546 14.5683 8.54728 15.2304 9.02388 15.6389L23.0238 27.6388C23.5856 28.1204 24.4146 28.1204 24.9762 27.6388L38.9762 15.6389C39.4528 15.2304 39.6246 14.5683 39.407 13.9796C39.1892 13.3909 38.6278 13 38 13H10.0001Z" fill="black"/>
                     <path fill-rule="evenodd" clip-rule="evenodd" d="M8.86114 21.5238C9.40028 20.8948 10.3472 20.822 10.9762 21.3612L24 32.5244L37.0238 21.3612C37.6528 20.822 38.5998 20.8948 39.139 21.5238C39.678 22.1528 39.6052 23.0998 38.9762 23.639L24.9762 35.639C24.4144 36.1204 23.5856 36.1204 23.0238 35.639L9.02384 23.639C8.39486 23.0998 8.322 22.1528 8.86114 21.5238Z" fill="black"/>
                   </svg>
                 Импортировать лиды
-            </button>
+            </button> -->
             <button class="register-button button-info" type="submit">
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="49" viewBox="0 0 48 49" fill="none">
                     <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M6.5 24.5C6.5 23.6716 7.17158 23 8 23H26.5V26H8C7.17158 26 6.5 25.3284 6.5 24.5Z" fill="#216BF4"/>

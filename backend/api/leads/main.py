@@ -1,21 +1,26 @@
+import shutil
 from datetime import datetime
 
-from fastapi import APIRouter, Query, Depends, HTTPException
+from fastapi import APIRouter, Query, Depends, HTTPException, Form, UploadFile, File
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from starlette import status
+from starlette.responses import FileResponse
 
 from backend.api.leads.schemas import LeadSearchResponse, LeadInDB, LeadUpdate, LeadState, LeadStatus, LeadCreate, \
-    CommentCreate, CommentResponse
+    CommentCreate, CommentResponse, ContractCreate, ContractResponse, CallbackRequest
 from backend.core.deps import get_current_user_from_cookie
 from backend.database import get_db
-from backend.database.models import Comment, User
+from backend.database.models import Comment, User, Contract, Lead, Callback
 from backend.database.sales_service.crud import LeadCRUD, LeadStatisticsService, InactiveLeadsService, LeadFilterService
+from config import logger, TEMP_DIR
+import pandas as pd
+import gspread
+from google.oauth2.service_account import Credentials
 
 router = APIRouter(prefix="/api/leads")
 
 lead_crud = LeadCRUD()
-
-
 
 
 @router.get("/search", response_model=List[LeadSearchResponse])
@@ -73,7 +78,7 @@ async def get_leads(
     return lead_crud.get_leads(db, skip, limit, status, state, region, payment_type)
 
 
-@router.put("/{lead_id}", response_model=LeadInDB)
+@router.put("/{lead_id}")
 async def update_lead(lead_id: int, lead_update: LeadUpdate, db: Session = Depends(get_db)):
     db_lead = lead_crud.update_lead(db, lead_id, lead_update)
     if not db_lead:
@@ -89,14 +94,43 @@ async def delete_lead(lead_id: int, db: Session = Depends(get_db)):
     return {"message": "Lead successfully deleted"}
 
 
-@router.get("/user/{user_id}", response_model=List[LeadInDB])
-async def get_user_leads(
-        user_id: int,
-        skip: int = 0,
-        limit: int = 100,
-        db: Session = Depends(get_db)
-):
-    return lead_crud.get_leads_by_user(db, user_id, skip, limit)
+@router.get("/user/{user_id}")
+async def get_user_leads(user_id: int, include_callbacks: bool = False, skip: int = 0, limit: int = 100,
+                         db: Session = Depends(get_db)):
+    leads = lead_crud.get_leads_by_user(db, user_id, include_callbacks, skip, limit)
+    if not leads:
+        raise HTTPException(status_code=404, detail="No leads found for this user")
+
+    result = []
+    for lead in leads:
+        lead_dict = {
+            "id": lead.id,
+            "full_name": lead.full_name,
+            "phone": lead.phone,
+            "region": lead.region,
+            "contact_source": lead.contact_source,
+            "status": lead.status,
+            "state": lead.state,
+            "square_meters": lead.square_meters,
+            "rooms": lead.rooms,
+            "floor": lead.floor,
+            "total_price": lead.total_price,
+            "currency": lead.currency,
+            "payment_type": lead.payment_type,
+            "monthly_payment": lead.monthly_payment,
+            "installment_period": lead.installment_period,
+            "installment_markup": lead.installment_markup,
+            "notes": lead.notes,
+            "next_contact_date": lead.next_contact_date,
+            "user_id": lead.user_id,
+            "created_at": lead.created_at,
+            "updated_at": lead.updated_at,
+            "callbacks": [callback.callback_time for callback in
+                          lead.callbacks] if include_callbacks and lead.callbacks else []
+        }
+        result.append(lead_dict)
+
+    return result
 
 
 @router.get("/comments/{lead_id}", response_model=List[CommentResponse])
@@ -139,3 +173,152 @@ async def create_comment(comment: CommentCreate, db: Session = Depends(get_db),
 async def get_daily_statistics(db: Session = Depends(get_db)):
     service = LeadStatisticsService(db)
     return service.get_daily_statistics()
+
+
+@router.post("/contracts/", response_model=ContractResponse)
+async def create_contract(
+        contract_data: ContractCreate,
+        db: Session = Depends(get_db)
+):
+    """
+    Создание договора и генерация Excel-файла.
+    Принимает данные из формы.
+    """
+    try:
+        # Проверка существования лида
+        lead = db.query(Lead).filter(Lead.id == contract_data.lead_id).first()
+        if not lead:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Лид не найден"
+            )
+
+        # Здесь реализуйте сохранение договора в БД.
+        # В этом примере мы предполагаем, что договор успешно сохранён и используем contract_data как объект договора.
+        # Например, contract = create_contract_in_db(contract_data) – ваша логика сохранения.
+        contract = contract_data  # Для демонстрации
+
+        # Подготовка данных для Excel-файла
+        excel_data = {
+            "Номер договора": contract.contract_number,
+            "Дата договора": contract.contractDate.strftime("%Y-%m-%d"),
+            "Блок": contract.block,
+            "Этаж": contract.floor,
+            "Номер квартиры": contract.apartmentNumber,
+            "Кол-во комнат": contract.rooms,
+            "Площадь (м²)": contract.size,
+            "Общая стоимость": contract.totalPrice,
+            "Стоимость 1 м²": contract.pricePerM2,
+            "Выбор оплаты": contract.paymentChoice,
+            "Сумма первоначального взноса": contract.initialPayment,
+            "Ф/И/О": contract.fullName,
+            "Серия паспорта": contract.passportSeries,
+            "ПИНФЛ": contract.pinfl,
+            "Кем выдан": contract.issuedBy,
+            "Адрес прописки": contract.registrationAddress,
+            "Номер телефона": contract.phone,
+            "Отдел продаж": contract.salesDepartment,
+            "Статус договора": "Создан"
+        }
+
+        # Создание Excel-файла
+        filename = TEMP_DIR / f"contract_{contract.contract_number}.xlsx"
+        df = pd.DataFrame([excel_data])
+        df.to_excel(filename, index=False)
+        print(f"Excel-файл создан: {filename}")
+        logger.info(f"Договор {contract.contract_number} успешно создан")
+
+        # Возврат файла в виде ответа
+        return FileResponse(
+            path=str(filename),
+            filename=filename.name,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
+    except Exception as e:
+        logger.error(f"Ошибка при создании договора: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка при создании договора: {str(e)}"
+        )
+
+
+@router.post("/{lead_id}/schedule-callback")
+async def schedule_callback(lead_id: int, callback: CallbackRequest, db: Session = Depends(get_db)):
+    lead = db.query(Lead).filter(Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    # Create a new callback entry
+    new_callback = Callback(
+        lead_id=lead_id,
+        callback_time=callback.callbackTime,
+        is_completed=False
+    )
+    db.add(new_callback)
+    db.commit()
+    return {"message": "Callback scheduled"}
+
+
+@router.post("/import")
+async def import_leads(
+        salesperson: int = Form(...),
+        lead_file: UploadFile = File(None),
+        google_sheet_url: Optional[str] = Form(None),
+        db: Session = Depends(get_db)
+):
+    # Validate salesperson
+    user = db.query(User).filter(User.id == salesperson).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Salesperson not found")
+
+    # Process the leads
+    try:
+        if lead_file and lead_file.size > 0:
+            # Process Excel file with explicit engine
+            try:
+                # Use 'openpyxl' for .xlsx files; you can switch to 'xlrd' for .xls files if needed
+                df = pd.read_excel(lead_file.file, engine='openpyxl')
+            except ValueError as e:
+                # If openpyxl fails, try xlrd for older .xls files
+                if 'Excel file format cannot be determined' in str(e):
+                    df = pd.read_excel(lead_file.file, engine='xlrd')
+                else:
+                    raise HTTPException(status_code=400, detail=f"Failed to read Excel file: {str(e)}")
+        elif google_sheet_url:
+            # Process Google Sheets
+            scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+            creds = Credentials.from_service_account_file("google_credentials.json", scopes=scopes)
+            client = gspread.authorize(creds)
+            sheet = client.open_by_url(google_sheet_url).sheet1
+            data = sheet.get_all_records()
+            df = pd.DataFrame(data)
+        else:
+            raise HTTPException(status_code=400, detail="Either lead_file or google_sheet_url must be provided")
+
+        # Map the DataFrame to Lead objects
+        for _, row in df.iterrows():
+            created_at = datetime.strptime(row.get('Дата', datetime.utcnow().strftime('%Y-%m-%d')),
+                                           '%Y-%m-%d') if row.get('Дата') else datetime.utcnow()
+            lead = Lead(
+                full_name=row.get('Имя', 'Unknown'),
+                phone=row.get('Номер телефона', ''),
+                region=row.get('Город', 'Unknown'),
+                contact_source="Unknown",
+                status="COLD",
+                state="NEW",
+                total_price=float(row.get('Тариф', 0.0)) if row.get('Тариф') else 0.0,
+                currency="UZS",
+                payment_type=row.get('Тариф', 'Unknown') if isinstance(row.get('Тариф'), str) else 'Unknown',
+                user_id=salesperson,
+                created_at=created_at,
+                updated_at=created_at
+            )
+            db.add(lead)
+        db.commit()
+
+        return {"message": "Leads imported successfully", "imported_count": len(df)}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error importing leads: {str(e)}")

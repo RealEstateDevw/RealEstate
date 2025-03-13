@@ -2,6 +2,7 @@ from datetime import datetime
 
 from backend.api.finance.schemas import PaymentStatus, PaymentType
 from backend.api.leads.schemas import LeadState, LeadStatus
+from backend.api.rop.schemas import ExpenseCategory
 from backend.database import Base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Time, ARRAY, Date, JSON, Float, Enum, Text, \
     Boolean
@@ -125,6 +126,8 @@ class Lead(Base):
     payments = relationship("Payment", back_populates="lead")
     transactions = relationship("Transaction", back_populates="lead")
     installment_payments = relationship("InstallmentPayment", back_populates="lead")
+    contracts = relationship("Contract", backref="lead")
+    callbacks = relationship("Callback", back_populates="lead", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Lead(id={self.id}, name='{self.full_name}')>"
@@ -139,6 +142,22 @@ class Lead(Base):
             data["user"] = None
 
         return data
+
+class Callback(Base):
+    __tablename__ = 'callbacks'
+
+    id = Column(Integer, primary_key=True)
+    lead_id = Column(Integer, ForeignKey('leads_prototype.id'), nullable=False)
+    callback_time = Column(DateTime, nullable=False)
+    is_completed = Column(Boolean, default=False, nullable=False)
+    is_missed = Column(Boolean, default=False, nullable=False)  # New field for missed status
+    confirmation_file = Column(String, nullable=True)  # Path or URL to voice file or other evidence
+    confirmation_note = Column(String, nullable=True)  # Optional note
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationship with Lead
+    lead = relationship("Lead", back_populates="callbacks")
+
 
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
@@ -234,11 +253,31 @@ class Expense(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
-    # Relations and foreign keys
+    # Новое поле для категории расхода
+    category = Column(Enum(ExpenseCategory), default=ExpenseCategory.HOUSEHOLD, nullable=False)
+
     created_by = Column(Integer, ForeignKey('users.id'), nullable=False)
     creator = relationship("User", back_populates="expenses_created")
 
     check_photos = relationship("CheckPhotoExpense", back_populates="expense")
+
+    def to_dict(self):
+        data = {
+            "id": self.id,
+            "title": self.title,
+            "amount": self.amount,
+            "description": self.description,
+            "status": self.status.value if self.status else None,
+            "payment_date": self.payment_date,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "category": self.category.value if self.category else None
+        }
+        if self.creator:
+            data["creator"] = self.creator.to_dict()
+        else:
+            data["creator"] = None
+        return data
 
 
 class CheckPhotoExpense(Base):
@@ -251,3 +290,14 @@ class CheckPhotoExpense(Base):
 
     # Relations
     expense = relationship("Expense", back_populates="check_photos")
+
+
+class Contract(Base):
+    __tablename__ = 'contracts'
+    id = Column(Integer, primary_key=True)
+    lead_id = Column(Integer, ForeignKey('leads_prototype.id'), nullable=False)
+    contract_number = Column(String, nullable=False, unique=True)
+    signing_date = Column(DateTime, nullable=False)
+    terms = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="Ожидает подтверждения")
+    created_at = Column(DateTime, default=datetime.utcnow)

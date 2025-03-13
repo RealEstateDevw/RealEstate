@@ -648,3 +648,10 @@ body {
     color: #dc3545;
     border-color: #dc3545;
 }
+
+.shahmatki{
+    background-color: #1a73e8;
+    padding: 20px;
+    border-radius: 50px;
+    font-size: 32px;
+}

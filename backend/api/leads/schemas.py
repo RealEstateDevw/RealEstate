@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 
@@ -37,6 +37,7 @@ class LeadBase(BaseModel):
     installment_markup: Optional[float] = 10
     notes: Optional[str] = None
     next_contact_date: Optional[datetime] = None
+    callbacks: List[datetime] = []
 
     class Config:
         use_enum_values = True  # Это важно для корректной сериализации
@@ -111,4 +112,55 @@ class CommentResponse(CommentBase):
         from_attributes = True
 
 
+class ContractCreate(BaseModel):
+    lead_id: int
+    contract_number: str  # Дата подписания
+    contractDate: datetime  # Дата договора
+    block: str
+    floor: int
+    apartmentNumber: int
+    rooms: int
+    size: float
+    totalPrice: str
+    pricePerM2: str
+    paymentChoice: str
+    initialPayment: str
+    fullName: str
+    passportSeries: str
+    pinfl: str
+    issuedBy: str
+    registrationAddress: str
+    phone: str
+    salesDepartment: str
 
+
+# Модель ответа (пример; если вы сохраняете договор в БД, используйте ORM-модель)
+class ContractResponse(BaseModel):
+    id: int
+    contract_number: str
+    contractDate: datetime
+    block: str
+    floor: int
+    apartmentNumber: int
+    rooms: int
+    size: float
+    totalPrice: str
+    pricePerM2: str
+    paymentChoice: str
+    initialPayment: str
+    fullName: str
+    passportSeries: str
+    pinfl: str
+    issuedBy: str
+    registrationAddress: str
+    phone: str
+    salesDepartment: str
+    status: str
+    lead_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class CallbackRequest(BaseModel):
+    callbackTime: datetime

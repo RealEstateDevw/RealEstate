@@ -1,14 +1,15 @@
 from datetime import timedelta, datetime
 
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, or_, func, and_
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import desc, or_, func, and_, String, cast
 from typing import Optional, List, Dict, Any, Union
 from fastapi.encoders import jsonable_encoder
 
 from backend.api.finance.schemas import PaymentType, PaymentStatus
 from backend.api.leads.schemas import LeadCreate, LeadStatus, LeadState, LeadUpdate
-from backend.api.mop.schemas import convert_user_to_search_result, convert_lead_to_search_result, SearchResponse
-from backend.database.models import Lead, User, InstallmentPayment, Payment
+from backend.api.mop.schemas import convert_user_to_search_result, convert_lead_to_search_result, SearchResponse, \
+    convert_expense_to_search_result
+from backend.database.models import Lead, User, InstallmentPayment, Payment, Expense
 
 
 class LeadCRUD:
@@ -68,12 +69,14 @@ class LeadCRUD:
         db.commit()
         return True
 
-    def get_leads_by_user(self, db: Session, user_id: int, skip: int = 0, limit: int = 100) -> List[Lead]:
-        return db.query(Lead).filter(Lead.user_id == user_id) \
-            .order_by(desc(Lead.created_at)) \
-            .offset(skip) \
-            .limit(limit) \
-            .all()
+    def get_leads_by_user(self, db: Session, user_id: int, include_callbacks: bool = False, skip: int = 0,
+                          limit: int = 100) -> List[Lead]:
+        query = db.query(Lead).filter(Lead.user_id == user_id).order_by(desc(Lead.created_at))
+
+        if include_callbacks:
+            query = query.options(joinedload(Lead.callbacks))
+
+        return query.offset(skip).limit(limit).all()
 
     def search_leads(
             self,
@@ -128,6 +131,56 @@ class LeadCRUD:
         # Combine and limit results
         all_results = (lead_results + user_results)[:limit]
         total_count = len(leads) + len(users)
+
+        return SearchResponse(
+            results=all_results,
+            total_count=total_count
+        )
+
+    def combined_search_finance(self, db: Session, query: str, limit: int = 10) -> SearchResponse:
+        """
+        Search leads, users, and expenses by the provided query.
+        Returns unified search results.
+        """
+        search_query = f"%{query}%"
+
+        # Query Leads
+        leads = db.query(Lead).filter(
+            or_(
+                Lead.full_name.ilike(search_query),
+                Lead.phone.ilike(search_query),
+                Lead.region.ilike(search_query)
+            )
+        ).limit(limit).all()
+
+        # Query Users
+        users = db.query(User).filter(User.role_id == 1,
+                                      or_(
+                                          User.first_name.ilike(search_query),
+                                          User.last_name.ilike(search_query),
+                                          User.phone.ilike(search_query),
+                                          User.email.ilike(search_query)
+                                      )
+                                      ).limit(limit).all()
+
+        # Query Expenses
+        expenses = db.query(Expense).filter(
+            or_(
+                Expense.title.ilike(search_query),
+                cast(Expense.amount, String).ilike(search_query),  # Приводим числовое поле к строке
+                Expense.description.ilike(search_query),
+                Expense.status.cast(String).ilike(search_query)  # Приводим Enum к строке
+            )
+        ).limit(limit).all()
+
+        # Convert to unified format
+        lead_results = [convert_lead_to_search_result(lead) for lead in leads]
+        user_results = [convert_user_to_search_result(user) for user in users]
+        expense_results = [convert_expense_to_search_result(expense) for expense in expenses]
+
+        # Combine and limit results
+        all_results = (lead_results + user_results + expense_results)[:limit]
+        total_count = len(leads) + len(users) + len(expenses)
 
         return SearchResponse(
             results=all_results,
@@ -216,6 +269,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 from datetime import datetime
+
 
 class LeadFilterService:
     def __init__(self, db: Session):
