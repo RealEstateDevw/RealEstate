@@ -1,5 +1,7 @@
+import random
 from datetime import timedelta, datetime
 
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc, or_, func, and_, String, cast
 from typing import Optional, List, Dict, Any, Union
@@ -9,17 +11,80 @@ from backend.api.finance.schemas import PaymentType, PaymentStatus
 from backend.api.leads.schemas import LeadCreate, LeadStatus, LeadState, LeadUpdate
 from backend.api.mop.schemas import convert_user_to_search_result, convert_lead_to_search_result, SearchResponse, \
     convert_expense_to_search_result
-from backend.database.models import Lead, User, InstallmentPayment, Payment, Expense
+from backend.database.models import Lead, User, InstallmentPayment, Payment, Expense, Role
 
 
 class LeadCRUD:
-    def create_lead(self, db: Session, lead: LeadCreate) -> Lead:
+    def get_random_salesperson_id(self, db: Session) -> int:
+        """Находит ID случайного активного продажника."""
+        # ... (код функции остается без изменений, как в предыдущем ответе) ...
+        try:
+            salespeople = db.query(User).join(Role).filter(Role.name == "Продажник").all()
+            if not salespeople:
+                raise NoResultFound("Не найдено пользователей с ролью продажника для назначения лида.")
+            assigned_user = random.choice(salespeople)
+            print(f"Лид будет назначен случайному продажнику: ID={assigned_user.id}")
+            return assigned_user.id
+        except NoResultFound as e:
+            raise e
+        except Exception as e:
+            print(f"Ошибка при поиске случайного продажника: {e}")
+            raise Exception("Ошибка базы данных при поиске пользователя.") from e
 
-        db_lead = Lead(**lead.dict())
-        db.add(db_lead)
-        db.commit()
-        db.refresh(db_lead)
-        return db_lead
+    def create_lead(self, db: Session, lead: LeadCreate) -> Lead:
+        """
+        Создает лид. Если user_id предоставлен, использует его.
+        Если user_id не предоставлен, назначает случайного продажника.
+        """
+        final_user_id: int
+
+        # --- Условная логика назначения user_id ---
+        if lead.user_id is not None:
+            # ID пользователя предоставлен - используем его
+            print(f"Лид создается с предоставленным user_id: {lead.user_id}")
+            # --- ДОПОЛНИТЕЛЬНАЯ ВАЛИДАЦИЯ (РЕКОМЕНДУЕТСЯ) ---
+            # Проверим, существует ли такой пользователь и имеет ли он нужную роль
+            user = db.query(User).filter(User.id == lead.user_id).first()
+            if not user:
+                raise ValueError(f"Пользователь с предоставленным ID={lead.user_id} не найден.")
+            # Можно добавить проверку роли, если это важно
+            # if user.role.name != SALESPERSON_ROLE_NAME:
+            #    raise ValueError(f"Пользователь ID={lead.user_id} не имеет роли '{SALESPERSON_ROLE_NAME}'.")
+            # --- КОНЕЦ ВАЛИДАЦИИ ---
+            final_user_id = lead.user_id
+        else:
+            # ID пользователя НЕ предоставлен - назначаем случайного
+            print("user_id не предоставлен, назначаем случайного продажника...")
+            try:
+                final_user_id = self.get_random_salesperson_id(db)
+            except NoResultFound as e:
+                # Если случайный продажник не найден
+                print(f"Ошибка при назначении случайного продажника: {e}")
+                raise e  # Пробрасываем ошибку для обработки в эндпоинте
+
+        # --- Создание объекта БД ---
+        try:
+            # Создаем ORM объект Lead, явно указывая user_id
+            # Используем lead.dict(exclude={'user_id'}) чтобы случайно не передать None, если он был
+            lead_data_dict = lead.dict(exclude={'user_id'})
+            db_lead = Lead(
+                **lead_data_dict,
+                user_id=final_user_id  # Используем определенный ID
+            )
+            db.add(db_lead)
+            db.commit()
+            db.refresh(db_lead)
+            print(f"Лид ID={db_lead.id} успешно создан и назначен пользователю ID={final_user_id}")
+            return db_lead
+        except IntegrityError as e:
+            db.rollback()
+            print(f"Ошибка целостности БД при создании лида: {e}")
+            # Можно проверить, не дубликат ли это (например, по телефону)
+            raise ValueError(f"Не удалось создать лид. Возможно, дубликат или неверные данные. {e}") from e
+        except Exception as e:
+            db.rollback()
+            print(f"Ошибка при сохранении лида в БД: {e}")
+            raise Exception("Не удалось сохранить лид в базе данных.") from e
 
     def get_lead(self, db: Session, lead_id: int) -> Optional[Lead]:
         return db.query(Lead).filter(Lead.id == lead_id).first()

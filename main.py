@@ -19,7 +19,7 @@ from backend.api.mop.main import router as mop_api_router
 from backend.api.users.schemas import ROLE_REDIRECTS, UserRead
 from backend.core.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password, SECRET_KEY, ALGORITHM
 from backend.core.deps import get_current_user, get_current_user_from_cookie
-from backend.core.google_sheets import schedule_lid_check, load_data_to_cache
+# from backend.core.google_sheets import schedule_lid_check, load_data_to_cache
 from backend.database import Base, engine, get_db
 from fastapi import FastAPI, Request, HTTPException, Form, Depends
 from fastapi.responses import HTMLResponse
@@ -34,6 +34,7 @@ from backend.crm.rop.main import router as rop_router
 from backend.api.rop.main import router as rop_api_router
 from backend.crm.shaxmatki.main import router as shaxmatki_router
 from backend.api.complexes.main import router as shaxmatki_api_router
+from backend.api.excel_utils import router as excel_router
 
 app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc")
 
@@ -49,6 +50,7 @@ app.include_router(rop_router)
 app.include_router(rop_api_router)
 app.include_router(shaxmatki_router)
 app.include_router(shaxmatki_api_router)
+app.include_router(excel_router)
 
 
 app.mount("/media", StaticFiles(directory="media"), name="media")
@@ -71,13 +73,17 @@ async def on_startup():
 
     Base.metadata.create_all(bind=engine)  # Создание таблиц, если их нет
     init_roles()
-    asyncio.create_task(schedule_lid_check(60, 60))
-    await load_data_to_cache()
+    # asyncio.create_task(schedule_lid_check(60, 60))
+    # await load_data_to_cache()
 
 
 # @app.get("/", response_class=HTMLResponse)
 # async def index(request: Request):
 #     return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse("/landing/index.html", {"request": request})
 
 
 @app.get("/login", response_class=HTMLResponse)
@@ -174,7 +180,7 @@ async def auth_middleware(request: Request, call_next):
     logger.info(f"Request path: {request.url.path}")
     logger.info(f"Cookie token: {token}")
 
-    public_paths = ["/login", "/register", "/api/auth/login", "/api/auth/register", "/static"]
+    public_paths = ["/login", "/register", "/api/auth/login", "/api/auth/register", "/static", "/"]
 
     if request.url.path in public_paths:
         logger.info(f"Public path accessed: {request.url.path}")

@@ -22,3 +22,10 @@ async def add_user(request: Request, current_user=Depends(get_current_user_from_
     if current_user.role.name != "Админ":
         return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
     return templates.TemplateResponse("/admin/register-employer.html", {"request": request, "user": current_user})
+
+
+@router.get('/add-excel-files', response_class=HTMLResponse, name="add_excel_file")
+async def add_excel_file_html(request: Request, current_user=Depends(get_current_user_from_cookie)):
+    if current_user.role.name != "Админ":
+        return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
+    return templates.TemplateResponse("/admin/add-excel-files.html", {"request": request, "user": current_user})

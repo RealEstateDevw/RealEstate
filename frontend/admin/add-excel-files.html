@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        
+        <link rel="stylesheet" href="/static/register-employer-style.css">
+        <title>CRM</title>
+    
+        <style>
+            body {
+                background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+                transition: background 0.5s ease;
+            }
+            .main-form-excel{
+                margin-top: 10px;
+    display: flex
+;
+    align-items: center;
+    justify-content: center;
+}
+            
+            .container {
+      width: 800px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    p.subtitle {
+      text-align: center;
+      color: #666;
+    }
+    .section {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      padding: 15px;
+    }
+    .section-header {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .section-description {
+      color: #666;
+      margin-bottom: 10px;
+    }
+    .dropzone {
+      border: 2px dashed #ccc;
+      border-radius: 6px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.3s, background-color 0.3s;
+      margin-bottom: 10px;
+    }
+    .dropzone:hover {
+      border-color: #999;
+      background-color: #f0f0f0;
+    }
+    .files-list {
+      list-style: none;
+      padding: 0;
+    }
+    .file-item {
+      background: #f9f9f9;
+      padding: 10px;
+      margin-bottom: 5px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .file-item span {
+      font-size: 0.9em;
+      color: #333;
+    }
+    .file-item button {
+      background: transparent;
+      border: none;
+      color: #e74c3c;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    .buttons {
+      text-align: right;
+    }
+    .buttons button {
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .btn-primary {
+      background: #216BF4;
+      color: #fff;
+    }
+        </style>
+    </head>
+<body>
+  <div id="notification" class="notification" style="display: none;">
+    <span id="notification-message"></span>
+    <button id="close-notification" class="close-btn">&times;</button>
+</div>
+    <header class="header">
+        <a href="{% if user and user.role.name == 'Продажник' %}/dashboard/sales{% elif user and user.role.name == 'Финансист' %}/dashboard/finance {% elif user and user.role.name == 'Админ' %}/dashboard/admin {% elif user and user.role.name == 'МОП' %}/dashboard/mop {% elif user and user.role.name == 'РОП' %}/dashboard/rop{% else %}/{% endif %}" class="logo">Main Admin</a>
+
+        <div class="search">
+            <a href="/dashboard/admin" class="back-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M20 25.3333L12 16L20 6.66665" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                Назад
+            </a>
+            <a class="user-icon" href="{{ url_for('user_profile') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon">
+                    <path
+                        d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z" />
+                </svg>
+    
+            </a>
+        </div>
+    </header>
+
+
+    <div class="main-form-excel">
+        <div class="container">
+    <h2>Загрузка Excel‑файлов</h2>
+    <p class="subtitle">Файлы разделены по категориям: Прайсы, Данные о ЖК, Шаблоны договоров.</p>
+    
+    <!-- Секция 1: Прайсы -->
+    <div class="section" id="section-prices">
+      <div class="section-header">(1) Прайсы</div>
+      <div class="section-description">
+        Загрузите Excel‑файлы с прайсами. Поддерживаемые форматы: .xlsx, .xls, .csv
+      </div>
+      <div class="dropzone" onclick="document.getElementById('fileInput-prices').click()">
+        <div style="font-size: 48px;">📄</div>
+        <div>Перетащите файлы сюда или нажмите для выбора</div>
+      </div>
+      <input type="file" id="fileInput-prices" multiple style="display:none" accept=".xlsx,.xls,.csv">
+      <ul class="files-list" id="filesList-prices"></ul>
+    </div>
+    
+    <!-- Секция 2: Данные о ЖК -->
+    <div class="section" id="section-jk">
+      <div class="section-header">(2) Данные о ЖК</div>
+      <div class="section-description">
+        Загрузите Excel‑файлы с данными о ЖК. Поддерживаемые форматы: .xlsx, .xls, .csv
+      </div>
+      <div class="dropzone" onclick="document.getElementById('fileInput-jk').click()">
+        <div style="font-size: 48px;">📄</div>
+        <div>Перетащите файлы сюда или нажмите для выбора</div>
+      </div>
+      <input type="file" id="fileInput-jk" multiple style="display:none" accept=".xlsx,.xls,.csv">
+      <ul class="files-list" id="filesList-jk"></ul>
+    </div>
+    
+    <!-- Секция 3: Шаблоны договоров -->
+    <div class="section" id="section-templates">
+      <div class="section-header">(3) Шаблоны договоров</div>
+      <div class="section-description">
+        Загрузите Excel‑шаблоны договоров. Поддерживаемые форматы: .xlsx, .xls
+      </div>
+      <div class="dropzone" onclick="document.getElementById('fileInput-templates').click()">
+        <div style="font-size: 48px;">📄</div>
+        <div>Перетащите файлы сюда или нажмите для выбора</div>
+      </div>
+      <input type="file" id="fileInput-templates" multiple style="display:none" accept=".xlsx,.xls">
+      <ul class="files-list" id="filesList-templates"></ul>
+    </div>
+    
+    <div class="buttons">
+      <button class="btn-primary" onclick="uploadFiles()">Загрузить</button>
+    </div>
+  </div>
+        
+    </div>
+    <script src="/static/notification_scripts.js"></script>
+<script>
+
+function handleFiles(inputId, listId) {
+      let input = document.getElementById(inputId);
+      let list = document.getElementById(listId);
+      list.innerHTML = "";
+      for (let i = 0; i < input.files.length; i++) {
+        let file = input.files[i];
+        let li = document.createElement("li");
+        li.className = "file-item";
+        li.innerHTML = "<span>" + file.name + " (" + Math.round(file.size / 1024) + " КБ)</span>" +
+                       '<button onclick="removeFile(\'' + inputId + '\', this)">Удалить</button>';
+        list.appendChild(li);
+      }
+    }
+    
+    // Добавление обработчиков событий на изменение выбора файлов
+    document.getElementById("fileInput-prices").addEventListener("change", function() {
+      handleFiles("fileInput-prices", "filesList-prices");
+    });
+    document.getElementById("fileInput-jk").addEventListener("change", function() {
+      handleFiles("fileInput-jk", "filesList-jk");
+    });
+    document.getElementById("fileInput-templates").addEventListener("change", function() {
+      handleFiles("fileInput-templates", "filesList-templates");
+    });
+    
+    // Удаление файла из списка (визуально)
+    function removeFile(inputId, btn) {
+      // Для упрощения удаления, удаляем только визуальный элемент из списка.
+      let li = btn.parentElement;
+      li.parentElement.removeChild(li);
+    }
+    
+    // Очистка всех файлов (отмена загрузки)
+    function cancelUpload() {
+      document.getElementById("fileInput-prices").value = "";
+      document.getElementById("filesList-prices").innerHTML = "";
+      
+      document.getElementById("fileInput-jk").value = "";
+      document.getElementById("filesList-jk").innerHTML = "";
+      
+      document.getElementById("fileInput-templates").value = "";
+      document.getElementById("filesList-templates").innerHTML = "";
+    }
+    async function uploadFiles() {
+    // Массив идентификаторов секций, которые также используются как значение category
+    const sections = ['prices', 'jk', 'templates'];
+    const endpoint = '/api/complexes/add-excel-files-api';
+    
+    for (const section of sections) {
+      const fileInput = document.getElementById(`fileInput-${section}`);
+      if (!fileInput || fileInput.files.length === 0) {
+        continue;
+      }
+      
+      // Загружаем каждый файл отдельно
+      for (const file of fileInput.files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('category', section); // Передаем категорию для формирования имени файла
+        
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            body: formData
+          });
+          
+          const result = await response.json();
+          
+          if (!response.ok) {
+            // Если ошибка — выводим уведомление с сообщением от сервера
+            showNotification(result.detail || 'Ошибка загрузки файла', 'error');
+          } else {
+            // Успешная загрузка файла
+            showNotification(result.message, 'success');
+            // При необходимости можно обновить UI, например, удалить файл из списка
+          }
+        } catch (error) {
+          showNotification('Ошибка соединения с сервером', 'error');
+          console.error(`Ошибка при загрузке файла ${file.name}:`, error);
+        }
+      }
+    }
+  }
+</script>
+</script>
+</body>
+</html>

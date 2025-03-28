@@ -1,10 +1,13 @@
 import asyncio
+import re
 import threading
 import time
+import pandas as pd
 
 from dotenv import load_dotenv
 import os
 
+from fastapi import HTTPException
 from fastapi_cache import FastAPICache
 from fastapi_cache.decorator import cache
 from googleapiclient.discovery import build
@@ -21,11 +24,110 @@ SPREADSHEET_ID_REESTR_ID = os.getenv('SPREADSHEET_ID_REESTR_ID')
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 
+def col_letter_to_index(letter: str) -> int:
+    """
+    Преобразует буквенное обозначение столбца в индекс (0-индексация).
+    Например: 'A' -> 0, 'G' -> 6.
+    """
+    letter = letter.upper()
+    index = 0
+    for char in letter:
+        index = index * 26 + (ord(char) - ord('A') + 1)
+    return index - 1
+
+
+def parse_range(range_string: str):
+    """
+    Разбирает строку диапазона в формате "[SheetName!]A2:G".
+    Если имя листа указано (до знака '!'), оно игнорируется.
+    Возвращает:
+      - start_row: начальный номер строки,
+      - start_col_index: индекс первого столбца,
+      - end_col_index: индекс последнего столбца.
+    """
+    # Если есть разделитель '!', игнорируем часть до него
+    if "!" in range_string:
+        _, cell_range = range_string.split("!", 1)
+    else:
+        cell_range = range_string
+
+    # Ожидается формат типа "A2:G"
+    match = re.match(r"([A-Z]+)(\d+):([A-Z]+)", cell_range)
+    if match:
+        start_col, start_row, end_col = match.groups()
+        start_row = int(start_row)
+        start_col_index = col_letter_to_index(start_col)
+        end_col_index = col_letter_to_index(end_col)
+        return start_row, start_col_index, end_col_index
+    else:
+        raise ValueError("Неверный формат диапазона: " + cell_range)
+
+
+def get_local_excel_data(file_path: str, range_string: str):
+    """
+    Читает данные из локального Excel-файла по указанному диапазону.
+    Имя листа, если указано, игнорируется – всегда используется первый лист файла.
+    Диапазон передаётся в формате "[SheetName!]A2:G".
+    Возвращает данные в виде списка списков.
+    """
+    try:
+        start_row, start_col_index, end_col_index = parse_range(range_string)
+        # Читаем данные из первого листа файла, независимо от указанного имени листа
+        df = pd.read_excel(file_path, header=None)
+        # Срез данных: строки начинаются с (start_row - 1), так как pandas использует 0-индексацию
+        data = df.iloc[start_row - 1:, start_col_index:end_col_index + 1]
+        return data.values.tolist()
+    except Exception as e:
+        print(f"Ошибка при чтении локального файла: {e}")
+        return {"error": str(e)}
+
+
+# Переписываем функцию для получения данных "шахматки" из локального файла
 @cache(expire=600, namespace="shaxmatka")
 def get_shaxmatka_data(jk_name: str):
-    range_name = f"{jk_name}!A2:G"
-    data = get_google_sheets_data(SPREADSHEET_ID_SHAXMATKA_ID, range_name)
+    """
+    Читает данные файла shaxmatka.xlsx для заданного ЖК.
+    Диапазон данных: A2:G.
+    Даже если в строке диапазона указано имя листа, используется первый лист файла.
+    """
+    file_path = os.path.join("static", "Жилые_Комплексы", jk_name, "jk_data.xlsx")
+    range_string = "A2:G"  # Теперь имя листа не требуется
+    data = get_local_excel_data(file_path, range_string)
     return data
+
+
+# Переписываем функцию для получения данных цены из локального файла
+
+
+@cache(expire=600)
+def get_price_data_for_sheet(jk_floor_key: str):
+    """
+    Читает данные из файла price_shaxamtka.xlsx для заданного ЖК.
+    Аргумент jk_floor_key формируется как f"{jkName}_{floor}_{suffix}" (например, "ЖК_Бахор_1_30").
+    Файл содержит единственную таблицу, поэтому лист не указывается.
+    """
+    # Извлекаем jkName из ключа (предполагаем, что jkName — первая часть, разделённая знаком '_')
+    components = jk_floor_key.split('_')
+    if len(components) < 3:
+        raise HTTPException(status_code=400, detail="Некорректный формат ключа")
+    # jkName составляется из всех компонентов, кроме последних двух
+    jkName = '_'.join(components[:-2])
+    file_path = os.path.join("static", "Жилые_Комплексы", jkName, "price_shaxamtka.xlsx")
+    range_string = "A2:E"  # Листов нет – используем единственный диапазон
+    return get_local_excel_data(file_path, range_string)
+
+
+@cache(expire=600)
+def get_price_data_for_sheet_all(sheet_name: str):
+    """
+    Читает данные файла price.xlsx для заданного ЖК.
+    Диапазон данных: A2:E.
+    Даже если в строке диапазона указано имя листа, используется первый лист файла.
+    """
+    file_path = os.path.join("static", "Жилые_Комплексы", sheet_name, "price_shaxamtka.xlsx")
+    range_string = "A2:E"  # Имя листа не используется
+    price_data = get_local_excel_data(file_path, range_string)
+    return price_data
 
 
 # Получаем данные таблицы Лид для конкретного ЖК. Кэшируем на 60 секунд.
@@ -40,12 +142,6 @@ def get_lid_data(jk_name: str):
 @cache(expire=600, namespace="shaxmatka_names")
 def get_shaxmatka_sheet_names():
     return get_all_sheet_names(SPREADSHEET_ID_SHAXMATKA_ID)
-
-
-@cache(expire=600)  # Кэш истечёт через 600 секунд (10 минут)
-def get_price_data_for_sheet(sheet_name: str):
-    price_data = get_google_sheets_data(SPREADSHEET_ID_PRICE_ID, f"{sheet_name}!A2:E")
-    return price_data
 
 
 def read_from_google_sheet(spreadsheet_id, range_name):
@@ -226,24 +322,21 @@ async def check_and_update_status_from_lid():
     except Exception as e:
         print(f"Ошибка при проверке таблицы Лид: {e}")
 
+# async def schedule_lid_check(interval: int = 60, initial_delay: int = 60):
+#     # Задержка перед первым выполнением проверки
+#     await asyncio.sleep(initial_delay)
+#     while True:
+#         await asyncio.sleep(interval)
+#         await check_and_update_status_from_lid()
 
-async def schedule_lid_check(interval: int = 60, initial_delay: int = 60):
-    # Задержка перед первым выполнением проверки
-    await asyncio.sleep(initial_delay)
-    while True:
-        await asyncio.sleep(interval)
-        await check_and_update_status_from_lid()
 
-
-async def load_data_to_cache():
-    try:
-        # Здесь можно вызвать функции, помеченные декоратором @cache, чтобы заполнить кэш
-        # Например, принудительно загрузить данные шахматки
-        _ = await get_shaxmatka_data()
-        _ = await get_lid_data()
-        _ = await get_shaxmatka_sheet_names()
-        _ = await get_price_data_for_sheet()
-        # Если есть другие функции для загрузки данных, их можно вызвать аналогично
-        print("Первоначальная загрузка данных в кэш выполнена.")
-    except Exception as e:
-        print(f"Ошибка при первоначальной загрузке данных в кэш: {e}")
+# async def load_data_to_cache():
+#     try:
+#         # Здесь можно вызвать функции, помеченные декоратором @cache, чтобы заполнить кэш
+#         # Например, принудительно загрузить данные шахматки
+#         _ = await get_shaxmatka_data()
+#         _ = await get_price_data_for_sheet()
+#         # Если есть другие функции для загрузки данных, их можно вызвать аналогично
+#         print("Первоначальная загрузка данных в кэш выполнена.")
+#     except Exception as e:
+#         print(f"Ошибка при первоначальной загрузке данных в кэш: {e}")

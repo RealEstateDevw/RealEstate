@@ -44,7 +44,7 @@ class LeadBase(BaseModel):
 
 
 class LeadCreate(LeadBase):
-    user_id: int
+    user_id: Optional[int] = Field(None, description="ID пользователя (продавца), если лид создается вручную. Если null/не указан, будет назначен случайный продавец.")
 
 
 class LeadUpdate(BaseModel):
