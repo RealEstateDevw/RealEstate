@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/complexes-style.css">
+    <link rel="stylesheet" href="/static/landing/style.css">
     <style>* {
             margin: 0;
             padding: 0;
@@ -65,45 +66,7 @@
             margin-left: 5px;
         }
 
-        .search-container {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-        }
-
-        .search-box {
-            display: flex;
-            align-items: center;
-            background-color: #f0f2f5;
-            border-radius: 20px;
-            padding: 8px 15px;
-            margin-right: 15px;
-        }
-
-        .search-icon {
-            color: #999;
-            margin-right: 8px;
-        }
-
-        .search-input {
-            border: none;
-            background: transparent;
-            outline: none;
-            font-size: 14px;
-            width: 120px;
-        }
-
-        .profile-icon {
-            width: 35px;
-            height: 35px;
-            background-color: #0066ff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-        }
+       
         
         #complexes-container {
     display: none; /* Скрыт по умолчанию */
@@ -128,6 +91,15 @@
     position: relative;
   display: inline-block;
 }
+
+.status-reserved{
+    background-color:#F5B700;
+    color: #ffffff;
+}
+.status-sold{
+    color: #000;
+    background-color: #CCD0D2;
+    }
 
 .complex-card img, .complex-card-info img {
     display: block;
@@ -158,7 +130,6 @@
     background-color: #f9f9f9;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    max-width: 1200px;
     margin: 20px auto;
   }
 
@@ -193,7 +164,50 @@
   .block-button:hover {
     background-color: #0056b3;
   }
+  .blocks-container {
+    text-align: center; /* Center the buttons */
+    padding-bottom: 10px; /* Add space below buttons */
+}
 
+.block-button {
+    margin: 0 5px; /* Add space between buttons */
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.jk-render-image {
+    display: block; /* Make it take its own line */
+    width: 100%;   /* Make it fill container width */
+    height: auto;  /* Maintain aspect ratio */
+    max-width: 100%; /* Prevent overflow if container is smaller */
+}
+
+.back-button.top-left {/* Adjust as needed */
+    z-index: 10; /* Ensure it's above other elements if necessary */
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.header-left-group {
+    display: flex; /* Arrange back button and phone link horizontally */
+    align-items: center; /* Vertically align items in the group */
+    gap: 15px; /* Space between back button and phone link */
+    flex-shrink: 0; /* Prevent this group from shrinking too much */
+}
+
+/* NEW: Styles for the static Back to Home button */
+.header-back-home {
+    display: inline-flex; /* Align icon nicely */
+    align-items: center;
+    justify-content: center;
+    padding: 8px; /* Adjust padding for size */
+    color: #216BF4; /* Match phone icon color */
+    background-color: #f0f0f0; /* Light background to differentiate */
+    border-radius: 50%; /* Make it a circle */
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+    line-height: 1; /* Prevent extra space */
+}
 
   /* Каждый этаж (floor-container) идёт отдельным блоком */
 .floor-container {
@@ -286,7 +300,7 @@
   border: 1px solid #CCD0D2;
 }
 
-.apartment-card.reserved {
+.apartment-card.booked {
     background: #F5B700; /* светло-серый */
   border: 1px solid #F5B700;
   color: #fff;
@@ -298,9 +312,6 @@
 }
 /* Кнопка «Назад к выбору блоков» */
 .back-button {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
   padding: 0.5rem 1rem;
   background-color: #2196f3;
   color: #ffffff;
@@ -317,49 +328,42 @@
         </style>
 </head>
 <body>
-<header class="header">
-        <div class="filter-options">
-            <div class="filter-button">
-                <i class="fas fa-filter filter-icon"></i>
-                Шахматка
-            </div>
-            <button class="filter-button"  onclick="showComplexes()">
-                <i class="fas fa-th filter-icon"></i>
-                Шахматка +
+    <header class="site-header">
+        <div class="container header-container" id="headerContainer">
+    
+            <!-- Placeholder: Your DYNAMIC back button ('dynamic-back-button') will be added here by JavaScript -->
+    
+            <!-- Group for Static Back Home Button and Phone -->
+            <div class="header-left-group">
+    
+                <!-- Static Back to Home Button -->
+                <a href="javascript:window.history.back();"class="header-back-home" id="controlled-back-button" aria-label="Вернуться на главную">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline> <!-- Simple Back Arrow -->
+                    </svg>
+                    <span class="back-button-text"></span> <!-- ADDED: Span for dynamic text -->
+                </a>
+                <!-- Existing Phone Link -->
+                <a href="tel:+998971234567" class="header-phone">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <!-- Phone SVG paths -->
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10.6866 6.4791L10.0376 5.31617C9.15317 3.73144 6.93076 3.54428 5.53781 4.93723C4.7008 5.77423 4.04952 6.7996 4.00655 7.93309C3.95086 9.40215 4.22428 11.6609 5.83644 14.1061L10.1147 9.8278C11.0372 8.90533 11.2723 7.52858 10.6866 6.4791ZM14.1722 13.8853L9.89393 18.1636C12.3391 19.7757 14.5979 20.0491 16.0669 19.9934C17.2004 19.9505 18.2258 19.2992 19.0628 18.4622C20.4557 17.0692 20.2686 14.8468 18.6838 13.9624L17.5209 13.3134C16.4714 12.7277 15.0947 12.9628 14.1722 13.8853Z" fill="#216BF4"/>
+                        <path opacity="0.5" d="M11.025 12.9758C8.99624 10.9471 10.1152 9.82812 10.1152 9.82812L5.83691 14.1064C6.31875 14.8372 6.92019 15.5846 7.66817 16.3326C8.41615 17.0806 9.16359 17.682 9.8944 18.1639L14.1727 13.8856C14.1727 13.8856 13.0537 15.0045 11.025 12.9758Z" fill="#216BF4"/>
+                      </svg>
+                    <span>+998 97 123 45 67</span> <!-- Замените на ваш номер -->
+                </a>
+            </div> <!-- End of header-left-group -->
+    
+            <!-- Existing "Выбрать ЖК" Button -->
+            <button class="btn btn--primary header-button" onclick="showComplexes()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                     <!-- Building SVG paths -->
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7 5H11C12.8856 5 13.8284 5 14.4142 5.58579C15 6.17157 15 7.11438 15 9V21.25H16.5H21H22C22.4142 21.25 22.75 21.5858 22.75 22C22.75 22.4142 22.4142 22.75 22 22.75H2C1.58579 22.75 1.25 22.4142 1.25 22C1.25 21.5858 1.58579 21.25 2 21.25H3V9C3 7.11438 3 6.17157 3.58579 5.58579C4.17157 5 5.11438 5 7 5ZM5.25 8C5.25 7.58579 5.58579 7.25 6 7.25H12C12.4142 7.25 12.75 7.58579 12.75 8C12.75 8.41421 12.4142 8.75 12 8.75H6C5.58579 8.75 5.25 8.41421 5.25 8ZM5.25 11C5.25 10.5858 5.58579 10.25 6 10.25H12C12.4142 10.25 12.75 10.5858 12.75 11C12.75 11.4142 12.4142 11.75 12 11.75H6C5.58579 11.75 5.25 11.4142 5.25 11ZM5.25 14C5.25 13.5858 5.58579 13.25 6 13.25H12C12.4142 13.25 12.75 13.5858 12.75 14C12.75 14.4142 12.4142 14.75 12 14.75H6C5.58579 14.75 5.25 14.4142 5.25 14ZM9 18.25C9.41421 18.25 9.75 18.5858 9.75 19V21.25H8.25V19C8.25 18.5858 8.58579 18.25 9 18.25Z" fill="white"/>
+                    <path opacity="0.5" d="M15 2H17C18.8856 2 19.8284 2 20.4142 2.58579C21 3.17157 21 4.11438 21 6V21.25H15V9C15 7.11438 15 6.17157 14.4142 5.58579C13.8416 5.01319 12.9279 5.0003 11.126 5.00001V3.49999C11.2103 3.11275 11.351 2.82059 11.5858 2.58579C12.1715 2 13.1144 2 15 2Z" fill="white"/>
+                  </svg>
+                 <span>Выбрать ЖК</span>
             </button>
-            <div class="filter-button">
-                <i class="fas fa-building filter-icon"></i>
-                Фасады
-            </div>
-            <div class="filter-button">
-                Тип
-                <i class="fas fa-chevron-down dropdown-icon"></i>
-            </div>
-            <div class="filter-button">
-                Комнат
-                <i class="fas fa-chevron-down dropdown-icon"></i>
-            </div>
-            <div class="filter-button">
-                Цена
-                <i class="fas fa-chevron-down dropdown-icon"></i>
-            </div>
-            <div class="filter-button">
-                Площадь
-                <i class="fas fa-chevron-down dropdown-icon"></i>
-            </div>
-            <div class="filter-button">
-                Акции
-                <i class="fas fa-chevron-down dropdown-icon"></i>
-            </div>
-        </div>
-        <div class="search-container">
-            <div class="search-box">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" class="search-input" placeholder="Поиск">
-            </div>
-            <div class="profile-icon">
-                <i class="fas fa-user"></i>
-            </div>
+    
         </div>
     </header>
     <div id="complexes-container" style="display: none;"></div>
@@ -383,6 +387,7 @@ async function showComplexes() {
         // Делаем запрос к серверу
         const response = await fetch('/api/complexes');
         const result = await response.json();
+        console.log(result)
 
         if (result.status === "success") {
             complexesContainer = document.getElementById("complexes-container")
@@ -404,22 +409,10 @@ async function showComplexes() {
 
                 complexesContainer.appendChild(card);
             });
-
-            // // Назад на главную
-            // const backButton = document.createElement("button");
-            // backButton.textContent = 'Назад на главную страницу';
-            // backButton.className = 'back-button top-left';
-            // backButton.addEventListener('click', () => {
-            //     complexesContainer.style.display = 'none'; // Скрываем контейнер ЖК
-            //     homeContainer.style.display = 'block'; // Показываем главный контейнер
-            //     if (navbar) navbar.style.display = 'flex'; // Показываем меню
-            //     // Показываем слайды снова
-            //     const slides = document.querySelectorAll(".slide");
-            //     slides.forEach(slide => {
-            //         slide.style.display = "block";
-            //     });
-            // });
-            // complexesContainer.appendChild(backButton);
+            const jkDetailsContainer = document.getElementById("jk-details-container");
+            if(jkDetailsContainer) jkDetailsContainer.style.display = "none";
+            // Or original display
+        resetBackButtonToDefault();
         } else {
             console.error('Ошибка загрузки ЖК: ', result.message);
             alert('Ошибка загрузки ЖК: ' + result.message);
@@ -442,62 +435,151 @@ let selectedPaymentOption = ''; // Явно задайте начальное з
 // Глобальная переменная для хранения первоначального взноса
 let initialPayment = null;
 console.log('Initial Payment:', initialPayment); // Отладка
+let controlledBackButton = null;
+let originalBackButtonHref = '/';
+let currentBackListener = null;
+
+// --- Initialization (keep as before) ---
+document.addEventListener('DOMContentLoaded', () => {
+    controlledBackButton = document.getElementById('controlled-back-button');
+    if (controlledBackButton) {
+        originalBackButtonHref = controlledBackButton.href;
+        console.log("Back button control initialized. Original href:", originalBackButtonHref);
+    } else {
+        console.error("Could not find element with id 'controlled-back-button' to control.");
+    }
+});
+
+// --- REVISED: updateBackButton ---
+function updateBackButton(text, onClickHandler) {
+    if (!controlledBackButton) {
+        console.error("Cannot update back button: element not found.");
+        return;
+    }
+    console.log(`Updating back button: Text='${text}'`);
+
+    // 1. Update Text
+    const textSpan = controlledBackButton.querySelector('.back-button-text');
+    if (textSpan) {
+        textSpan.textContent = text;
+        textSpan.style.display = 'inline'; // Make text visible
+    } else {
+        console.warn("'.back-button-text' span not found inside the back button.");
+    }
+
+    // 2. Remove previous listener
+    if (currentBackListener) {
+        controlledBackButton.removeEventListener('click', currentBackListener);
+    }
+
+    // 3. Create and add the new listener
+    currentBackListener = (event) => {
+        event.preventDefault();
+        console.log("Back button clicked (custom action)");
+        onClickHandler();
+    };
+    controlledBackButton.addEventListener('click', currentBackListener);
+
+    // 4. Change href
+    controlledBackButton.href = 'javascript:void(0);';
+    controlledBackButton.setAttribute('aria-label', text);
+
+    // 5. ADD Styling Classes for Dynamic State
+    controlledBackButton.classList.add('btn', 'btn--primary', 'header-button');
+    controlledBackButton.classList.remove('header-back-home'); // Remove default class if specifically added below
+
+
+    // 6. Ensure visibility
+    controlledBackButton.style.display = 'inline-flex';
+}
+
+// --- REVISED: resetBackButtonToDefault ---
+async function resetBackButtonToDefault() {
+    if (!controlledBackButton) {
+        console.error("Cannot reset back button: element not found.");
+        return;
+    }
+    console.log("Resetting back button to default.");
+
+    // 1. Remove the custom click listener
+    if (currentBackListener) {
+        controlledBackButton.removeEventListener('click', currentBackListener);
+        currentBackListener = null;
+    }
+
+    // 2. Restore the original href
+    controlledBackButton.href = 'javascript:window.history.back();' || originalBackButtonHref;
+
+
+    // 3. Clear the dynamic text
+    const textSpan = controlledBackButton.querySelector('.back-button-text');
+    if (textSpan) {
+        textSpan.textContent = '';
+        textSpan.style.display = 'none'; // Hide the span for default view
+    }
+
+    // 4. Restore original aria-label
+    controlledBackButton.setAttribute('aria-label', 'Вернуться на главную');
+
+    // 5. REMOVE Styling Classes from Dynamic State
+    controlledBackButton.classList.remove('btn', 'btn--primary', 'header-button');
+    controlledBackButton.classList.add('header-back-home'); // Re-add default class if needed
+
+    // 6. Ensure visibility
+    controlledBackButton.style.display = 'inline-flex';
+}
 
 // Функция для отображения данных ЖК на сайте
 function showJKDetails(shaxmatkaData, renderImage, jkName) {
-    globalShaxmatkaData = shaxmatkaData; // Сохраняем данные в глобальную переменную
-    globalRenderImage = renderImage; // Сохраняем renderImage в глобальной переменной
-    // Обновляем глобальную переменную
-
+    globalShaxmatkaData = shaxmatkaData;
+    globalRenderImage = renderImage;
+    // const headerContainer = document.getElementById("headerContainer"); // Already defined globally/outside
     const complexesContainer = document.getElementById("complexes-container");
     const jkDetailsContainer = document.getElementById("jk-details-container");
 
-    // Скрываем другие секции
-
     complexesContainer.style.display = "none";
-    // jkDetailsContainer.style.display = "block";
 
-    // Очищаем контейнер
     jkDetailsContainer.innerHTML = "";
-    jkDetailsContainer.style.display = "inline-block"
-    jkDetailsContainer.style.position = "relative"
-    // Логируем путь к изображению
-    console.log(`Проверка пути к изображению: ${renderImage}`);
+    jkDetailsContainer.style.display = "inline-block";
+    jkDetailsContainer.style.position = "relative";
+    jkDetailsContainer.style.maxWidth = ""; // Reset max-width if it was changed
 
-
-
-    // Отображаем первую картинку из папки render
-    const image = document.createElement("img");
-    console.log(`Путь к изображению: ${renderImage}`);
-    image.src = renderImage; // Передаём путь к первой картинке
-    image.alt = `Рендер ЖК ${jkName}`;
-    image.className = "jk-render-image";
-    jkDetailsContainer.appendChild(image);
-
-    // Добавляем кнопки блоков
-    const uniqueBlocks = [...new Set(shaxmatkaData.map(row => row[0]))];
     const blocksContainer = document.createElement("div");
     blocksContainer.className = "blocks-container";
+
+    const uniqueBlocks = [...new Set(shaxmatkaData.map(row => row[0]))];
     uniqueBlocks.forEach(block => {
         const button = document.createElement("button");
         button.textContent = `${block}`;
         button.className = "block-button";
         button.addEventListener("click", () => {
             console.log(`Выбран блок: ${block}`);
-            filterBlockData(shaxmatkaData, block, renderImage, jkName);
+            // Pass the current global data to the next step
+            filterBlockData(globalShaxmatkaData, block, globalRenderImage, jkName);
         });
         blocksContainer.appendChild(button);
     });
 
     jkDetailsContainer.appendChild(blocksContainer);
-    const backButtonToComplexes = document.createElement("button");
-    backButtonToComplexes.textContent = "Назад к ЖК";
-    backButtonToComplexes.className = "back-button top-left";
-    backButtonToComplexes.addEventListener("click", () => {
-        jkDetailsContainer.style.display = "none";
-        complexesContainer.style.display = "flex";
+
+    const image = document.createElement("img");
+    console.log(`Проверка пути к изображению: ${renderImage}`);
+    image.src = renderImage;
+    image.alt = `Рендер ЖК ${jkName}`;
+    image.className = "jk-render-image";
+    jkDetailsContainer.appendChild(image);
+
+    // --- Use the helper function to update the back button ---
+    updateBackButton("Назад к ЖК", () => { // Pass the TEXT and the ACTION
+        const complexesContainer = document.getElementById("complexes-container");
+        const jkDetailsContainer = document.getElementById("jk-details-container");
+        if(jkDetailsContainer) jkDetailsContainer.style.display = "none";
+        if(complexesContainer) complexesContainer.style.display = "flex"; // Or original display
+        resetBackButtonToDefault(); // RESET button when back on the main list
     });
-    jkDetailsContainer.appendChild(backButtonToComplexes);
+    // --- No need to add button manually here ---
+
+    // jkDetailsContainer.style.display = "inline-block"; // Already set
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -529,25 +611,23 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function filterBlockData(shaxmatkaData, block, renderImage, jkName) {
-    console.log("Проверка данных shaxmatkaData:", shaxmatkaData);
+    console.log("Проверка данных shaxmatkaData в filterBlockData:", shaxmatkaData); // Log specific data
     const jkDetailsContainer = document.getElementById("jk-details-container");
-    jkDetailsContainer.style.maxWidth = "100%";
+    jkDetailsContainer.style.maxWidth = "100%"; // Set max-width for floor plan view
+    // const headerContainer = document.getElementById("headerContainer"); // Already defined globally/outside
 
-    // Фильтруем данные по блоку
     const filteredData = shaxmatkaData.filter(row => row[0] === block);
-
-    // Группируем данные по этажам
     const floors = filteredData.reduce((acc, row) => {
+        // ... (rest of the floor grouping logic) ...
         const floor = row[6]; // Этаж
         if (!acc[floor]) acc[floor] = [];
         acc[floor].push(row);
         return acc;
     }, {});
 
-    // Очищаем контейнер
-    jkDetailsContainer.innerHTML = "";
 
-    // Создаем структуру для этажей
+    jkDetailsContainer.innerHTML = ""; // Clear container for floor plan
+
     Object.keys(floors).sort((a, b) => b - a).forEach(floor => {
         const floorContainer = document.createElement("div");
         floorContainer.className = "floor-container";
@@ -561,7 +641,8 @@ function filterBlockData(shaxmatkaData, block, renderImage, jkName) {
         apartmentGrid.className = "apartment-grid";
 
         floors[floor].forEach(row => {
-            const statusMap = {
+            // ... (apartment card creation logic remains the same) ...
+             const statusMap = {
                 "свободна": "available",
                 "продана": "sold",
                 "бронь": "booked"
@@ -576,11 +657,10 @@ function filterBlockData(shaxmatkaData, block, renderImage, jkName) {
                 return;
             }
 
-            // Извлекаем количество комнат из row[3]
             const rooms = row[3] || "Не указано";
 
             apartmentCard.setAttribute("data-jk-name", jkName);
-            apartmentCard.setAttribute("data-block", block);
+            apartmentCard.setAttribute("data-block", block); // Use the 'block' parameter directly
             apartmentCard.setAttribute("data-size", row[5]);
             apartmentCard.setAttribute("data-floor", row[6]);
             apartmentCard.setAttribute("data-number", row[4]);
@@ -588,7 +668,7 @@ function filterBlockData(shaxmatkaData, block, renderImage, jkName) {
 
             console.log("Filtered Data Row:", row);
 
-            const price = status === "свободна" && row.length > 7
+            const price = status === "свободна" && row.length > 7 && row[7] // Check if price exists
                 ? `от ${Number(row[7]).toLocaleString('ru-RU')} сум`
                 : "";
             const cleanedPrice = price
@@ -596,37 +676,51 @@ function filterBlockData(shaxmatkaData, block, renderImage, jkName) {
                 .replace(/сум\s*/gi, "")
                 .trim();
 
+             // Make sure price display handles empty price gracefully
+            const priceDisplay = cleanedPrice
+                ? `<p class="card-price">${cleanedPrice}</p>`
+                : `<p class="card-status">${row[2] || "Неизвестно"}</p>`;
+
+
             apartmentCard.innerHTML = `
                 <div class="card-header">
                     <span>${row[1] || "Тип не указан"}</span>
                     <span>№${row[4] || "Номер кв не указан"}</span>
                 </div>
                 <div class="card-price">
-                    ${price 
-                        ? `<p class="card-price">${cleanedPrice}</p>` 
-                        : `<p class="card-status">${row[2] || "Неизвестно"}</p>`}
+                    ${priceDisplay}
                 </div>
                 <div class="card-footer">
-                    <span>${row[5] || "-"} м</span>
-                    <span>сум</span>
+                    <span>${row[5] || "-"} м²</span>
+                    ${cleanedPrice ? '<span>сум</span>' : ''}
                 </div>
             `;
             apartmentGrid.appendChild(apartmentCard);
         });
 
+
         floorContainer.appendChild(apartmentGrid);
         jkDetailsContainer.appendChild(floorContainer);
     });
 
-    // Добавляем кнопку "Назад к выбору блоков"
-    const backButton = document.createElement("button");
-    backButton.textContent = "Назад к выбору блоков";
-    backButton.className = "back-button top-left";
-    backButton.addEventListener("click", () => {
-        jkDetailsContainer.innerHTML = ""; // Очищаем данные блока
-        showJKDetails(shaxmatkaData, renderImage, jkName); // Передаем изображение заново
+    // --- Use the helper function to update the back button ---
+    updateBackButton("Назад к выбору блоков", () => {
+        // ... (logic to handle potential missing global data) ...
+        if (!globalShaxmatkaData || !globalRenderImage || !jkName) {
+            // ... (error handling or navigate to home/complexes list) ...
+             const complexesContainer = document.getElementById("complexes-container");
+             const jkDetailsContainer = document.getElementById("jk-details-container");
+             if(jkDetailsContainer) jkDetailsContainer.style.display = "none";
+             if(complexesContainer) complexesContainer.style.display = "flex";
+             resetBackButtonToDefault(); // Reset if going back to main list due to error
+            return;
+        }
+        // If data is present, show the JK details view again (which will call updateBackButton again)
+        showJKDetails(globalShaxmatkaData, globalRenderImage, jkName);
     });
-    jkDetailsContainer.appendChild(backButton);
+     // --- No need to add button manually here ---
+
+     jkDetailsContainer.style.display = "block"; // Show the floor plan view
 }
 
 async function fetchPlanImage(jkName, blockName, apartmentSize) {
@@ -763,7 +857,7 @@ document.body.addEventListener('click', async function (event) {
                 const DETAILS_LABEL = "Подробнее";
                 const DISCOUNT_TITLE = "Скидка 20%"; // Заменить на динамическое, если возможно
                 const DISCOUNT_CONDITION = "Действует до 12.10.2025"; // Заменить на динамическое, если возможно
-                const INSTALLMENT_TITLE = `Рассрочка от 10%`; // Заменить на динамическое, если возможно
+                const INSTALLMENT_TITLE = `Рассрочка от 30%`; // Заменить на динамическое, если возможно
                 const SUBMIT_BUTTON_TEXT = "Отправить заявку";
                 const BACK_BUTTON_TEXT = 'Назад к выбору квартиры';
                 const PRINT_BUTTON_TEXT = "Печать";
@@ -876,24 +970,24 @@ document.body.addEventListener('click', async function (event) {
                 infoGrid.appendChild(deadlineBlock);
 
                 // -- Блок Подробнее -- (Ссылка-заглушка)
-                const detailsLinkBlock = document.createElement('a');
-                detailsLinkBlock.href = '#'; // Заглушка
-                detailsLinkBlock.className = 'info-block details-link-block';
-                 detailsLinkBlock.innerHTML = `
-                     <span class="info-label">${DETAILS_LABEL}</span>
-                     <i class="fa-solid fa-arrow-right"></i>`;
-                 detailsLinkBlock.addEventListener('click', (e) => e.preventDefault()); // Предотвращаем переход по ссылке
-                 infoGrid.appendChild(detailsLinkBlock);
+                // const detailsLinkBlock = document.createElement('a');
+                // detailsLinkBlock.href = '#'; // Заглушка
+                // detailsLinkBlock.className = 'info-block details-link-block';
+                //  detailsLinkBlock.innerHTML = `
+                //      <span class="info-label">${DETAILS_LABEL}</span>
+                //      <i class="fa-solid fa-arrow-right"></i>`;
+                //  detailsLinkBlock.addEventListener('click', (e) => e.preventDefault()); // Предотвращаем переход по ссылке
+                //  infoGrid.appendChild(detailsLinkBlock);
 
                 infoCardDiv.appendChild(infoGrid);
 
                 // Блоки скидок/рассрочки (Пока статичные, как на картинке)
-                const offerBlockDiscount = document.createElement('div');
-                offerBlockDiscount.className = 'offer-block discount';
-                offerBlockDiscount.innerHTML = `
-                    <span class="offer-title">${DISCOUNT_TITLE}</span>
-                    <span class="offer-condition">${DISCOUNT_CONDITION}</span>`;
-                infoCardDiv.appendChild(offerBlockDiscount);
+                // const offerBlockDiscount = document.createElement('div');
+                // offerBlockDiscount.className = 'offer-block discount';
+                // offerBlockDiscount.innerHTML = `
+                //     <!-- <span class="offer-title">${DISCOUNT_TITLE}</span> -->
+                //     <span class="offer-condition">${DISCOUNT_CONDITION}</span>`;
+                // infoCardDiv.appendChild(offerBlockDiscount);
 
                 const offerBlockInstallment = document.createElement('div');
                 offerBlockInstallment.className = 'offer-block installment';
@@ -1129,7 +1223,7 @@ document.body.addEventListener('click', async function (event) {
     if (userSelection.paymentChoice === 100) {
         paymentTypeString = 'Единовременно';
     } else if (typeof userSelection.paymentChoice === 'number') {
-        paymentTypeString = `Рассрочка ${userSelection.paymentChoice}%`;
+        paymentTypeString = `Рассрочка`;
         installmentPeriodValue = months_left > 0 ? months_left : null;
         const remaining = userSelection.totalPrice - initialPayment;
         monthlyPaymentValue = installmentPeriodValue ? Math.round(remaining / installmentPeriodValue) : null;
@@ -1144,7 +1238,7 @@ document.body.addEventListener('click', async function (event) {
         status: "COLD", // Соответствует LeadStatus Enum
         state: "NEW",   // Соответствует LeadState Enum
         // ================
-        square_meters: Math.round(parseFloat(apartmentSize.replace(',', '.'))),
+        square_meters: parseFloat(apartmentSize.replace(',', '.')),
         rooms: parseInt(rooms, 10),
         floor: parseInt(floor, 10),
         total_price: userSelection.totalPrice,
@@ -1154,6 +1248,17 @@ document.body.addEventListener('click', async function (event) {
         notes: `Бронь с сайта. ЖК: ${jkName}, Блок: ${blockName}, Этаж: ${floor}, №${apartmentNumber}, ${apartmentSize} м²`,
         currency: "UZS"
     };
+    updateBackButton("Назад к выбору квартиры", () => {
+                    // Need globalShaxmatkaData, currentBlockName, globalRenderImage, currentJKName
+                    console.log("Возврат к выбору квартиры, используя:", globalShaxmatkaData, currentBlockName, globalRenderImage, currentJKName);
+                     if (!globalShaxmatkaData || !currentBlockName || !globalRenderImage || !currentJKName) {
+                         console.error("Недостаточно данных для возврата к выбору квартиры!");
+                         // Fallback: go to block selection
+                         showJKDetails(globalShaxmatkaData, globalRenderImage, currentJKName);
+                         return;
+                     }
+                    filterBlockData(globalShaxmatkaData, currentBlockName, globalRenderImage, currentJKName);
+                });
 
     console.log("Отправка данных лида (без user_id):", leadData);
 
@@ -1170,20 +1275,20 @@ document.body.addEventListener('click', async function (event) {
             reserveFormContainer.style.display = "none";
 
             // Вызов эндпоинта для обновления Excel (без изменений)
-            await updateApartmentStatusInExcel(jkName, blockName, floor, apartmentNumber, "Бронь");
+            await updateApartmentStatusInExcel(jkName, blockName, floor, apartmentNumber, "бронь");
 
             // Обновление UI (без изменений)
             if (card) {
                  const statusElement = card.querySelector('.apartment-status');
                  if (statusElement) {
-                     statusElement.textContent = 'Бронь';
+                     statusElement.textContent = 'бронь';
                      statusElement.className = 'apartment-status reserved';
                  }
                  card.classList.add('reserved');
             }
              const statusBadgeDetailed = infoCardDiv.querySelector('.status-badge');
              if(statusBadgeDetailed) {
-                 statusBadgeDetailed.textContent = 'Бронь';
+                 statusBadgeDetailed.textContent = 'бронь';
                  statusBadgeDetailed.className = 'status-badge status-reserved';
              }
              if (paymentActionsContainer) paymentActionsContainer.style.display = 'none';
@@ -1345,7 +1450,7 @@ async function updateApartmentStatusInExcel(jkName, blockName, floor, apartmentN
                             <form id="contract-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                 <input type="hidden" name="jkName" value="${prefilledData.jkName}">
 
-                                <div style="grid-column: 1 / -1;"><label>Номер договора:</label><input type="text" name="contractNumber" value="${prefilledData.contractNumber || ''}" required></div>
+                                <div style="grid-column: 1 / -1;"><label>Номер договора:</label><input type="text" name="contractNumber" value="${prefilledData.contractNumber || '1'}" required></div>
                                 <div style="grid-column: 1 / -1;"><label>Дата договора:</label><input type="date" name="contractDate" value="${new Date().toISOString().slice(0,10)}" required></div>
 
                                 <div><label>Блок:</label><input type="text" name="block" value="${prefilledData.block}" readonly></div>
@@ -1375,6 +1480,8 @@ async function updateApartmentStatusInExcel(jkName, blockName, floor, apartmentN
                             </form>
 
                         `;
+
+                        
                         // Добавляем стили для инпутов и лейблов формы
                         modalContent.querySelectorAll('label').forEach(label => {
                             label.style.display = 'block';
@@ -1418,39 +1525,65 @@ async function updateApartmentStatusInExcel(jkName, blockName, floor, apartmentN
                                  modal.remove();
                              }
                          });
+                        
 
+                         const form = modalContent.querySelector("#contract-form");
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-                        const form = modal.querySelector("#contract-form");
-                        form.addEventListener("submit", async (event) => {
-                            event.preventDefault();
-                            const formData = new FormData(form);
-                             // Преобразуем числовые строки обратно в числа перед отправкой
-                             const data = Object.fromEntries(formData.entries());
-                             data.totalPrice = parseFloat(data.totalPrice.replace(/[^0-9,.-]+/g, "").replace(',', '.'));
-                             data.pricePerM2 = parseFloat(data.pricePerM2.replace(/[^0-9,.-]+/g, "").replace(',', '.'));
-                             data.initialPayment = parseFloat(data.initialPayment.replace(/[^0-9,.-]+/g, "").replace(',', '.'));
-                             // paymentChoice уже строка (%), оставляем как есть
+        const formData = new FormData(form);
+        const contractData = Object.fromEntries(formData.entries());
 
-                            console.log('Отправляемые данные договора:', data);
-                            try {
-                                const response = await fetch("/api/reestr/register_or_update", { // Убедитесь, что URL правильный
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify(data)
-                                });
-                                const result = await response.json();
-                                if (result.status === "success" || response.ok) { // Проверяем статус или OK
-                                    alert(result.message || "Договор успешно сохранен!");
-                                    modal.remove();
-                                    // Опционально: обновить статус квартиры на "Продана"
-                                } else {
-                                    alert(`Ошибка сохранения договора: ${result.message || response.statusText}`);
-                                }
-                            } catch (error) {
-                                console.error("Ошибка при обработке договора:", error);
-                                alert("Произошла ошибка при сохранении договора. Попробуйте снова.");
-                            }
-                        });
+        try {
+            const response = await fetch("/api/generate-contract", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(contractData),
+            });
+
+            if (!response.ok) {
+                throw new Error("Ошибка при генерации договора");
+            }
+
+            const blob = await response.blob();
+            const contentDisposition = response.headers.get("Content-Disposition");
+            const filename = contentDisposition
+                ? contentDisposition.split("filename=")[1].replace(/"/g, "")
+                : "contract_and_registry.zip";
+
+            // Скачивание файла
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            alert("Договор и реестр успешно сгенерированы и скачаны!");
+            modal.remove();
+            await updateApartmentStatusInExcel(jkName, blockName, floor, apartmentNumber, "продана");
+
+            // Обновление UI (без изменений)
+            if (card) {
+                 const statusElement = card.querySelector('.apartment-status');
+                 if (statusElement) {
+                     statusElement.textContent = 'продана';
+                     statusElement.className = 'apartment-status sold';
+                 }
+                 card.classList.add('reserved');
+            }
+             const statusBadgeDetailed = infoCardDiv.querySelector('.status-badge');
+             if(statusBadgeDetailed) {
+                 statusBadgeDetailed.textContent = 'продана';
+                 statusBadgeDetailed.className = 'status-badge status-sold';
+             }
+        } catch (error) {
+            console.error("Ошибка:", error);
+            alert("Произошла ошибка при генерации договора.");
+        }
+    });
                     } // --- Конец openContractModal ---
 
                 } else {
@@ -1502,26 +1635,7 @@ async function updateApartmentStatusInExcel(jkName, blockName, floor, apartmentN
                 //  jkDetailsContainer.insertBefore(backButton, jkDetailsContainer.firstChild); // Вставляем в начало контейнера
 
                  // Добавляем кнопку "Печать" (также поверх)
-                const printButton = document.createElement("button");
-                printButton.textContent = PRINT_BUTTON_TEXT;
-                printButton.className = "print-button top-right action-btn secondary"; // Классы для стилей и позиционирования
-                 printButton.style.position = 'absolute';
-                 printButton.style.top = '10px';
-                 printButton.style.right = '10px';
-                 printButton.style.zIndex = '5';
-
-                printButton.addEventListener("click", () => {
-                    // Скрываем кнопки управления перед печатью
-                     backButton.style.display = 'none';
-                     printButton.style.display = 'none';
-                     window.print(); // Печатаем страницу
-                     // Возвращаем кнопки после печати (может сработать не идеально во всех браузерах)
-                     setTimeout(() => {
-                         backButton.style.display = '';
-                         printButton.style.display = '';
-                     }, 500);
-                });
-                 jkDetailsContainer.insertBefore(printButton, jkDetailsContainer.firstChild); // Вставляем в начало
+              // Вставляем в начало
 
                 // --- Отображение созданной структуры ---
                 jkDetailsContainer.appendChild(apartmentPlanSection); // Добавляем левую колонку
@@ -1539,6 +1653,8 @@ async function updateApartmentStatusInExcel(jkName, blockName, floor, apartmentN
         }
     } // конец if (card)
 }); // конец addEventListe
+
+document.addEventListener('DOMContentLoaded', showComplexes);
 </script>
 </body>
 </html>

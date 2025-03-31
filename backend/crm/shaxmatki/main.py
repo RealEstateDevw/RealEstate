@@ -12,5 +12,5 @@ router = APIRouter(prefix="/complexes")
 
 
 @router.get("/", response_class=HTMLResponse, name="complexes")
-async def sales_dashboard(request: Request, current_user=Depends(get_current_user_from_cookie)):
-    return templates.TemplateResponse("/shaxmatki/complexes.html", {"request": request, "user": current_user})
+async def sales_dashboard(request: Request):
+    return templates.TemplateResponse("/shaxmatki/complexes.html", {"request": request})

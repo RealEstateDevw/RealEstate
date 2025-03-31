@@ -7,6 +7,19 @@
     padding: 0;
 }
 
+
+html {
+    scroll-behavior: smooth; /* Включает плавную прокрутку для всей страницы */
+    /* Добавляем отступ сверху, равный высоте вашего "прилипшего" хедера + небольшой запас */
+    /* Подберите точное значение! Измерьте высоту хедера в инструментах разработчика (F12) */
+    scroll-padding-top: 80px; /* Примерное значение, ЗАМЕНИТЕ НА ВАШЕ! */
+  }
+  
+  /* Небольшой хак для лучшей совместимости (особенно если основной скролл не на html/body) */
+  body {
+      overflow-x: hidden; /* Предотвращает горизонтальный скролл, который иногда возникает */
+  }
+
 body {
     font-family: 'Inter', sans-serif;
     line-height: 1.6;
@@ -62,6 +75,7 @@ a {
 .btn--primary {
     background-color: #0d6efd; /* Пример синего цвета */
     color: #fff;
+    text-decoration: none;
 }
 
 .btn--primary:hover {
@@ -823,7 +837,7 @@ backdrop-filter: blur(50px); /* Серо-голубой полупрозрачн
     /* Уже имеет стили .btn и .btn--primary */
     border-radius: 50px !important; /* Переопределяем радиус на пилюлю */
     padding: 10px 20px; /* Убедимся, что паддинги как у других таблеток */
-    font-size: 0.9rem; /* Убедимся, что шрифт как у других */
+    font-size: 0.8rem; /* Убедимся, что шрифт как у других */
     font-weight: 600; /* Убедимся, что жирность как у других */
     white-space: nowrap;
 }
@@ -869,11 +883,12 @@ backdrop-filter: blur(50px); /* Серо-голубой полупрозрачн
         position: static; // Отключаем sticky
    } */
    /* Можно еще уменьшить паддинги/шрифты */
+
    .header-pill,
     .header-phone,
     .header-nav__link,
     .header-button {
-        font-size: 0.85rem;
+        font-size: 0.7rem;
         padding: 8px 15px;
         gap: 8px;
     }
@@ -883,4 +898,202 @@ backdrop-filter: blur(50px); /* Серо-голубой полупрозрачн
      .header-button i {
          font-size: 1rem;
      }
+     
+}
+
+
+@media (max-width: 991px) { /* Adjust this value as needed */
+    .header-item--desktop {
+        display: none !important; /* Hide original phone and nav */
+    }
+    .header-item--mobile {
+        display: inline-flex !important; /* Show burger button */
+        align-items: center;
+        justify-content: center;
+    }
+    .header-container {
+        justify-content: space-between; /* Ensure buttons spread out */
+    }
+    .header-spacer {
+        display: none; /* Hide spacer on mobile */
+    }
+}
+
+@media (min-width: 992px) { /* Adjust this value to match the max-width + 1 */
+    .header-item--mobile {
+        display: none !important; /* Hide burger button on desktop */
+    }
+    /* Ensure desktop items are displayed correctly if hidden by default */
+     .header-item--desktop {
+        display: inline-flex; /* Or flex, depending on original style */
+    }
+     .header-nav {
+         display: flex; /* Ensure nav displays as flex on desktop */
+     }
+    /* Keep the spacer for desktop */
+     .header-spacer {
+         flex-grow: 1;
+     }
+}
+
+
+/* Burger Button Styling */
+.burger-menu {
+    display: none; /* Hidden by default, shown via media query */
+    background: none;
+    border: none;
+    padding: 10px; /* Adjust padding for tap area */
+    cursor: pointer;
+    z-index: 1051; /* Above overlay */
+    order: 3; /* Place it after the login button visually if needed, or adjust flex order */
+    /* Match pill height if desired */
+    height: 44px; /* Example height, match your pills */
+    width: 44px; /* Example width */
+    border-radius: 50%;
+    background-color: #F6F8F9; /* Match pill background */
+    margin-left: 10px; /* Space from login button */
+}
+
+.burger-menu svg {
+    display: block;
+    width: 24px;
+    height: 24px;
+}
+.burger-menu svg path {
+     stroke: #1a2b4d; /* Match text color or use brand color */
+}
+
+/* Spacer to push items right on desktop */
+.header-spacer {
+    flex-grow: 1; /* Takes up available space */
+}
+
+.header-item--desktop {
+    display: none !important;
+}
+.header-item--mobile {
+    display: inline-flex !important; /* Или block, flex - как нужно для бургера */
+    align-items: center;
+    justify-content: center;
+}
+.header-spacer { /* Спейсер тоже не нужен на мобильных */
+     display: none;
+}
+
+
+.mobile-nav {
+    position: fixed;
+    top: 0;
+    right: -100%; /* Start off-screen */
+    width: 300px; /* Adjust width as needed */
+    max-width: 85%;
+    height: 100%;
+    background-color: #fff; /* Or your desired menu background */
+    z-index: 1050; /* High z-index */
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out;
+    padding-top: 60px; /* Space for close button */
+    overflow-y: auto; /* Allow scrolling if content is long */
+}
+
+.mobile-nav.is-active {
+    right: 0; /* Slide in */
+}
+
+/* Close Button inside Mobile Nav */
+.mobile-nav__close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2.5rem;
+    line-height: 1;
+    color: #888;
+    cursor: pointer;
+    padding: 5px;
+}
+.mobile-nav__close:hover {
+    color: #333;
+}
+
+
+/* Styling Links inside Mobile Nav */
+.mobile-nav__menu {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.mobile-nav__link {
+    /* Inherit pill styles but display as block */
+    display: flex; /* Use flex to align icon and text */
+    align-items: center;
+    gap: 15px; /* Space between icon and text */
+    padding: 15px 20px; /* Adjust padding */
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1a2b4d;
+    text-decoration: none;
+    border-radius: 0; /* Remove pill radius inside menu */
+    background-color: transparent; /* Remove pill background inside menu */
+    border-bottom: 1px solid #eee; /* Optional separator */
+    white-space: normal; /* Allow wrapping if needed */
+}
+.mobile-nav__link:hover {
+    background-color: #f8f9fa; /* Slight hover effect */
+}
+
+.mobile-nav__link svg {
+    width: 20px; /* Slightly smaller icons */
+    height: 20px;
+    flex-shrink: 0; /* Prevent icon shrinking */
+}
+.mobile-nav__link svg path {
+     fill: #216BF4; /* Keep icon color */
+}
+.mobile-nav__link span {
+    flex-grow: 1;
+}
+
+
+/* Точка переключения - НАЧИНАЯ С ЭТОЙ ШИРИНЫ, показываем десктоп */
+/* Используйте ту же ширину, что и раньше (992px или 768px и т.д.) */
+@media (min-width: 992px) { /* <<-- УБЕДИТЕСЬ, что ширина ПРАВИЛЬНАЯ */
+    .header-item--desktop {
+        display: inline-flex !important; /* Или flex, block - как было */
+    }
+    .header-item--mobile {
+        display: none !important; /* Скрываем бургер на десктопе */
+    }
+    .header-nav { /* Убедимся, что основная навигация видима на десктопе */
+         display: flex !important;
+    }
+     .header-spacer { /* Показываем спейсер на десктопе */
+         display: block; /* или flex-grow: 1; если он был flex item */
+         flex-grow: 1;
+     }
+}
+
+/* --- Стили для Бургера, Меню, Оверлея --- */
+/* (Остальные стили из предыдущего ответа: .burger-menu, .mobile-nav, .mobile-nav.is-active { right: 0; }, .overlay, .overlay.is-active и т.д.) */
+/* Убедитесь, что стиль для .mobile-nav по умолчанию содержит right: -100%; или transform: translateX(100%); */
+.mobile-nav {
+    /* ... другие стили ... */
+    position: fixed;
+    top: 0;
+    right: -100%; /* ИЛИ transform: translateX(100%); */
+    width: 300px;
+    max-width: 85%;
+    height: 100%;
+    background-color: #fff;
+    z-index: 1050;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out; /* ИЛИ transition: transform 0.3s ease-in-out; */
+    padding-top: 60px;
+    overflow-y: auto;
+}
+
+.mobile-nav.is-active {
+    right: 0; /* ИЛИ transform: translateX(0); */
 }

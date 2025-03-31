@@ -101,6 +101,14 @@
             flex-direction: column;
             gap: 5px;
         }
+
+
+
+    body {
+        background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+        transition: background 0.5s ease;
+    }
+
     </style>
 </head>
 

@@ -97,7 +97,7 @@ class Lead(Base):
     state = Column(Enum(LeadState), nullable=False)
 
     # Property details (if applicable)
-    square_meters = Column(Integer, nullable=True)
+    square_meters = Column(Float, nullable=True)
     rooms = Column(Integer, nullable=True)
     floor = Column(Integer, nullable=True)
 

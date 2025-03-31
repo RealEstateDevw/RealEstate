@@ -140,7 +140,7 @@ monthly_payment = total_price * (1 + installment_markup / 100) / installment_per
         contact_source: document.getElementById("selectedRole").textContent.trim(), // Источник лида
         status: "COLD",  // Выбор статуса
         state: "NEW",    // Выбор состояния
-        square_meters: parseInt(document.querySelector(".option-item input[placeholder='180']").value) || null,
+        square_meters: parseFloat(document.querySelector(".option-item input[placeholder='180']").value) || null,
         rooms: parseInt(document.querySelector(".option-item input[placeholder='5']").value) || null,
         floor: parseInt(document.querySelector(".option-item input[placeholder='0']").value) || null,
         total_price: total_price, // Убираем запятые

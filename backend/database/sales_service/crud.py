@@ -344,7 +344,8 @@ class LeadFilterService:
         """Get leads filtered by user_id if provided, otherwise get all leads"""
         # Base query for new leads (поступления)
         new_leads_query = self.db.query(Lead).filter(
-            Lead.state == 'NEW'
+
+            or_(Lead.state == 'NEW', Lead.state == 'IN_WORK')
         )
 
         # Base query for processed leads (обработано)
@@ -507,7 +508,7 @@ class SalesLeadsService:
         # Новые лиды
         new_leads_count = self.db.query(Lead).filter(
             Lead.user_id == user_id,
-            Lead.state == 'NEW'
+            or_(Lead.state == 'NEW', Lead.state == 'IN_WORK')
         ).count()
 
         # Обработанные лиды
@@ -553,7 +554,7 @@ class SalesLeadsService:
 
     def _get_total_stats(self) -> dict:
         # Общее количество новых лидов
-        total_new = self.db.query(Lead).filter(Lead.state == 'NEW').count()
+        total_new = self.db.query(Lead).filter(or_(Lead.state == 'NEW', Lead.state == 'IN_WORK')).count()
 
         # Общее количество обработанных лидов
         total_processed = self.db.query(Lead).filter(Lead.state == 'PROCESSED').count()

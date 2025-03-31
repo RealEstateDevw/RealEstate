@@ -26,7 +26,7 @@ class LeadBase(BaseModel):
     contact_source: str
     status: LeadStatus
     state: LeadState
-    square_meters: Optional[int] = None
+    square_meters: Optional[float] = None
     rooms: Optional[int] = None
     floor: Optional[int] = None
     total_price: float = Field(..., gt=0)
@@ -54,7 +54,7 @@ class LeadUpdate(BaseModel):
     contact_source: Optional[str] = None
     status: Optional[LeadStatus] = None
     state: Optional[LeadState] = None
-    square_meters: Optional[int] = None
+    square_meters: Optional[float] = None
     rooms: Optional[int] = None
     floor: Optional[int] = None
     total_price: Optional[float] = Field(None, gt=0)
