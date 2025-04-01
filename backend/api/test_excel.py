@@ -455,15 +455,25 @@ async def get_contract_registry(jkName: str):
         raise HTTPException(status_code=500, detail=f"Ошибка при чтении реестра: {str(e)}")
 
 
+NEW_STATUS_ON_DELETE = "свободна"  # Статус, который нужно установить в шахматке
+REGISTRY_COLUMN_HEADERS = {
+    "contractNumber": "№ Договора",  # Пример
+    "block": "Блок",  # Пример
+    "floor": "Этаж",  # Пример
+    "apartmentNumber": "№ КВ"  # Пример
+}
+
+
 @router.delete("/delete-contract-from-registry")
-async def delete_contract_from_registry(
+async def delete_contract_from_registry_and_update_shaxmatka(  # Переименовал для ясности
         jkName: str = Query(..., description="Название жилого комплекса"),
         contractNumber: str = Query(..., description="Номер договора для удаления (например, Д-0001)")
 ):
     """
-    Удаляет строку с указанным номером договора из файла реестра для данного ЖК.
+    Удаляет строку из реестра договоров и обновляет статус
+    соответствующей квартиры в шахматке на 'свободна'.
     """
-    print(f"Запрос на удаление договора: ЖК='{jkName}', Номер='{contractNumber}'")
+    print(f"Запрос на удаление договора и обновление шахматки: ЖК='{jkName}', Номер='{contractNumber}'")
     jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
     REGISTRY_PATH = os.path.join(jk_dir, "contract_registry.xlsx")
 
@@ -471,53 +481,141 @@ async def delete_contract_from_registry(
         print(f"Ошибка: Реестр не найден по пути {REGISTRY_PATH}")
         raise HTTPException(status_code=404, detail=f"Реестр договоров для ЖК '{jkName}' не найден")
 
+    apartment_details = None  # Словарь для хранения данных квартиры из реестра
+    found_row_index = None
+    registry_headers = []
+
     try:
-        # Используем read_only=False, write_only=False (по умолчанию) для чтения и записи
         wb_registry = load_workbook(REGISTRY_PATH)
         ws_registry = wb_registry.active
 
-        found_row_index = None
-        # Ищем строку для удаления (начиная со второй строки, первая - заголовок)
-        # Предполагаем, что номер договора всегда в первой колонке (A)
-        for idx, row in enumerate(ws_registry.iter_rows(min_row=2, max_col=1),
-                                  start=2):  # читаем только 1 колонку для скорости
-            cell_value = row[0].value
-            # Сравниваем как строки, на всякий случай
-            if cell_value and str(cell_value).strip() == contractNumber.strip():
+        # Читаем заголовки реестра из первой строки
+        registry_headers = [cell.value for cell in ws_registry[1]]
+        print(f"Заголовки реестра: {registry_headers}")
+
+        # --- Определяем индексы нужных колонок в реестре ---
+        try:
+            col_idx_contract = registry_headers.index(REGISTRY_COLUMN_HEADERS["contractNumber"])
+            col_idx_block = registry_headers.index(REGISTRY_COLUMN_HEADERS["block"])
+            col_idx_floor = registry_headers.index(REGISTRY_COLUMN_HEADERS["floor"])
+            col_idx_apt_num = registry_headers.index(REGISTRY_COLUMN_HEADERS["apartmentNumber"])
+        except ValueError as e:
+            print(f"Критическая ошибка: Не найдены необходимые заголовки в реестре {REGISTRY_PATH}. Ошибка: {e}")
+            raise HTTPException(status_code=500,
+                                detail=f"Ошибка конфигурации реестра: отсутствуют необходимые колонки ({e}).")
+
+        # Ищем строку для удаления в реестре и извлекаем данные
+        for idx, row_values in enumerate(ws_registry.iter_rows(min_row=2, values_only=True), start=2):
+            current_contract_num = str(row_values[col_idx_contract]).strip() if row_values[col_idx_contract] else ""
+
+            if current_contract_num == contractNumber.strip():
                 found_row_index = idx
-                print(f"Найден договор '{contractNumber}' в строке {found_row_index}")
-                break
+                print(f"Найден договор '{contractNumber}' в реестре, строка {found_row_index}")
+                try:
+                    # Извлекаем данные квартиры, обрабатывая возможные ошибки типа
+                    apt_block = str(row_values[col_idx_block]).strip()
+                    apt_floor = int(row_values[col_idx_floor])
+                    apt_num = int(row_values[col_idx_apt_num])
+
+                    if not apt_block:  # Проверяем, что блок не пустой
+                        raise ValueError("Название блока не может быть пустым")
+
+                    apartment_details = {
+                        "blockName": apt_block,
+                        "floor": apt_floor,
+                        "apartmentNumber": apt_num
+                    }
+                    print(f"Извлечены данные квартиры из реестра: {apartment_details}")
+                    break  # Строка найдена, выходим из цикла
+                except (ValueError, TypeError, IndexError) as e:
+                    print(
+                        f"Ошибка извлечения данных квартиры из строки {found_row_index} реестра: {e}. Данные: {row_values}")
+                    raise HTTPException(status_code=500,
+                                        detail=f"Ошибка данных в реестре для договора {contractNumber} (строка {found_row_index}): {e}")
+        # --- Конец поиска в реестре ---
 
         if found_row_index is None:
             print(f"Ошибка: Договор '{contractNumber}' не найден в реестре {REGISTRY_PATH}")
             raise HTTPException(status_code=404, detail=f"Договор '{contractNumber}' не найден в реестре ЖК '{jkName}'")
 
-        # Удаляем найденную строку
+        # 1. Удаляем строку из реестра
         ws_registry.delete_rows(found_row_index)
-        print(f"Строка {found_row_index} удалена из реестра.")
+        print(f"Строка {found_row_index} помечена для удаления из реестра.")
 
-        # Сохраняем изменения в файл реестра
-        # ВАЖНО: Убедитесь, что файл не открыт в Excel, иначе будет ошибка PermissionError
+        # Сохраняем изменения в файле реестра ПЕРЕД обновлением шахматки
+        # Это менее атомарно, но проще в реализации. Если обновление шахматки не удастся,
+        # реестр уже будет изменен.
         try:
             wb_registry.save(REGISTRY_PATH)
             print(f"Реестр сохранен: {REGISTRY_PATH}")
         except PermissionError:
             print(
-                f"КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить реестр {REGISTRY_PATH}. Файл может быть открыт другой программой.")
+                f"КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить реестр {REGISTRY_PATH} после удаления строки. Файл может быть открыт.")
+            # Важно сообщить об ошибке, так как реестр не обновлен
             raise HTTPException(status_code=500,
-                                detail="Не удалось сохранить изменения в реестре. Возможно, файл открыт.")
+                                detail="Не удалось сохранить изменения в реестре после удаления строки. Возможно, файл открыт.")
         except Exception as save_err:
-            print(f"КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить реестр {REGISTRY_PATH}. Ошибка: {save_err}")
+            print(
+                f"КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить реестр {REGISTRY_PATH} после удаления строки. Ошибка: {save_err}")
             raise HTTPException(status_code=500, detail=f"Неизвестная ошибка при сохранении реестра: {save_err}")
 
-        return {"status": "success", "message": f"Договор '{contractNumber}' успешно удален из реестра ЖК '{jkName}'"}
+        # 2. Обновляем статус в шахматке
+        shaxmatka_updated = False
+        if apartment_details:
+            shaxmatka_path = EXCEL_FILE_PATHS.get(jkName)
+            if not shaxmatka_path:
+                print(f"Предупреждение: Путь к файлу шахматки для ЖК '{jkName}' не найден в конфигурации.")
+                # Реестр обновлен, но шахматку обновить не можем. Вернем успех с предупреждением.
+                return {
+                    "status": "warning",
+                    "message": f"Договор '{contractNumber}' удален из реестра, но конфигурация шахматки для '{jkName}' отсутствует."
+                }
+            if not os.path.exists(shaxmatka_path):
+                print(f"Предупреждение: Файл шахматки не найден по пути: {shaxmatka_path}")
+                return {
+                    "status": "warning",
+                    "message": f"Договор '{contractNumber}' удален из реестра, но файл шахматки не найден: {shaxmatka_path}."
+                }
+
+            update_data = ApartmentStatusUpdate(
+                jkName=jkName,
+                blockName=apartment_details["blockName"],
+                floor=apartment_details["floor"],
+                apartmentNumber=apartment_details["apartmentNumber"],
+                newStatus=NEW_STATUS_ON_DELETE  # Устанавливаем статус "свободна"
+            )
+            print(f"Попытка обновить статус в шахматке: {update_data.dict()}")
+            shaxmatka_updated = find_row_and_update_status(shaxmatka_path, update_data)
+        else:
+            # Это не должно произойти, если мы дошли до сюда, но на всякий случай
+            print("Критическая ошибка: Данные квартиры не были извлечены из реестра.")
+            # Реестр уже сохранен без строки. Сообщаем об успехе удаления, но с ошибкой данных.
+            return {
+                "status": "error",  # Или warning?
+                "message": f"Договор '{contractNumber}' удален из реестра, но произошла ошибка при получении данных квартиры для обновления шахматки."
+            }
+
+        # Формируем финальный ответ
+        if shaxmatka_updated:
+            return {
+                "status": "success",
+                "message": f"Договор '{contractNumber}' удален из реестра, статус квартиры в шахматке обновлен на '{NEW_STATUS_ON_DELETE}'."
+            }
+        else:
+            # Реестр обновлен, но шахматка - нет (квартира не найдена там или ошибка сохранения)
+            return {
+                "status": "warning",  # Используем warning, так как основное действие (удаление) выполнено
+                "message": f"Договор '{contractNumber}' удален из реестра, НО не удалось обновить статус в шахматке (квартира не найдена или произошла ошибка при сохранении шахматки)."
+            }
 
     except FileNotFoundError:
-        # Эта ошибка не должна возникать из-за проверки os.path.exists, но на всякий случай
         print(f"Критическая ошибка: FileNotFoundError для {REGISTRY_PATH} после проверки существования.")
         raise HTTPException(status_code=404,
                             detail=f"Реестр договоров для ЖК '{jkName}' не найден (ошибка после проверки).")
+    except HTTPException as http_err:
+        # Перехватываем HTTPException, чтобы не попасть в общий Exception
+        raise http_err
     except Exception as e:
-        print(f"Ошибка при обработке удаления договора: {e}")
-        # Возвращаем детали ошибки для отладки (можно убрать в продакшене)
-        raise HTTPException(status_code=500, detail=f"Ошибка при удалении договора из реестра: {str(e)}")
+        print(f"Непредвиденная ошибка при удалении/обновлении: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Внутренняя ошибка сервера при обработке запроса: {str(e)}")
