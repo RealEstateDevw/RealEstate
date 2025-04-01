@@ -4,7 +4,7 @@ import zipfile
 from io import BytesIO
 from typing import Union
 
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Query
 from num2words import num2words
 from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
@@ -157,7 +157,7 @@ def find_row_and_update_status(file_path: str, update_data: ApartmentStatusUpdat
         raise HTTPException(status_code=500, detail=f"Error processing Excel file: {e}")
 
 
-@router.post("/excel/update-status")
+@router.post("/update-status")
 async def update_excel_status_endpoint(update_data: ApartmentStatusUpdate = Body(...)):
     print(f"Запрос: {update_data.dict()}")
     file_path = EXCEL_FILE_PATHS.get(update_data.jkName)
@@ -200,21 +200,7 @@ async def get_last_contract_number(jkName: str):
         raise HTTPException(status_code=500, detail=f"Ошибка при чтении реестра: {str(e)}")
 
 
-import os
-from io import BytesIO
-from openpyxl import load_workbook, Workbook
-from fastapi import APIRouter, HTTPException, Body, Depends  # Добавлен Depends, если нужна авторизация/зависимости
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel  # Убедитесь, что модель ContractData определена
-import zipfile  # Больше не нужен для отправки, но может быть нужен для других целей
-
-# --- Предполагается, что эти переменные/функции определены где-то ---
-# from your_models import ContractData # Пример импорта модели Pydantic
-# from your_utils import number_to_words # Пример импорта хелпера
-# BASE_STATIC_PATH = "/path/to/your/static/files" # Определите базовый путь
-
 # --- Начало определения роутера и модели (пример) ---
-router = APIRouter(prefix="/excel", tags=["Excel Operations"])  # Пример префикса
 
 
 # Примерная модель Pydantic, адаптируйте под вашу структуру
@@ -467,3 +453,71 @@ async def get_contract_registry(jkName: str):
         return {"registry": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при чтении реестра: {str(e)}")
+
+
+@router.delete("/delete-contract-from-registry")
+async def delete_contract_from_registry(
+        jkName: str = Query(..., description="Название жилого комплекса"),
+        contractNumber: str = Query(..., description="Номер договора для удаления (например, Д-0001)")
+):
+    """
+    Удаляет строку с указанным номером договора из файла реестра для данного ЖК.
+    """
+    print(f"Запрос на удаление договора: ЖК='{jkName}', Номер='{contractNumber}'")
+    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
+    REGISTRY_PATH = os.path.join(jk_dir, "contract_registry.xlsx")
+
+    if not os.path.exists(REGISTRY_PATH):
+        print(f"Ошибка: Реестр не найден по пути {REGISTRY_PATH}")
+        raise HTTPException(status_code=404, detail=f"Реестр договоров для ЖК '{jkName}' не найден")
+
+    try:
+        # Используем read_only=False, write_only=False (по умолчанию) для чтения и записи
+        wb_registry = load_workbook(REGISTRY_PATH)
+        ws_registry = wb_registry.active
+
+        found_row_index = None
+        # Ищем строку для удаления (начиная со второй строки, первая - заголовок)
+        # Предполагаем, что номер договора всегда в первой колонке (A)
+        for idx, row in enumerate(ws_registry.iter_rows(min_row=2, max_col=1),
+                                  start=2):  # читаем только 1 колонку для скорости
+            cell_value = row[0].value
+            # Сравниваем как строки, на всякий случай
+            if cell_value and str(cell_value).strip() == contractNumber.strip():
+                found_row_index = idx
+                print(f"Найден договор '{contractNumber}' в строке {found_row_index}")
+                break
+
+        if found_row_index is None:
+            print(f"Ошибка: Договор '{contractNumber}' не найден в реестре {REGISTRY_PATH}")
+            raise HTTPException(status_code=404, detail=f"Договор '{contractNumber}' не найден в реестре ЖК '{jkName}'")
+
+        # Удаляем найденную строку
+        ws_registry.delete_rows(found_row_index)
+        print(f"Строка {found_row_index} удалена из реестра.")
+
+        # Сохраняем изменения в файл реестра
+        # ВАЖНО: Убедитесь, что файл не открыт в Excel, иначе будет ошибка PermissionError
+        try:
+            wb_registry.save(REGISTRY_PATH)
+            print(f"Реестр сохранен: {REGISTRY_PATH}")
+        except PermissionError:
+            print(
+                f"КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить реестр {REGISTRY_PATH}. Файл может быть открыт другой программой.")
+            raise HTTPException(status_code=500,
+                                detail="Не удалось сохранить изменения в реестре. Возможно, файл открыт.")
+        except Exception as save_err:
+            print(f"КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить реестр {REGISTRY_PATH}. Ошибка: {save_err}")
+            raise HTTPException(status_code=500, detail=f"Неизвестная ошибка при сохранении реестра: {save_err}")
+
+        return {"status": "success", "message": f"Договор '{contractNumber}' успешно удален из реестра ЖК '{jkName}'"}
+
+    except FileNotFoundError:
+        # Эта ошибка не должна возникать из-за проверки os.path.exists, но на всякий случай
+        print(f"Критическая ошибка: FileNotFoundError для {REGISTRY_PATH} после проверки существования.")
+        raise HTTPException(status_code=404,
+                            detail=f"Реестр договоров для ЖК '{jkName}' не найден (ошибка после проверки).")
+    except Exception as e:
+        print(f"Ошибка при обработке удаления договора: {e}")
+        # Возвращаем детали ошибки для отладки (можно убрать в продакшене)
+        raise HTTPException(status_code=500, detail=f"Ошибка при удалении договора из реестра: {str(e)}")

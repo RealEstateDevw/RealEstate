@@ -1320,7 +1320,7 @@ document.body.addEventListener('click', async function (event) {
 
 async function updateApartmentStatusInExcel(jkName, blockName, floor, apartmentNumber, newStatus) {
     try {
-        const response = await fetch("/api/excel/update-status", { // Новый эндпоинт
+        const response = await fetch("/excel/update-status", { // Новый эндпоинт
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1373,7 +1373,7 @@ async function updateApartmentStatusInExcel(jkName, blockName, floor, apartmentN
                         async function fetchLastContractNumber(jkName) {
                             // ... (Ваша функция fetchLastContractNumber без изменений)
                              try {
-                                const response = await fetch(`/api/last-contract-number?jkName=${encodeURIComponent(jkName)}`);
+                                const response = await fetch(`/excel/last-contract-number?jkName=${encodeURIComponent(jkName)}`);
                                 if (!response.ok) {
                                     // Если номер не найден (404), вернуть null или пустую строку
                                     if (response.status === 404) return null;
@@ -1534,7 +1534,7 @@ async function updateApartmentStatusInExcel(jkName, blockName, floor, apartmentN
         const contractData = Object.fromEntries(formData.entries());
 
         try {
-            const response = await fetch("/api/generate-contract", {
+            const response = await fetch("/excel/generate-contract", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(contractData),

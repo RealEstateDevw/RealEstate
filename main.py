@@ -35,6 +35,7 @@ from backend.api.rop.main import router as rop_api_router
 from backend.crm.shaxmatki.main import router as shaxmatki_router
 from backend.api.complexes.main import router as shaxmatki_api_router
 from backend.api.excel_utils import router as excel_router
+from backend.api.test_excel import router as test_excel
 
 app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc")
 
@@ -51,6 +52,7 @@ app.include_router(rop_api_router)
 app.include_router(shaxmatki_router)
 app.include_router(shaxmatki_api_router)
 app.include_router(excel_router)
+app.include_router(test_excel)
 
 app.mount("/media", StaticFiles(directory="media"), name="media")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -233,11 +235,11 @@ async def auth_middleware(request: Request, call_next):
             logger.info(f"Token expires at (datetime): {datetime.fromtimestamp(exp, timezone.utc)}")
             logger.info(f"Current time (datetime): {datetime.fromtimestamp(current_time, timezone.utc)}")
 
-        if not exp or exp < current_time:
-            logger.info("Token expired")
-            response = RedirectResponse(url="/login", status_code=303)
-            response.delete_cookie("access_token", path="/", domain=None, secure=True, httponly=True)  # Указывай параметры cookie для надежного удаления
-            return response
+        # if not exp or exp < current_time:
+        #     logger.info("Token expired")
+        #     response = RedirectResponse(url="/login", status_code=303)
+        #     response.delete_cookie("access_token", path="/", domain=None, secure=True, httponly=True)  # Указывай параметры cookie для надежного удаления
+        #     return response
 
         # Добавляем информацию о пользователе в request.state для использования в эндпоинтах
         request.state.user = payload
