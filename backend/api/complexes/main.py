@@ -268,7 +268,7 @@ async def get_apartment_info(
         # Вычисляем оставшиеся месяцы (например, до 30 июня 2027)
         current_date = datetime.now()
         end_date = datetime(2027, 6, 30)
-        months_left = (end_date.year - current_date.year) * 12 + (end_date.month - current_date.month)
+        months_left = 24
 
         return {
             "status": "success",
