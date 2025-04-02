@@ -198,16 +198,19 @@ async def get_apartment_info(
         jkName: str = Query(..., alias="jkName"),
         blockName: str = Query(..., alias="blockName"),
         apartmentSize: str = Query(..., alias="apartmentSize"),
-        floor: str = Query(..., alias="floor")
+        floor: str = Query(..., alias="floor"),
+        apartmentNumber: str = Query(..., alias="apartmentNumber")
 ):
     """
     Возвращает информацию о квартире (статус, цены, площадь, кол-во месяцев до конца периода и т.д.).
-    Параметры: jkName, blockName, apartmentSize, floor
+    Параметры: jkName, blockName, apartmentSize, floor, apartmentNumber
     """
     print(
-        f"Запрос к /api/apartment-info: jk_name={jkName}, block_name={blockName}, apartment_size={apartmentSize}, floor={floor}")
+        f"Запрос к /api/apartment-info: jk_name={jkName}, block_name={blockName}, "
+        f"apartment_size={apartmentSize}, floor={floor}, apartment_number={apartmentNumber}"
+    )
 
-    if not all([jkName, blockName, apartmentSize, floor]):
+    if not all([jkName, blockName, apartmentSize, floor, apartmentNumber]):
         raise HTTPException(status_code=400, detail="Отсутствуют обязательные параметры")
 
     try:
@@ -222,11 +225,16 @@ async def get_apartment_info(
                 row_block = row[0].strip().lower() if isinstance(row[0], str) else str(row[0]).lower()
                 row_floor = int(row[6]) if row[6] else None
                 row_size = float(row[5]) if row[5] else None
+                row_apartment_number = str(row[4]) if row[4] else None
+
+                # Добавляем допуск на размер квартиры (0.1 м²)
+                size_match = abs(row_size - float(apartmentSize.replace(',', '.'))) < 0.1
 
                 if (
                         row_block == blockName.lower() and
                         row_floor == int(floor) and
-                        row_size == float(apartmentSize.replace(',', '.'))
+                        size_match and
+                        row_apartment_number == apartmentNumber
                 ):
                     apartment_status = row[2]  # статус квартиры
                     break
@@ -281,6 +289,7 @@ async def get_apartment_info(
                 "status": apartment_status,
                 "floor": floor,
                 "size": apartmentSize,
+                "apartment_number": apartmentNumber,
                 "months_left": months_left
             }
         }

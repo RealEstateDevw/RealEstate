@@ -851,7 +851,7 @@ document.body.addEventListener('click', async function (event) {
             console.log(`Путь к изображению: ${planImagePath}`);
 
             // 2. Получаем данные о квартире
-            const apiUrl = `/api/complexes/apartment-info?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(blockName)}&apartmentSize=${encodeURIComponent(apartmentSize)}&floor=${encodeURIComponent(floor)}`;
+            const apiUrl = `/api/complexes/apartment-info?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(blockName)}&apartmentSize=${encodeURIComponent(apartmentSize)}&floor=${encodeURIComponent(floor)}&apartmentNumber=${encodeURIComponent(apartmentNumber)}`;
             const apartmentInfo = await fetchData(apiUrl, "Ошибка получения информации о квартире");
             if (apartmentInfo.status === "success") {
                 const {

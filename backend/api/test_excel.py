@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import zipfile
+from datetime import datetime
 from io import BytesIO
 from typing import Union
 
+from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, HTTPException, Body, Query
 from num2words import num2words
 from openpyxl.reader.excel import load_workbook
@@ -178,6 +180,22 @@ async def update_excel_status_endpoint(update_data: ApartmentStatusUpdate = Body
 BASE_STATIC_PATH = "static/Жилые_Комплексы"
 
 
+def parse_date(date_str: str | None) -> datetime:
+    if not date_str:
+        return datetime.now()
+    # Список поддерживаемых форматов
+    date_formats = ["%d.%m.%Y", "%Y-%m-%d"]
+    for fmt in date_formats:
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
+    # Если ни один формат не подошел, логируем ошибку и возвращаем текущую дату
+    print(
+        f"Ошибка: дата '{date_str}' не соответствует ни одному из форматов {date_formats}. Используется текущая дата.")
+    return datetime.now()
+
+
 @router.get("/last-contract-number")
 async def get_last_contract_number(jkName: str):
     jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
@@ -217,14 +235,23 @@ async def get_last_contract_number(jkName: str):
 #         return "Некорректное число"
 
 
+def clean_number(value: str | None) -> float:
+    if not value:
+        return 0.0
+    cleaned_value = value.replace(" ", "").replace("\xa0", "")
+    try:
+        return float(cleaned_value)
+    except ValueError as e:
+        print(f"Ошибка преобразования строки '{value}' в float: {e}")
+        return 0.0
+
+
 @router.post("/generate-contract")
 async def generate_contract(data: ContractData):
-    # Динамические пути к файлам
     jk_dir = os.path.join(BASE_STATIC_PATH, data.jkName)
     TEMPLATE_PATH = os.path.join(jk_dir, "contract_template.xlsx")
     REGISTRY_PATH = os.path.join(jk_dir, "contract_registry.xlsx")
 
-    # Создание директории, если не существует
     if not os.path.exists(jk_dir):
         try:
             os.makedirs(jk_dir)
@@ -232,7 +259,6 @@ async def generate_contract(data: ContractData):
         except OSError as e:
             raise HTTPException(status_code=500, detail=f"Не удалось создать директорию: {jk_dir}. Ошибка: {e}")
 
-    # 1. Генерация номера договора
     if not data.contractNumber:
         next_contract_number_int = 1
         if os.path.exists(REGISTRY_PATH):
@@ -255,7 +281,6 @@ async def generate_contract(data: ContractData):
         data.contractNumber = f"Д-{next_contract_number_str}"
         print(f"Сгенерирован номер договора: {data.contractNumber}")
 
-    # 2. Заполнение шаблона договора
     if not os.path.exists(TEMPLATE_PATH):
         raise HTTPException(status_code=404, detail=f"Шаблон договора не найден: {TEMPLATE_PATH}")
 
@@ -265,17 +290,41 @@ async def generate_contract(data: ContractData):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка загрузки шаблона: {e}")
 
-    # Функция для безопасной конвертации в слова
     def safe_number_to_words(value_str: str | None) -> str:
         if not value_str:
             return "N/A"
         try:
-            return number_to_words(value_str.replace(" ", ""))
+            return number_to_words(value_str.replace(" ", "").replace("\xa0", ""))
         except Exception as e:
             print(f"Ошибка конвертации '{value_str}' в слова: {e}")
             return "Ошибка конвертации"
 
-    # Словарь замен для placeholders
+    # Используем данные из таблицы
+    total_amount = clean_number(data.totalPrice)  # ОБЩ СТОИМОСТЬ ДОГОВОРА
+    initial_payment = clean_number(data.initialPayment)  # СУММА 1 ВЗНОСА
+    remaining_amount = total_amount - initial_payment
+    num_payments = 23  # Оставшиеся 23 месяца после первого взноса
+    monthly_payment = remaining_amount / num_payments if num_payments > 0 else 0
+
+    contract_date = parse_date(data.contractDate)
+
+    # Создаем словарь замен для графика финансирования
+    payment_replacements = {}
+    for i in range(24):
+        payment_number = i + 1
+        payment_date = contract_date + relativedelta(months=i)
+        if i == 0:
+            # Первый платеж — первоначальный взнос
+            payment_replacements[f"{{Дата_Платежа_{payment_number}}}"] = payment_date.strftime("%d.%m.%Y")
+            payment_replacements[f"{{Сумма_Платежа_{payment_number}}}"] = f"{initial_payment:,.0f}".replace(",", " ")
+            payment_replacements[f"{{Оплачено_{payment_number}}}"] = f"{initial_payment:,.0f}".replace(",", " ")
+        else:
+            # Последующие платежи
+            payment_replacements[f"{{Дата_Платежа_{payment_number}}}"] = payment_date.strftime("%d.%m.%Y")
+            payment_replacements[f"{{Сумма_Платежа_{payment_number}}}"] = f"{monthly_payment:,.0f}".replace(",", " ")
+            payment_replacements[f"{{Оплачено_{payment_number}}}"] = f"{monthly_payment:,.0f}".replace(",", " ")
+
+    # Основной словарь замен
     replacements = {
         "{{Номер_Договора}}": str(data.contractNumber or "N/A"),
         "{{Дата}}": str(data.contractDate or "N/A"),
@@ -290,14 +339,17 @@ async def generate_contract(data: ContractData):
         "{{Номер_КВ}}": str(data.apartmentNumber if data.apartmentNumber is not None else "N/A"),
         "{{Кол-во_Ком}}": str(data.rooms if data.rooms is not None else "N/A"),
         "{{Квадратура_Квартиры}}": str(data.size if data.size is not None else "N/A"),
-        "{{Общ_Стоимость}}": data.totalPrice.replace(" ", "") if data.totalPrice else "N/A",
+        "{{Общ_Стоимость}}": f"{total_amount:,.0f}".replace(",", " "),  # Берем из данных
         "{{Общ_Стоимость_Про}}": safe_number_to_words(data.totalPrice),
-        "{{Стоимость_1_м2}}": data.pricePerM2.replace(" ", "") if data.pricePerM2 else "N/A",
+        "{{Стоимость_1_м2}}": data.pricePerM2.replace(" ", "").replace("\xa0", "") if data.pricePerM2 else "N/A",
         "{{Стоимость_1_м2_Про}}": safe_number_to_words(data.pricePerM2),
         "{{Процент_1_Взноса}}": data.paymentChoice.replace("%", "") if data.paymentChoice else "N/A",
-        "{{Сумма_1_Взноса}}": data.initialPayment.replace(" ", "") if data.initialPayment else "N/A",
+        "{{Сумма_1_Взноса}}": f"{initial_payment:,.0f}".replace(",", " "),  # Берем из данных
         "{{Сумма_1_Взноса_Про}}": safe_number_to_words(data.initialPayment),
     }
+
+    # Объединяем основной словарь с заменами для графика финансирования
+    replacements.update(payment_replacements)
 
     # Замена placeholders в ячейках
     for row in ws_contract.iter_rows():
@@ -319,7 +371,7 @@ async def generate_contract(data: ContractData):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка сохранения договора: {e}")
 
-    # 3. Обновление реестра
+    # Обновление реестра
     try:
         if os.path.exists(REGISTRY_PATH):
             wb_registry = load_workbook(REGISTRY_PATH)
@@ -342,10 +394,10 @@ async def generate_contract(data: ContractData):
             data.apartmentNumber,
             data.rooms,
             data.size,
-            data.totalPrice.replace(" ", "") if data.totalPrice else None,
-            data.pricePerM2.replace(" ", "") if data.pricePerM2 else None,
+            data.totalPrice.replace(" ", "").replace("\xa0", "") if data.totalPrice else None,
+            data.pricePerM2.replace(" ", "").replace("\xa0", "") if data.pricePerM2 else None,
             data.paymentChoice.replace("%", "") if data.paymentChoice else None,
-            data.initialPayment.replace(" ", "") if data.initialPayment else None,
+            data.initialPayment.replace(" ", "").replace("\xa0", "") if data.initialPayment else None,
             data.fullName,
             data.passportSeries,
             data.pinfl,
@@ -361,7 +413,7 @@ async def generate_contract(data: ContractData):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка обновления реестра: {e}")
 
-    # 4. Отправка файла клиенту
+    # Отправка файла клиенту
     contract_filename = f"contract_{data.contractNumber}.xlsx"
     print(f"Отправка файла: {contract_filename}")
 
@@ -370,7 +422,6 @@ async def generate_contract(data: ContractData):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename=\"{contract_filename}\""}
     )
-
 
 @router.get("/download-contract-registry")
 async def download_contract_registry(jkName: str):
