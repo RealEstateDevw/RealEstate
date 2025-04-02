@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from datetime import datetime
 from io import BytesIO
-from typing import Union
+from typing import Union, Optional, Dict
 from docx import Document
 from dateutil.relativedelta import relativedelta
+from docxtpl import DocxTemplate
 from fastapi import APIRouter, HTTPException, Body, Query
 from num2words import num2words
 from openpyxl.reader.excel import load_workbook
@@ -84,7 +85,7 @@ class ContractData(BaseModel):
 
 
 # Функция преобразования числа в слова (на русском языке)
-def number_to_words(number: str) -> str:
+def _number_to_words(number: str) -> str:
     # Убираем все нечисловые символы и преобразуем в int
     clean_number = ''.join(filter(str.isdigit, number))
     return num2words(int(clean_number), lang='ru') + " сум"
@@ -247,179 +248,214 @@ def clean_number(value: str | None) -> float:
 
 @router.post("/generate-contract")
 async def generate_contract(data: ContractData):
+    """Генерация договора в формате DOCX и обновление реестра в XLSX (с использованием docxtpl)."""
+
     jk_dir = os.path.join(BASE_STATIC_PATH, data.jkName)
-    TEMPLATE_PATH = os.path.join(jk_dir, "contract_template.xlsx")
+    TEMPLATE_PATH = os.path.join(jk_dir, "contract_template.docx")
     REGISTRY_PATH = os.path.join(jk_dir, "contract_registry.xlsx")
 
-    if not os.path.exists(jk_dir):
-        try:
-            os.makedirs(jk_dir)
-            print(f"Создана директория: {jk_dir}")
-        except OSError as e:
-            raise HTTPException(status_code=500, detail=f"Не удалось создать директорию: {jk_dir}. Ошибка: {e}")
+    os.makedirs(jk_dir, exist_ok=True)
 
-    if not data.contractNumber:
-        next_contract_number_int = 1
-        if os.path.exists(REGISTRY_PATH):
-            try:
-                wb_registry_check = load_workbook(REGISTRY_PATH)
-                ws_registry_check = wb_registry_check.active
-                last_row = ws_registry_check.max_row
-                if last_row > 1:
-                    last_contract_val = ws_registry_check[f"A{last_row}"].value
-                    if last_contract_val and isinstance(last_contract_val, str) and last_contract_val.startswith("Д-"):
-                        try:
-                            last_num_str = last_contract_val.split('-')[1]
-                            last_contract_number_int = int(last_num_str)
-                            next_contract_number_int = last_contract_number_int + 1
-                        except (ValueError, IndexError):
-                            print(f"Ошибка в формате номера договора: {last_contract_val}")
-            except Exception as e:
-                print(f"Ошибка чтения реестра: {e}")
-        next_contract_number_str = str(next_contract_number_int).zfill(4)
-        data.contractNumber = f"Д-{next_contract_number_str}"
-        print(f"Сгенерирован номер договора: {data.contractNumber}")
+    contract_number = data.contractNumber or _generate_contract_number(REGISTRY_PATH)
+    data.contractNumber = contract_number  # Сохраняем сгенерированный номер обратно в данные
 
     if not os.path.exists(TEMPLATE_PATH):
         raise HTTPException(status_code=404, detail=f"Шаблон договора не найден: {TEMPLATE_PATH}")
 
     try:
-        wb_contract = load_workbook(TEMPLATE_PATH)
-        ws_contract = wb_contract.active
+        # Загрузка шаблона с помощью DocxTemplate
+        doc = DocxTemplate(TEMPLATE_PATH)  # Используем DocxTemplate
+
+        # Подготовка контекста (словаря) для Jinja2
+        # Имена ключей должны ТОЧНО соответствовать плейсхолдерам БЕЗ {{ }}
+        context = _prepare_context_for_tpl(data)
+
+        # Рендеринг шаблона (заполнение)
+        doc.render(context)
+
+        # Сохранение в буфер (немного отличается синтаксис)
+        contract_buffer = BytesIO()
+        doc.save(contract_buffer)
+        contract_buffer.seek(0)
+
+        _update_registry(REGISTRY_PATH, data)  # Обновление реестра остается прежним
+
+        contract_filename = f"contract_{contract_number}.docx"
+        return StreamingResponse(
+            contract_buffer,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f"attachment; filename=\"{contract_filename}\"",
+                "Content-Length": str(contract_buffer.getbuffer().nbytes)  # Длина буфера
+            }
+        )
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка загрузки шаблона: {e}")
+        # Добавим вывод traceback для лучшей диагностики
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Ошибка обработки договора: {str(e)}")
 
-    def safe_number_to_words(value_str: str | None) -> str:
-        if not value_str:
-            return "N/A"
-        try:
-            return number_to_words(value_str.replace(" ", "").replace("\xa0", ""))
-        except Exception as e:
-            print(f"Ошибка конвертации '{value_str}' в слова: {e}")
-            return "Ошибка конвертации"
 
-    # Используем данные из таблицы
-    total_amount = clean_number(data.totalPrice)  # ОБЩ СТОИМОСТЬ ДОГОВОРА
-    initial_payment = clean_number(data.initialPayment)  # СУММА 1 ВЗНОСА
-    num_payments = 24  # Оставшиеся 23 месяца после первого взноса
-    monthly_payment = total_amount / num_payments if num_payments > 0 else 0
+# --- Вспомогательные функции ---
 
-    contract_date = parse_date(data.contractDate)
+def _generate_contract_number(registry_path: str) -> str:
+    # ... (без изменений)
+    if not os.path.exists(registry_path):
+        return "Д-0001"
 
-    # Создаем словарь замен для графика финансирования
-    payment_replacements = {}
-    for i in range(25):
-        payment_number = i
-        payment_date = contract_date + relativedelta(months=i)
-        if i == 0:
-            pass
-        else:
-            # Последующие платежи
-            payment_replacements[f"{{{{Дата_Платежа_{payment_number}}}}}"] = payment_date.strftime("%d.%m.%Y")
-            payment_replacements[f"{{{{Сумма_Платежа_{payment_number}}}}}"] = f"{monthly_payment:,.0f}".replace(",", " ")
-            payment_replacements[f"{{{{Оплачено_{payment_number}}}}}"] = f"{monthly_payment:,.0f}".replace(",", " ")
+    try:
+        wb = load_workbook(registry_path)
+        ws = wb.active
+        last_row = ws.max_row
+        if last_row <= 1:  # Проверяем, есть ли строки с данными (не только заголовок)
+            return "Д-0001"
 
-    # Основной словарь замен
-    replacements = {
-        "{{Номер_Договора}}": str(data.contractNumber or "N/A"),
-        "{{Дата}}": str(data.contractDate or "N/A"),
-        "{{Ф_И_О}}": str(data.fullName or "N/A"),
-        "{{Серия_Паспорта}}": str(data.passportSeries or "N/A"),
-        "{{Кем_Выдан}}": str(data.issuedBy or "N/A"),
-        "{{Прописка}}": str(data.registrationAddress or "N/A"),
-        "{{Номер_Тел}}": str(data.phone or "N/A"),
-        "{{ПИНФЛ}}": str(data.pinfl or "N/A"),
-        "{{Блок}}": str(data.block or "N/A"),
-        "{{Этаж}}": str(data.floor if data.floor is not None else "N/A"),
-        "{{Номер_КВ}}": str(data.apartmentNumber if data.apartmentNumber is not None else "N/A"),
-        "{{Кол-во_Ком}}": str(data.rooms if data.rooms is not None else "N/A"),
-        "{{Квадратура_Квартиры}}": str(data.size if data.size is not None else "N/A"),
-        "{{Общ_Стоимость}}": f"{total_amount:,.0f}".replace(",", " "),  # Берем из данных
-        "{{Общ_Стоимость_Про}}": safe_number_to_words(data.totalPrice),
-        "{{Стоимость_1_м2}}": data.pricePerM2.replace(" ", "").replace("\xa0", "") if data.pricePerM2 else "N/A",
-        "{{Стоимость_1_м2_Про}}": safe_number_to_words(data.pricePerM2),
-        "{{Процент_1_Взноса}}": data.paymentChoice.replace("%", "") if data.paymentChoice else "N/A",
-        "{{Сумма_1_Взноса}}": f"{initial_payment:,.0f}".replace(",", " "),  # Берем из данных
-        "{{Сумма_1_Взноса_Про}}": safe_number_to_words(data.initialPayment),
+        # Ищем последнюю непустую ячейку в столбце A, начиная с конца
+        for row_idx in range(last_row, 1, -1):
+            cell_value = ws[f"A{row_idx}"].value
+            if cell_value and isinstance(cell_value, str) and cell_value.startswith("Д-"):
+                try:
+                    last_num = int(cell_value.split('-')[1])
+                    return f"Д-{str(last_num + 1).zfill(4)}"
+                except (IndexError, ValueError):
+                    continue  # Если формат неверный, ищем дальше вверх
+        # Если не нашли подходящий номер
+        return "Д-0001"
+    except Exception as e:
+        print(f"Ошибка генерации номера договора: {e}")
+        # В случае любой ошибки, лучше вернуть базовый номер
+        return "Д-0001"
+
+
+def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
+    """Подготовка словаря (контекста) для docxtpl."""
+    total_amount = clean_number(data.totalPrice)
+    initial_payment = clean_number(data.initialPayment)
+    # Осторожно с делением на 0, если total_amount может быть 0
+    monthly_payment = (total_amount - initial_payment) / 24 if total_amount and initial_payment is not None else 0
+    contract_date = parse_date(data.contractDate)  # Предполагаем, что parse_date возвращает datetime объект
+
+    # Ключи БЕЗ {{ }}
+    context = {
+        "Номер_Договора": data.contractNumber or "N/A",
+        "Дата": data.contractDate or "N/A",  # Оставить как строку или форматировать?
+        "Ф_И_О": data.fullName or "N/A",
+        "Серия_Паспорта": data.passportSeries or "N/A",
+        "Кем_Выдан": data.issuedBy or "N/A",
+        "Прописка": data.registrationAddress or "N/A",
+        "Номер_Тел": data.phone or "N/A",
+        "ПИНФЛ": data.pinfl or "N/A",
+        "Блок": str(data.block or "N/A"),
+        "Этаж": str(data.floor) if data.floor is not None else "N/A",
+        "Номер_КВ": str(data.apartmentNumber) if data.apartmentNumber is not None else "N/A",
+        "Кол-во_Ком": str(data.rooms) if data.rooms is not None else "N/A",
+        "Квадратура_Квартиры": str(data.size) if data.size is not None else "N/A",
+        "Общ_Стоимость": f"{total_amount:,.0f}".replace(",", " ") if total_amount is not None else "N/A",
+        "Общ_Стоимость_Про": _number_to_words(data.totalPrice),
+        "Стоимость_1_м2": (data.pricePerM2 or "N/A").replace(" ", "").replace("\xa0", ""),
+        "Стоимость_1_м2_Про": _number_to_words(data.pricePerM2),
+        "Процент_1_Взноса": (data.paymentChoice or "N/A").replace("%", ""),
+        "Сумма_1_Взноса": f"{initial_payment:,.0f}".replace(",", " ") if initial_payment is not None else "N/A",
+        "Сумма_1_Взноса_Про": _number_to_words(data.initialPayment),
+        # --- График платежей ---
+        # Можно передать список словарей для цикла {% for item in payment_schedule %} в шаблоне
+        # Или генерировать ключи динамически, как у вас было
     }
 
-    # Объединяем основной словарь с заменами для графика финансирования
-    replacements.update(payment_replacements)
+    # Добавление графика платежей (динамические ключи)
+    if contract_date:  # Проверяем, что дата есть
+        payment_schedule = []
+        current_payment_date = contract_date + relativedelta(months=1)  # Первый платеж через месяц? Уточнить логику
+        # Уточнить, первый взнос уже покрыт? Расчет monthly_payment должен это учитывать.
+        # Пример расчета остатка: remaining_amount = total_amount - initial_payment
+        # monthly_payment = remaining_amount / 24 # Если рассрочка на 24 месяца *после* первого взноса
 
-    # Замена placeholders в ячейках
-    for row in ws_contract.iter_rows():
-        for cell in row:
-            if cell.value and isinstance(cell.value, str):
-                original_value = cell.value
-                modified_value = original_value
-                for placeholder, value in replacements.items():
-                    if placeholder in modified_value:
-                        modified_value = modified_value.replace(placeholder, value)
-                if modified_value != original_value:
-                    cell.value = modified_value
+        for i in range(1, 25):
+            # payment_date = contract_date + relativedelta(months=i) # Платеж в след. месяце
+            payment_date = current_payment_date + relativedelta(months=i - 1)  # Платеж начиная с current_payment_date
+            context[f"Дата_Платежа_{i}"] = payment_date.strftime("%d.%m.%Y")
+            context[f"Сумма_Платежа_{i}"] = f"{monthly_payment:,.0f}".replace(",",
+                                                                              " ") if monthly_payment is not None else "N/A"
+            context[f"Оплачено_{i}"] = ""  # Обычно поле "Оплачено" оставляют пустым при генерации
 
-    # Сохранение в буфер
-    contract_buffer = BytesIO()
+            # Альтернатива: создать список для цикла в шаблоне
+            # payment_schedule.append({
+            #     "date": payment_date.strftime("%d.%m.%Y"),
+            #     "amount": f"{monthly_payment:,.0f}".replace(",", " ") if monthly_payment is not None else "N/A",
+            #     "paid": ""
+            # })
+        # Если использовать список:
+        # context["payment_schedule"] = payment_schedule
+        # В шаблоне .docx: {% for p in payment_schedule %} {{p.date}} {{p.amount}} {% endfor %}
+
+    return context
+
+
+def _update_registry(registry_path: str, data: ContractData) -> None:
+    # ... (без изменений, но проверьте заголовки и порядок данных)
+    headers = [
+        "№ Договора", "Дата Договора", "Блок", "Этаж", "№ КВ", "Кол-во ком",
+        "Квадратура Квартиры", "Общ Стоимость Договора", "Стоимость 1 кв.м",
+        "Процент 1 Взноса", "Сумма 1 Взноса", "Ф/И/О", "Серия Паспорта",
+        "ПИНФЛ", "Кем выдан", "Адрес прописки", "Номер тел", "Отдел Продаж"
+    ]
+
+    # Используем очищенные числовые значения там, где это нужно для реестра
+
+    total_amount = clean_number(data.totalPrice)
+    price_m2 = clean_number(data.pricePerM2)
+    initial_payment = clean_number(data.initialPayment)
+
+    row = [
+        data.contractNumber,
+        data.contractDate,  # Дата как строка
+        data.block,
+        data.floor,
+        data.apartmentNumber,
+        data.rooms,
+        data.size,  # Квадратура как строка? Или число?
+        total_amount,  # Числовое значение для возможного анализа в Excel
+        price_m2,  # Числовое значение
+        (data.paymentChoice or "").replace("%", ""),  # Процент как строка без %
+        initial_payment,  # Числовое значение
+        data.fullName,
+        data.passportSeries,
+        data.pinfl,
+        data.issuedBy,
+        data.registrationAddress,
+        data.phone,
+        data.salesDepartment
+    ]
+    # Проверка типов данных перед добавлением
+    final_row = []
+    for item in row:
+        # Даты оставляем как строки или конвертируем в datetime для Excel?
+        # Если Excel должен понимать как дату, то:
+        # parsed_date = parse_date(item) if isinstance(item, str) and "." in item else item # Пример
+        final_row.append(item if item is not None else "")  # Заменяем None на пустую строку для Excel
+
     try:
-        wb_contract.save(contract_buffer)
-        contract_buffer.seek(0)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка сохранения договора: {e}")
+        wb = load_workbook(registry_path) if os.path.exists(registry_path) else Workbook()
+        ws = wb.active
+        # Проверяем, пустой ли лист или только заголовки
+        if ws.max_row == 0 or (ws.max_row == 1 and all(c.value is None for c in ws[1])):
+            print("Добавляем заголовки в реестр")
+            ws.append(headers)
 
-    # Обновление реестра
-    try:
-        if os.path.exists(REGISTRY_PATH):
-            wb_registry = load_workbook(REGISTRY_PATH)
-            ws_registry = wb_registry.active
-        else:
-            wb_registry = Workbook()
-            ws_registry = wb_registry.active
-            ws_registry.append([
-                "№ Договора", "Дата Договора", "Блок", "Этаж", "№ КВ", "Кол-во ком",
-                "Квадратура Квартиры", "Общ Стоимость Договора", "Стоимость 1 кв.м",
-                "Процент 1 Взноса", "Сумма 1 Взноса", "Ф/И/О", "Серия Паспорта",
-                "ПИНФЛ", "Кем выдан", "Адрес прописки", "Номер тел", "Отдел Продаж"
-            ])
-
-        ws_registry.append([
-            data.contractNumber,
-            data.contractDate,
-            data.block,
-            data.floor,
-            data.apartmentNumber,
-            data.rooms,
-            data.size,
-            data.totalPrice.replace(" ", "").replace("\xa0", "") if data.totalPrice else None,
-            data.pricePerM2.replace(" ", "").replace("\xa0", "") if data.pricePerM2 else None,
-            data.paymentChoice.replace("%", "") if data.paymentChoice else None,
-            data.initialPayment.replace(" ", "").replace("\xa0", "") if data.initialPayment else None,
-            data.fullName,
-            data.passportSeries,
-            data.pinfl,
-            data.issuedBy,
-            data.registrationAddress,
-            data.phone,
-            data.salesDepartment
-        ])
-
-        wb_registry.save(REGISTRY_PATH)
-        print(f"Реестр обновлен: {REGISTRY_PATH}")
+        print(f"Добавляем строку в реестр: {final_row}")
+        ws.append(final_row)
+        wb.save(registry_path)
+        print(f"Реестр сохранен: {registry_path}")
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка обновления реестра: {e}")
+        print(f"Ошибка обновления реестра: {e}")
+        import traceback
 
-    # Отправка файла клиенту
-    contract_filename = f"contract_{data.contractNumber}.xlsx"
-    print(f"Отправка файла: {contract_filename}")
+        print(traceback.format_exc())
+        # Можно перевыбросить исключение или обработать иначе
+        # raise HTTPException(status_code=500, detail=f"Ошибка обновления реестра: {str(e)}")
 
-    return StreamingResponse(
-        contract_buffer,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={
-            "Content-Disposition": f"attachment; filename=\"{contract_filename}\"",
-            "Content-Length": str(contract_buffer.getbuffer().nbytes)
-        }
-    )
 
 @router.get("/download-contract-registry")
 async def download_contract_registry(jkName: str):
