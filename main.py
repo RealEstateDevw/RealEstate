@@ -34,7 +34,7 @@ from backend.crm.rop.main import router as rop_router
 from backend.api.rop.main import router as rop_api_router
 from backend.crm.shaxmatki.main import router as shaxmatki_router
 from backend.api.complexes.main import router as shaxmatki_api_router
-from backend.api.excel_utils import router as excel_router
+# from backend.api.excel_utils import router as excel_router
 from backend.api.test_excel import router as test_excel
 
 app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc")
@@ -51,7 +51,7 @@ app.include_router(rop_router)
 app.include_router(rop_api_router)
 app.include_router(shaxmatki_router)
 app.include_router(shaxmatki_api_router)
-app.include_router(excel_router)
+# app.include_router(excel_router)
 app.include_router(test_excel)
 
 app.mount("/media", StaticFiles(directory="media"), name="media")
@@ -184,7 +184,7 @@ async def auth_middleware(request: Request, call_next):
     # Используем startswith для /static и /docs и т.д.
     public_paths_exact = {"/", "/login", "/register", "/api/auth/login", "/api/auth/register", "/complexes"}
     public_paths_startswith = {"/static", "/docs",
-                               "/openapi.json", "/complexes", "/api/complexes"}  # Добавь сюда /docs и /openapi.json, если используешь Swagger/OpenAPI UI
+                               "/openapi.json", "/complexes", "/api/complexes", "/excel"}  # Добавь сюда /docs и /openapi.json, если используешь Swagger/OpenAPI UI
 
     is_public = False
     if path in public_paths_exact:

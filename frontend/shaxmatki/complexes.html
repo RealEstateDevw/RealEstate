@@ -759,7 +759,8 @@ document.body.addEventListener('click', async function (event) {
     // Ищем ближайший родительский элемент с классом 'apartment-card'
     // Это делает клик более надежным, если внутри карточки есть другие элементы
     const card = event.target.closest('.apartment-card');
-
+   
+     // --- No need to add button manually here ---
     if (card) {
         // Получаем данные из атрибутов карточки
         const jkName = card.getAttribute("data-jk-name");
@@ -768,6 +769,20 @@ document.body.addEventListener('click', async function (event) {
         const floor = card.getAttribute("data-floor");
         const apartmentNumber = card.getAttribute("data-number");
         const rooms = card.getAttribute("data-rooms"); // Получаем кол-во комнат
+
+        updateBackButton("Назад к выбору квартир", () => {
+        // ... (logic to handle potential missing global data) ...
+        if (!globalShaxmatkaData || !globalRenderImage || !jkName) {
+            // ... (error handling or navigate to home/complexes list) ...
+             const complexesContainer = document.getElementById("complexes-container");
+             const jkDetailsContainer = document.getElementById("jk-details-container");
+             if(jkDetailsContainer) jkDetailsContainer.style.display = "none";
+             if(complexesContainer) complexesContainer.style.display = "flex";
+             resetBackButtonToDefault(); // Reset if going back to main list due to error
+        }
+        // If data is present, show the JK details view again (which will call updateBackButton again)
+        filterBlockData(globalShaxmatkaData, blockName, globalRenderImage, jkName);
+    });
 
         // --- Глобальные переменные для хранения выбора пользователя ---
         // (Лучше определить их вне обработчика, если они нужны глобально,
@@ -1246,10 +1261,12 @@ document.body.addEventListener('click', async function (event) {
         installment_period: installmentPeriodValue,
         notes: `Бронь с сайта. ЖК: ${jkName}, Блок: ${blockName}, Этаж: ${floor}, №${apartmentNumber}, ${apartmentSize} м²`,
         currency: "UZS"
-    };
+    };  
+
+    
     updateBackButton("Назад к выбору квартиры", () => {
                     // Need globalShaxmatkaData, currentBlockName, globalRenderImage, currentJKName
-                    console.log("Возврат к выбору квартиры, используя:", globalShaxmatkaData, currentBlockName, globalRenderImage, currentJKName);
+                    console.log("Возврат к выбору квартиры, используя:", globalShaxmatkaData, blockName, globalRenderImage, JKName);
                      if (!globalShaxmatkaData || !currentBlockName || !globalRenderImage || !currentJKName) {
                          console.error("Недостаточно данных для возврата к выбору квартиры!");
                          // Fallback: go to block selection

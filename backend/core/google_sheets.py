@@ -83,7 +83,7 @@ def get_local_excel_data(file_path: str, range_string: str):
 
 
 # Переписываем функцию для получения данных "шахматки" из локального файла
-@cache(expire=600, namespace="shaxmatka")
+@cache(expire=15, namespace="shaxmatka")
 def get_shaxmatka_data(jk_name: str):
     """
     Читает данные файла shaxmatka.xlsx для заданного ЖК.
@@ -99,7 +99,7 @@ def get_shaxmatka_data(jk_name: str):
 # Переписываем функцию для получения данных цены из локального файла
 
 
-@cache(expire=600)
+@cache(expire=15)
 def get_price_data_for_sheet(jk_floor_key: str):
     """
     Читает данные из файла price_shaxamtka.xlsx для заданного ЖК.
@@ -117,7 +117,7 @@ def get_price_data_for_sheet(jk_floor_key: str):
     return get_local_excel_data(file_path, range_string)
 
 
-@cache(expire=600)
+@cache(expire=15)
 def get_price_data_for_sheet_all(sheet_name: str):
     """
     Читает данные файла price.xlsx для заданного ЖК.
