@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import zipfile
 from datetime import datetime
 from io import BytesIO
 from typing import Union
-
+from docx import Document
 from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, HTTPException, Body, Query
 from num2words import num2words
@@ -302,27 +301,23 @@ async def generate_contract(data: ContractData):
     # Используем данные из таблицы
     total_amount = clean_number(data.totalPrice)  # ОБЩ СТОИМОСТЬ ДОГОВОРА
     initial_payment = clean_number(data.initialPayment)  # СУММА 1 ВЗНОСА
-    remaining_amount = total_amount - initial_payment
-    num_payments = 23  # Оставшиеся 23 месяца после первого взноса
-    monthly_payment = remaining_amount / num_payments if num_payments > 0 else 0
+    num_payments = 24  # Оставшиеся 23 месяца после первого взноса
+    monthly_payment = total_amount / num_payments if num_payments > 0 else 0
 
     contract_date = parse_date(data.contractDate)
 
     # Создаем словарь замен для графика финансирования
     payment_replacements = {}
-    for i in range(24):
-        payment_number = i + 1
+    for i in range(25):
+        payment_number = i
         payment_date = contract_date + relativedelta(months=i)
         if i == 0:
-            # Первый платеж — первоначальный взнос
-            payment_replacements[f"{{Дата_Платежа_{payment_number}}}"] = payment_date.strftime("%d.%m.%Y")
-            payment_replacements[f"{{Сумма_Платежа_{payment_number}}}"] = f"{initial_payment:,.0f}".replace(",", " ")
-            payment_replacements[f"{{Оплачено_{payment_number}}}"] = f"{initial_payment:,.0f}".replace(",", " ")
+            pass
         else:
             # Последующие платежи
-            payment_replacements[f"{{Дата_Платежа_{payment_number}}}"] = payment_date.strftime("%d.%m.%Y")
-            payment_replacements[f"{{Сумма_Платежа_{payment_number}}}"] = f"{monthly_payment:,.0f}".replace(",", " ")
-            payment_replacements[f"{{Оплачено_{payment_number}}}"] = f"{monthly_payment:,.0f}".replace(",", " ")
+            payment_replacements[f"{{{{Дата_Платежа_{payment_number}}}}}"] = payment_date.strftime("%d.%m.%Y")
+            payment_replacements[f"{{{{Сумма_Платежа_{payment_number}}}}}"] = f"{monthly_payment:,.0f}".replace(",", " ")
+            payment_replacements[f"{{{{Оплачено_{payment_number}}}}}"] = f"{monthly_payment:,.0f}".replace(",", " ")
 
     # Основной словарь замен
     replacements = {
@@ -420,7 +415,10 @@ async def generate_contract(data: ContractData):
     return StreamingResponse(
         contract_buffer,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename=\"{contract_filename}\""}
+        headers={
+            "Content-Disposition": f"attachment; filename=\"{contract_filename}\"",
+            "Content-Length": str(contract_buffer.getbuffer().nbytes)
+        }
     )
 
 @router.get("/download-contract-registry")
