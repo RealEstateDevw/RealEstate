@@ -333,7 +333,7 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     total_amount = clean_number(data.totalPrice)
     initial_payment = clean_number(data.initialPayment)
     # Осторожно с делением на 0, если total_amount может быть 0
-    monthly_payment = (total_amount-initiatl_payment) / 24 if total_amount and initial_payment is not None else 0
+    monthly_payment = (total_amount-initial_payment) / 24 if total_amount and initial_payment is not None else 0
     contract_date = parse_date(data.contractDate)  # Предполагаем, что parse_date возвращает datetime объект
     print(data.contractDate)
     # Ключи БЕЗ {{ }}
@@ -352,6 +352,7 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
         "Кол-во_Ком": str(data.rooms) if data.rooms is not None else "N/A",
         "Квадратура_Квартиры": str(data.size) if data.size is not None else "N/A",
         "Общ_Стоимость": f"{(monthly_payment * 24):,.0f}".replace(",", " ") if total_amount is not None else "N/A",
+        "Общ_Стоимость_1": f"{total_amount :,.0f}".replace(",", " ") if total_amount is not None else "N/A",
         "Общ_Стоимость_Про": _number_to_words(data.totalPrice),
         "Стоимость_1_м2": (data.pricePerM2 or "N/A").replace(" ", "").replace("\xa0", ""),
         "Стоимость_1_м2_Про": _number_to_words(data.pricePerM2),
