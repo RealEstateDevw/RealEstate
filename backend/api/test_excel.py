@@ -333,7 +333,7 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     total_amount = clean_number(data.totalPrice)
     initial_payment = clean_number(data.initialPayment)
     # Осторожно с делением на 0, если total_amount может быть 0
-    monthly_payment = total_amount / 24 if total_amount is not None else 0
+    monthly_payment = (total_amount-initiatl_payment) / 24 if total_amount and initial_payment is not None else 0
     contract_date = parse_date(data.contractDate)  # Предполагаем, что parse_date возвращает datetime объект
     print(data.contractDate)
     # Ключи БЕЗ {{ }}
