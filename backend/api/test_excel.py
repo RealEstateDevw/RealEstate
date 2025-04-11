@@ -212,8 +212,8 @@ async def get_last_contract_number(jkName: str):
         if last_row <= 1:  # Только заголовок или пустой файл
             return {"lastContractNumber": None}
 
-        last_contract_number = ws_registry[f"A{last_row}"].value  # Предполагается, что номер в колонке A
-        return {"lastContractNumber": int(last_contract_number) + 1}
+        # Новый способ: возвращаем длину таблицы как номер следующего контракта
+        return {"lastContractNumber": last_row}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при чтении реестра: {str(e)}")
 

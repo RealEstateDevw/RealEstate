@@ -1487,11 +1487,11 @@ async function updateApartmentStatusInExcel(jkName, blockName, floor, apartmentN
                                 <div style="grid-column: 1 / -1;"><label>Кем выдан:</label><input type="text" name="issuedBy" required></div>
                                 <div style="grid-column: 1 / -1;"><label>Адрес прописки:</label><input type="text" name="registrationAddress" required></div>
                                 <div><label>Номер телефона:</label><input type="tel" name="phone" required></div>
-                                <div><label>Имя сотрудника:</label><input type="text" name="salesDepartment" required></div>
+                                <div><label>Имя сотрудника:</label><input type="text"  name="salesDepartment" required></div>
 
                                 <div style="grid-column: 1 / -1; display: flex; justify-content: space-between; margin-top: 15px;">
                                      <button type="submit" class="action-btn">Сохранить договор</button>
-                                     <button type="button" class="close-modal action-btn secondary">Закрыть</button>
+                                     <button type="button" class="close-modal action-btn secondary">Закрыть</button>   
                                 </div>
                             </form>
 
@@ -1543,12 +1543,18 @@ async function updateApartmentStatusInExcel(jkName, blockName, floor, apartmentN
                          });
                         
 
-                         const form = modalContent.querySelector("#contract-form");
+                        const form = modalContent.querySelector("#contract-form");
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const formData = new FormData(form);
         const contractData = Object.fromEntries(formData.entries());
+        const enteredContractNumber = parseInt(contractData.contractNumber, 10);
+        const lastContractNumber = parseInt(prefilledData.contractNumber, 10);
+        if (enteredContractNumber < lastContractNumber) {
+            alert(`Номер договора ${enteredContractNumber} уже занят. Используйте номер не меньше ${lastContractNumber}.`);
+            return;
+        }
 
         try {
             const response = await fetch("/excel/generate-contract", {
