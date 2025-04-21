@@ -353,7 +353,7 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
         "Квадратура_Квартиры": str(data.size) if data.size is not None else "N/A",
         "Общ_Стоимость": f"{(monthly_payment * 24):,.0f}".replace(",", " ") if total_amount is not None else "N/A",
         "Общ_Стоимость_1": f"{total_amount :,.0f}".replace(",", " ") if total_amount is not None else "N/A",
-        "Общ_Стоимость_Про": _number_to_words(f"{(monthly_payment * 24):,.0f}"),
+        "Общ_Стоимость_Про": _number_to_words(f"{total_amount :,.0f}"),
         "Стоимость_1_м2": (data.pricePerM2 or "N/A").replace(" ", "").replace("\xa0", ""),
         "Стоимость_1_м2_Про": _number_to_words(data.pricePerM2),
         "Процент_1_Взноса": (data.paymentChoice or "N/A").replace("%", ""),
