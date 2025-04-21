@@ -213,7 +213,7 @@ async def get_last_contract_number(jkName: str):
             return {"lastContractNumber": None}
 
         # Новый способ: возвращаем длину таблицы как номер следующего контракта
-        return {"lastContractNumber": last_row}
+        return {"lastContractNumber": last_row+1}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при чтении реестра: {str(e)}")
 
