@@ -720,7 +720,7 @@ class ChessUpdate(BaseModel):
 
 
 class ChessUpdates(BaseModel):
-    updates: List[ChessUpdate]
+    updates: List[ApartmentStatusUpdate]
 
 
 @router.get("/complexes/{jkName}/chess", summary="Get full chess grid")
@@ -747,32 +747,39 @@ async def get_chess(jkName: str):
     return {"grid": grid}
 
 
-@router.put("/complexes/{jkName}/chess", summary="Update chess grid statuses")
-async def update_chess(jkName: str, data: ChessUpdates):
+
+@router.put("/complexes/chess", summary="Update chess grid statuses")
+async def update_chess(data: ChessUpdates):
     """
-    Принимает JSON { "updates": [ { "apt":"101", "status":"Бронь" }, ... ] }
-    и сохраняет новые статусы во второй строке jk_data.xlsx.
+    Принимает JSON:
+    {
+      "updates": [
+        {
+          "jkName":"ЖК Бахор",
+          "blockName":"Блок-1",
+          "floor":5,
+          "apartmentNumber":101,
+          "newStatus":"Бронь"
+        },
+        ...
+      ]
+    }
     """
-    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
-    path = os.path.join(jk_dir, "jk_data.xlsx")
-    if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="Шахматка не найдена")
+    not_found = []
+    for upd in data.updates:
+        jk_dir = os.path.join(BASE_STATIC_PATH, upd.jkName)
+        path = os.path.join(jk_dir, "jk_data.xlsx")
+        if not os.path.exists(path):
+            not_found.append(f"{upd.jkName}: файл не найден")
+            continue
 
-    try:
-        wb = load_workbook(path)
-        ws = wb.active
+        success = find_row_and_update_status(path, upd)
+        if not success:
+            not_found.append(
+                f"{upd.jkName} — Блок={upd.blockName}, этаж={upd.floor}, кв={upd.apartmentNumber}"
+            )
 
-        # Считываем заголовки квартир из первой строки
-        header = [cell.value for cell in ws[1]]
+    if not_found:
+        raise HTTPException(status_code=404, detail={"not_updated": not_found})
 
-        # Применяем все обновления
-        for upd in data.updates:
-            if upd.apt in header:
-                col_idx = header.index(upd.apt) + 1  # +1, потому что столбцы 1‑based
-                ws.cell(row=2, column=col_idx, value=upd.status)
-
-        wb.save(path)
-        return {"detail": "Статусы успешно сохранены"}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка при сохранении шахматки: {e}")
+    return {"detail": "Все статусы успешно сохранены"}

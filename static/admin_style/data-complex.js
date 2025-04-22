@@ -148,6 +148,9 @@ async function openChessModal(jkName) {
     const headers     = Object.keys(grid[0]);
     const aptField    = headers.find(h => /номер\s*помещени/i.test(h));
     const statusField = headers.find(h => /статус/i.test(h));
+    const blockField  = headers.find(h => /блок/i.test(h));           // новый
+    const floorField  = headers.find(h => /этаж/i.test(h));           // новый
+  
   
     // Создаём модалку
     const modal = document.createElement("div");
@@ -188,14 +191,15 @@ async function openChessModal(jkName) {
       html += `<tr style="background-color: ${bgColor}">`;
       headers.forEach(col => {
         const val = rowObj[col] ?? "";
+        console.log(rowIdx);
         
         if (col === statusField) {
             statusLower = val.toLowerCase().trim();
           html += `<td style="border:1px solid #ccc; padding:4px;">
             <select data-row="${rowIdx}">
-              <option${statusLower==="свободна"?" selected":""}>Свободно</option>
-              <option${statusLower==="продана"  ?" selected":""}>Продана</option>
-              <option${statusLower==="бронь"    ?" selected":""}>Бронь</option>
+              <option${statusLower==="свободна"?" selected":""}>свободна</option>
+              <option${statusLower==="продана"  ?" selected":""}>продана</option>
+              <option${statusLower==="бронь"    ?" selected":""}>бронь</option>
             </select>
           </td>`;
         } else {
@@ -220,41 +224,44 @@ async function openChessModal(jkName) {
     // Закрыть
     document.getElementById("closeChessBtn").onclick = () => modal.remove();
   
-    // Сохранить
-    document.getElementById("saveChessBtn").onclick = async () => {
-        const selects = content.querySelectorAll("select[data-row]");
-        const updates = Array.from(selects).map(sel => {
-          const rowIdx = +sel.dataset.row;
-          return {
-            apt:     String(grid[rowIdx][aptField]),  // номер помещения из grid
-            status: sel.value
-          };
-        });
-      
-        // ---- Дебаг ----
-        console.log("aptField:", aptField);
-        console.log("updates array:", updates);
-        console.log("payload JSON:", JSON.stringify({ updates }));
-      
-        try {
-          const saveResp = await fetch(
-            `/excel/complexes/${encodeURIComponent(jkName)}/chess`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ updates })
+    
+        document.getElementById("saveChessBtn").onclick = async () => {
+            const selects = content.querySelectorAll("select[data-row]");
+            const updates = Array.from(selects).map(sel => {
+              const rowIdx = +sel.dataset.row;
+              const rowObj = grid[rowIdx];
+              return {
+                jkName:          jkName,                       // теперь передаём ЖК внутри объекта
+                blockName:       rowObj[blockField],           // Блок
+                floor:           Number(rowObj[floorField]),    // Этаж
+                apartmentNumber: rowObj[aptField],              // Номер квартиры (может быть строкой)
+                newStatus:       sel.value                      // Новый статус
+              };
+            });
+        
+
+        
+            try {
+              const saveResp = await fetch(
+                '/excel/complexes/chess',
+                {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ updates })
+                }
+              );
+              if (!saveResp.ok) {
+                const errBody = await saveResp.text();
+                console.error("Server responded:", errBody);
+                throw new Error(saveResp.status);
+              }
+              alert("Статусы сохранены");
+              modal.remove();
+            } catch (e) {
+              alert("Ошибка при сохранении: " + e);
             }
-          );
-          if (!saveResp.ok) {
-            const errBody = await saveResp.text();
-            console.error("Server responded 422 with body:", errBody);
-            throw new Error(saveResp.status);
-          }
-          alert("Статусы сохранены");
-          modal.remove();
-        } catch (e) {
-          alert("Ошибка при сохранении: " + e);
-        }
-      };
-  }
+          };
+      }
+  
 // Вызываем при старте:
 document.addEventListener('DOMContentLoaded', loadComplexes);
