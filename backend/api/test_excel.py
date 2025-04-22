@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from io import BytesIO
-from typing import Union, Optional, Dict
+from typing import Union, Optional, Dict, List
 from docx import Document
 from dateutil.relativedelta import relativedelta
 from docxtpl import DocxTemplate
@@ -202,18 +202,25 @@ async def get_last_contract_number(jkName: str):
     REGISTRY_PATH = os.path.join(jk_dir, "contract_registry.xlsx")
 
     if not os.path.exists(REGISTRY_PATH):
-        return {"lastContractNumber": None}  # Файл реестра не существует
+        return {"lastContractNumber": 1}  # Файл не существует — начинаем с первого номера
 
     try:
         wb_registry = load_workbook(REGISTRY_PATH)
         ws_registry = wb_registry.active
-        last_row = ws_registry.max_row
+        last_number = 0
 
-        if last_row <= 1:  # Только заголовок или пустой файл
-            return {"lastContractNumber": None}
+        # Ищем последнюю строку с номером договора в формате Д-XXXX
+        for row in reversed(list(ws_registry.iter_rows(min_row=2, values_only=True))):
+            contract_num = row[0]
+            if contract_num and isinstance(contract_num, str):
+                try:
+                    number = int(contract_num.split('-')[0])
+                    last_number = max(last_number, number)
+                except (IndexError, ValueError):
+                    continue
 
-        # Новый способ: возвращаем длину таблицы как номер следующего контракта
-        return {"lastContractNumber": last_row+1}
+        next_number = last_number + 1
+        return {"lastContractNumber": next_number}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при чтении реестра: {str(e)}")
 
@@ -333,7 +340,7 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     total_amount = clean_number(data.totalPrice)
     initial_payment = clean_number(data.initialPayment)
     # Осторожно с делением на 0, если total_amount может быть 0
-    monthly_payment = (total_amount-initial_payment) / 24 if total_amount and initial_payment is not None else 0
+    monthly_payment = (total_amount - initial_payment) / 24 if total_amount and initial_payment is not None else 0
     contract_date = parse_date(data.contractDate)  # Предполагаем, что parse_date возвращает datetime объект
     print(data.contractDate)
     # Ключи БЕЗ {{ }}
@@ -665,3 +672,107 @@ async def delete_contract_from_registry_and_update_shaxmatka(  # Переиме�
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Внутренняя ошибка сервера при обработке запроса: {str(e)}")
 
+
+import os
+
+
+# Получить список всех ЖК (папок в BASE_STATIC_PATH)
+@router.get("/complexes", summary="List all residential complexes")
+async def list_complexes():
+    """
+    Возвращает список папок (названий ЖК) в каталоге BASE_STATIC_PATH.
+    """
+    complexes_dir = BASE_STATIC_PATH
+    try:
+        if not os.path.exists(complexes_dir):
+            return {"complexes": []}
+        items = [
+            name for name in os.listdir(complexes_dir)
+            if os.path.isdir(os.path.join(complexes_dir, name))
+        ]
+        return {"complexes": items}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка при чтении списка ЖК: {e}")
+
+
+# Получить список файлов внутри папки конкретного ЖК
+@router.get("/complexes/{jkName}/files", summary="List files for a given residential complex")
+async def list_complex_files(jkName: str):
+    """
+    Возвращает список файлов внутри папки конкретного ЖК.
+    """
+    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
+    if not os.path.isdir(jk_dir):
+        raise HTTPException(status_code=404, detail=f"ЖК '{jkName}' не найден")
+    try:
+        files = [
+            fname for fname in os.listdir(jk_dir)
+            if os.path.isfile(os.path.join(jk_dir, fname))
+        ]
+        return {"files": files}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка при чтении файлов ЖК: {e}")
+
+
+class ChessUpdate(BaseModel):
+    apt: str
+    status: str
+
+
+class ChessUpdates(BaseModel):
+    updates: List[ChessUpdate]
+
+
+@router.get("/complexes/{jkName}/chess", summary="Get full chess grid")
+async def get_chess(jkName: str):
+    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
+    path = os.path.join(jk_dir, "jk_data.xlsx")
+    if not os.path.exists(path):
+        raise HTTPException(404, "Шахматка не найдена")
+
+    wb = load_workbook(path)
+    ws = wb.active
+
+    # Считываем заголовки из первой строки
+    headers = [cell.value for cell in ws[1]]
+
+    grid = []
+    # Проходим по строкам с 2 по max_row
+    for i in range(2, ws.max_row + 1):
+        row_obj = {}
+        for j, h in enumerate(headers, start=1):
+            row_obj[h] = ws.cell(row=i, column=j).value
+        grid.append(row_obj)
+
+    return {"grid": grid}
+
+
+@router.put("/complexes/{jkName}/chess", summary="Update chess grid statuses")
+async def update_chess(jkName: str, data: ChessUpdates):
+    """
+    Принимает JSON { "updates": [ { "apt":"101", "status":"Бронь" }, ... ] }
+    и сохраняет новые статусы во второй строке jk_data.xlsx.
+    """
+    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
+    path = os.path.join(jk_dir, "jk_data.xlsx")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Шахматка не найдена")
+
+    try:
+        wb = load_workbook(path)
+        ws = wb.active
+
+        # Считываем заголовки квартир из первой строки
+        header = [cell.value for cell in ws[1]]
+
+        # Применяем все обновления
+        for upd in data.updates:
+            if upd.apt in header:
+                col_idx = header.index(upd.apt) + 1  # +1, потому что столбцы 1‑based
+                ws.cell(row=2, column=col_idx, value=upd.status)
+
+        wb.save(path)
+        return {"detail": "Статусы успешно сохранены"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка при сохранении шахматки: {e}")
