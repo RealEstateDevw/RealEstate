@@ -237,10 +237,9 @@
 
 /* Сетка квартир на этаже */
 .apartment-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem; /* Расстояние между карточками */
-  flex: 1;     /* Занимает всё доступное пространство */
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
 }
 
 /* Общий стиль карточки квартиры */
@@ -264,7 +263,7 @@
 }
 
 /* При наведении делаем карточку чуть «выше» */
-.apartment-card:hover {
+        .apartment-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
@@ -306,10 +305,50 @@
   color: #fff;
 }
 
-.apartment-card.unavailable {
-  background-color: #eeeeee;
-  border: 1px solid #bdbdbd;
-}
+        .apartment-card.unavailable {
+          background-color: #eeeeee;
+          border: 1px solid #bdbdbd;
+        }
+
+        /* Unified floors layout */
+        .floors-scroll-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          overflow-x: auto;
+          overflow-y: hidden;
+          padding-bottom: 1rem; /* space for scrollbar */
+        }
+        .floors-scroll-wrapper::-webkit-scrollbar {
+          height: 8px;
+        }
+        .floors-scroll-wrapper::-webkit-scrollbar-track {
+          background: #f1f1f1;
+        }
+        .floors-scroll-wrapper::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 4px;
+        }
+        .floors-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+        .floor-row {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          flex-wrap: nowrap;
+        }
+        .floor-label {
+          flex-shrink: 0;
+          width: 50px;
+          font-weight: bold;
+          font-size: 1rem;
+          color: #424242;
+          text-align: center;
+          background-color: #e0e0e0;
+          border-radius: 4px;
+          padding: 0.5rem;
+        }
 /* Кнопка «Назад к выбору блоков» */
 .back-button {
   padding: 0.5rem 1rem;
@@ -611,38 +650,40 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function filterBlockData(shaxmatkaData, block, renderImage, jkName) {
-    console.log("Проверка данных shaxmatkaData в filterBlockData:", shaxmatkaData); // Log specific data
+    console.log("Проверка данных shaxmatkaData в filterBlockData:", shaxmatkaData);
     const jkDetailsContainer = document.getElementById("jk-details-container");
-    jkDetailsContainer.style.maxWidth = "100%"; // Set max-width for floor plan view
-    // const headerContainer = document.getElementById("headerContainer"); // Already defined globally/outside
+    jkDetailsContainer.style.maxWidth = "100%";
 
     const filteredData = shaxmatkaData.filter(row => row[0] === block);
     const floors = filteredData.reduce((acc, row) => {
-        // ... (rest of the floor grouping logic) ...
-        const floor = row[6]; // Этаж
+        const floor = row[6];
         if (!acc[floor]) acc[floor] = [];
         acc[floor].push(row);
         return acc;
     }, {});
 
+    jkDetailsContainer.innerHTML = "";
 
-    jkDetailsContainer.innerHTML = ""; // Clear container for floor plan
+    // --- Unified layout: floor label + grid in row, all rows in scroll wrapper ---
+    const mainWrapper = document.createElement("div");
+    mainWrapper.className = "floors-scroll-wrapper";
 
     Object.keys(floors).sort((a, b) => b - a).forEach(floor => {
-        const floorContainer = document.createElement("div");
-        floorContainer.className = "floor-container";
+        // Row container
+        const floorRow = document.createElement("div");
+        floorRow.className = "floor-row";
 
+        // Floor label
         const floorLabel = document.createElement("div");
         floorLabel.className = "floor-label";
-        floorLabel.textContent = `${floor}`;
-        floorContainer.appendChild(floorLabel);
+        floorLabel.textContent = floor;
+        floorRow.appendChild(floorLabel);
 
+        // Apartment grid
         const apartmentGrid = document.createElement("div");
         apartmentGrid.className = "apartment-grid";
-
         floors[floor].forEach(row => {
-            // ... (apartment card creation logic remains the same) ...
-             const statusMap = {
+            const statusMap = {
                 "свободна": "available",
                 "продана": "sold",
                 "бронь": "booked"
@@ -660,7 +701,7 @@ function filterBlockData(shaxmatkaData, block, renderImage, jkName) {
             const rooms = row[3] || "Не указано";
 
             apartmentCard.setAttribute("data-jk-name", jkName);
-            apartmentCard.setAttribute("data-block", block); // Use the 'block' parameter directly
+            apartmentCard.setAttribute("data-block", block);
             apartmentCard.setAttribute("data-size", row[5]);
             apartmentCard.setAttribute("data-floor", row[6]);
             apartmentCard.setAttribute("data-number", row[4]);
@@ -668,7 +709,7 @@ function filterBlockData(shaxmatkaData, block, renderImage, jkName) {
 
             console.log("Filtered Data Row:", row);
 
-            const price = status === "свободна" && row.length > 7 && row[7] // Check if price exists
+            const price = status === "свободна" && row.length > 7 && row[7]
                 ? `от ${Number(row[7]).toLocaleString('ru-RU')} сум`
                 : "";
             const cleanedPrice = price
@@ -676,11 +717,10 @@ function filterBlockData(shaxmatkaData, block, renderImage, jkName) {
                 .replace(/сум\s*/gi, "")
                 .trim();
 
-             // Make sure price display handles empty price gracefully
+            // Make sure price display handles empty price gracefully
             const priceDisplay = cleanedPrice
                 ? `<p class="card-price">${cleanedPrice}</p>`
                 : `<p class="card-status">${row[2] || "Неизвестно"}</p>`;
-
 
             apartmentCard.innerHTML = `
                 <div class="card-header">
@@ -697,31 +737,53 @@ function filterBlockData(shaxmatkaData, block, renderImage, jkName) {
             `;
             apartmentGrid.appendChild(apartmentCard);
         });
-
-
-        floorContainer.appendChild(apartmentGrid);
-        jkDetailsContainer.appendChild(floorContainer);
+        floorRow.appendChild(apartmentGrid);
+        mainWrapper.appendChild(floorRow);
     });
+
+    jkDetailsContainer.appendChild(mainWrapper);
 
     // --- Use the helper function to update the back button ---
     updateBackButton("Назад к выбору блоков", () => {
-        // ... (logic to handle potential missing global data) ...
         if (!globalShaxmatkaData || !globalRenderImage || !jkName) {
-            // ... (error handling or navigate to home/complexes list) ...
-             const complexesContainer = document.getElementById("complexes-container");
-             const jkDetailsContainer = document.getElementById("jk-details-container");
-             if(jkDetailsContainer) jkDetailsContainer.style.display = "none";
-             if(complexesContainer) complexesContainer.style.display = "flex";
-             resetBackButtonToDefault(); // Reset if going back to main list due to error
+            const complexesContainer = document.getElementById("complexes-container");
+            const jkDetailsContainer = document.getElementById("jk-details-container");
+            if(jkDetailsContainer) jkDetailsContainer.style.display = "none";
+            if(complexesContainer) complexesContainer.style.display = "flex";
+            resetBackButtonToDefault();
             return;
         }
-        // If data is present, show the JK details view again (which will call updateBackButton again)
         showJKDetails(globalShaxmatkaData, globalRenderImage, jkName);
     });
-     // --- No need to add button manually here ---
-
-     jkDetailsContainer.style.display = "block"; // Show the floor plan view
+    jkDetailsContainer.style.display = "block";
 }
+
+// Enable horizontal drag scrolling with left mouse button
+// This needs to be re-applied after DOM update. Consider moving to a function and calling after layout update if needed.
+document.querySelectorAll('.apartment-grid').forEach(grid => {
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+    grid.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        isDown = true;
+        startX = e.pageX - grid.offsetLeft;
+        scrollLeft = grid.scrollLeft;
+    });
+    grid.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - grid.offsetLeft;
+        const walk = x - startX;
+        grid.scrollLeft = scrollLeft - walk;
+    });
+    ['mouseup', 'mouseleave'].forEach(evt => {
+        grid.addEventListener(evt, () => {
+            isDown = false;
+        });
+    });
+});
 
 async function fetchPlanImage(jkName, blockName, apartmentSize) {
     const url = `/api/complexes/plan-image?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(blockName)}&apartmentSize=${encodeURIComponent(apartmentSize)}`;
