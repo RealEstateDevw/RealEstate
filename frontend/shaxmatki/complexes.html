@@ -743,6 +743,18 @@ function filterBlockData(shaxmatkaData, block, renderImage, jkName) {
 
     jkDetailsContainer.appendChild(mainWrapper);
 
+    // Equalize all apartment-grid widths to the widest
+    requestAnimationFrame(() => {
+        const grids = mainWrapper.querySelectorAll('.apartment-grid');
+        let maxWidth = 0;
+        grids.forEach(g => {
+            maxWidth = Math.max(maxWidth, g.scrollWidth);
+        });
+        grids.forEach(g => {
+            g.style.minWidth = maxWidth + 'px';
+        });
+    });
+
     // --- Use the helper function to update the back button ---
     updateBackButton("Назад к выбору блоков", () => {
         if (!globalShaxmatkaData || !globalRenderImage || !jkName) {
