@@ -341,7 +341,7 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     total_amount = clean_number(data.totalPrice)
     initial_payment = clean_number(data.initialPayment)
     # Осторожно с делением на 0, если total_amount может быть 0
-    monthly_payment = (total_amount - initial_payment) / 24 if total_amount and initial_payment is not None else 0
+    monthly_payment = (total_amount - initial_payment) / 23 if total_amount and initial_payment is not None else 0
     contract_date = parse_date(data.contractDate)  # Предполагаем, что parse_date возвращает datetime объект
     print(data.contractDate)
     # Ключи БЕЗ {{ }}
@@ -359,7 +359,7 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
         "Номер_КВ": str(data.apartmentNumber) if data.apartmentNumber is not None else "N/A",
         "Кол_во_Ком": str(data.rooms) if data.rooms is not None else "N/A",
         "Квадратура_Квартиры": str(data.size) if data.size is not None else "N/A",
-        "Общ_Стоимость": f"{(monthly_payment * 24):,.0f}".replace(",", " ") if total_amount is not None else "N/A",
+        "Общ_Стоимость": f"{(monthly_payment * 23):,.0f}".replace(",", " ") if total_amount is not None else "N/A",
         "Общ_Стоимость_1": f"{total_amount :,.0f}".replace(",", " ") if total_amount is not None else "N/A",
         "Общ_Стоимость_Про": _number_to_words(f"{total_amount :,.0f}"),
         "Стоимость_1_м2": (data.pricePerM2 or "N/A").replace(" ", "").replace("\xa0", ""),
@@ -380,7 +380,7 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
         # Пример расчета остатка: remaining_amount = total_amount - initial_payment
         # monthly_payment = remaining_amount / 24 # Если рассрочка на 24 месяца *после* первого взноса
 
-        for i in range(1, 25):
+        for i in range(1, 24):
             # payment_date = contract_date + relativedelta(months=i) # Платеж в след. месяце
             payment_date = current_payment_date + relativedelta(months=i - 1)  # Платеж начиная с current_payment_date
             context[f"Дата_Платежа_{i}"] = payment_date.strftime("%d.%m.%Y")
