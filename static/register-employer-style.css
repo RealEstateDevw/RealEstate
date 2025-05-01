@@ -22,6 +22,128 @@ button {
 }
 
 
+.actions-group {
+    display: flex;
+    /* justify-content: flex-end; */ /* Let flexbox handle spacing */
+    align-items: center;
+    gap: 15px;
+    /* width: 80%; */ /* Removed fixed width, let it be flexible */
+    flex-grow: 1; /* Allow this group to grow */
+    justify-content: flex-end; /* Push items to the right */
+    flex-wrap: wrap; /* Allow buttons to wrap if space runs out */
+}
+
+
+
+@media (max-width: 992px) {
+    .logo {
+        font-size: 1.8rem;
+    }
+    .actions-group {
+        gap: 10px;
+    }
+    .shahmatki {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+    .register-btn {
+        padding: 10px 15px;
+        gap: 8px;
+    }
+     .register-btn svg {
+         width: 20px;
+         height: 20px;
+    }
+    .register-btn-text {
+        font-size: 0.9rem;
+    }
+    .user-icon {
+        height: 44px;
+        width: 44px;
+    }
+    .user-icon-svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* Small Screens (Tablets portrait, large phones) */
+@media (max-width: 768px) {
+    .header {
+        padding: 10px 15px;
+        gap: 15px;
+        /* Could optionally stack here if needed */
+        /* flex-direction: column; */
+        /* align-items: flex-start; */
+    }
+     .logo {
+        font-size: 1.6rem;
+    }
+    .actions-group {
+        /* If header stacks, adjust this */
+        /* width: 100%; */
+        /* justify-content: flex-start; */
+        gap: 8px;
+    }
+
+    /* Hide text in Register button, show only icon */
+    .register-btn-text {
+        display: none;
+    }
+    .register-btn {
+        padding: 10px; /* Adjust padding for icon only */
+        gap: 0;
+    }
+     .register-btn svg {
+         width: 22px; /* Slightly larger icon when text is hidden */
+         height: 22px;
+    }
+
+    .shahmatki {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    .user-icon {
+        height: 40px;
+        width: 40px;
+    }
+    .user-icon-svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+/* Extra Small Screens (Phones) */
+@media (max-width: 576px) {
+    .header {
+        padding: 10px;
+    }
+     .logo {
+        font-size: 1.4rem;
+    }
+     /* Further reduce shahmatki padding/font if needed */
+     .shahmatki {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    .register-btn {
+        padding: 8px; /* Smallest padding */
+    }
+     .register-btn svg {
+         width: 20px;
+         height: 20px;
+    }
+     .user-icon {
+        height: 36px;
+        width: 36px;
+    }
+    .user-icon-svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
 
 
 /* ============================ */

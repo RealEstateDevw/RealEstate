@@ -42,7 +42,7 @@ async function openComplexDetails(jkName) {
         [dataList, pricesList, templateList].forEach(el => el.innerHTML = '');
 
         // 8) Функция-рендер для одной секции
-        function renderFiles(listEl, arr) {
+        function renderFiles(listEl, arr, jkName) {
             if (arr.length === 0) {
                 listEl.innerHTML = '<p style="color:#777;">Нет файлов</p>';
                 return;
@@ -54,7 +54,6 @@ async function openComplexDetails(jkName) {
             <span>${fname}</span>
             <div class="actions">
               <button type="button" class="edit"   title="Редактировать">✏️</button>
-              <button type="button" class="delete" title="Удалить">🗑️</button>
             </div>
           `;
                 // Привязываем действия
@@ -62,26 +61,20 @@ async function openComplexDetails(jkName) {
                 if (/jk_data\.xlsx$/i.test(fname)) {
                     // Для шахматки вызываем свой модал
                     pill.querySelector('.edit').addEventListener('click', () => openChessModal(jkName));
+                } else if (/price_shaxamtka\.xlsx$/i.test(fname)) {
+                    pill.querySelector('.edit').addEventListener('click', () => openPriceModal(jkName));
                 } else {
-                    pill.querySelector('.edit').addEventListener('click', () => {
-                        // TODO: open editor для других файлов
-                        alert(`Редактировать ${fname}`);
-                    });
+                    pill.querySelector('.edit').addEventListener('click', () => openReplaceModal(jkName, fname));
                 }
-                pill.querySelector('.delete').addEventListener('click', () => {
-                    // TODO: удалить файл через API
-                    if (confirm(`Удалить файл ${fname}?`)) {
-                        deleteComplexFile(jkName, fname, listEl, pill);
-                    }
-                });
+               
                 listEl.append(pill);
             });
         }
 
         // 9) Рендерим каждую секцию
-        renderFiles(dataList, dataFiles);
-        renderFiles(pricesList, priceFiles);
-        renderFiles(templateList, templateFiles);
+        renderFiles(dataList, dataFiles, jkName);
+        renderFiles(pricesList, priceFiles, jkName);
+        renderFiles(templateList, templateFiles, jkName);
 
     } catch (err) {
         console.error('Ошибка загрузки деталей ЖК:', err);
@@ -263,5 +256,246 @@ async function openChessModal(jkName) {
           };
       }
   
+/**
+ * Открывает модальное окно для замены файла
+ * @param {string} jkName - имя ЖК
+ * @param {string} oldFilename - имя текущего файла
+ */
+function openReplaceModal(jkName, oldFilename) {
+  // Создаем overlay
+  const modal = document.createElement('div');
+  modal.className = 'custom-modal';
+  Object.assign(modal.style, {
+    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
+  });
+  // Контент
+  const content = document.createElement('div');
+  Object.assign(content.style, {
+    background: '#fff', padding: '20px', borderRadius: '8px', width: '90%', maxWidth: '400px'
+  });
+  content.innerHTML = `
+    <div class="upload-section">
+      <div class="upload-header">
+        <span>Заменить файл ${oldFilename}</span>
+      </div>
+      <label class="dropzone" for="replaceInput">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M12 16.5v-9m0 0L8.25 10.5m3.75-3V10.5m0-3L15.75 10.5M3 20.25h18a2.25 2.25 0 002.25-2.25V5.25A2.25 2.25 0 0021 3H3a2.25 2.25 0 00-2.25 2.25v12.75A2.25 2.25 0 003 20.25z"/>
+        </svg>
+        Перетащите файл или нажмите
+      </label>
+      <input type="file" id="replaceInput" accept=".xlsx,.xls,.csv,.docx,.doc" multiple style="display:none;" />
+      <div class="file-list" id="replace-list"></div>
+    </div>
+    <div style="text-align:right; margin-top:12px;">
+      <button id="saveReplaceBtn" disabled>Сохранить</button>
+      <button id="cancelReplaceBtn" style="margin-left:8px;">Отмена</button>
+    </div>
+  `;
+ 
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+
+  const input = content.querySelector('#replaceInput');
+  const saveBtn = content.querySelector('#saveReplaceBtn');
+  const cancelBtn = content.querySelector('#cancelReplaceBtn');
+
+  // Реализация выбора файла: скрываем dropzone, показываем pill
+  const dropzoneLabel = content.querySelector('label.dropzone');
+  const fileList = content.querySelector('#replace-list');
+  input.addEventListener('change', () => {
+    if (!input.files.length) return;
+    const file = input.files[0];
+    // hide dropzone and input
+    dropzoneLabel.style.display = 'none';
+    input.style.display = 'none';
+    // enable save button
+    saveBtn.disabled = false;
+    // show pill
+    fileList.innerHTML = `
+      <div class="file-pill">
+        <span>${file.name}</span>
+        <button type="button" class="delete">🗑️</button>
+      </div>`;
+    // handle delete pill
+    fileList.querySelector('.delete').addEventListener('click', () => {
+      fileList.innerHTML = '';
+      input.value = '';
+      saveBtn.disabled = true;
+      dropzoneLabel.style.display = 'flex';
+      // input remains hidden
+    });
+  });
+
+  // Отмена
+  cancelBtn.addEventListener('click', () => modal.remove());
+
+  // Сохранение: отправляем замену на сервер
+  saveBtn.addEventListener('click', async () => {
+    const file = input.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('category', oldFilename.match(/jk_data\.xlsx$/i) ? 'jk_data' :
+                                 oldFilename.match(/price_shaxamtka\.xlsx$/i) ? 'price' :
+                                 'template');
+    formData.append('name', jkName);
+    try {
+      const resp = await fetch(`/excel/replace-file`, {
+        method: 'POST',
+        body: formData
+      });
+      const result = await resp.json();
+      if (!resp.ok) throw new Error(result.detail || result.message);
+      // После успешного сохранения обновляем список файлов:
+      openComplexDetails(jkName);
+      modal.remove();
+      showNotification('Файл заменён', 'success');
+    } catch (err) {
+      console.error(err);
+      showNotification('Ошибка замены файла', 'error');
+    }
+  });
+}
+
 // Вызываем при старте:
 document.addEventListener('DOMContentLoaded', loadComplexes);
+/**
+ * Открывает модальное окно для редактирования прайса ЖК
+ * @param {string} jkName - имя ЖК
+ */
+async function openPriceModal(jkName) {
+    // Загрузить данные прайса в формате JSON
+    const resp = await fetch(`/excel/complexes/${encodeURIComponent(jkName)}/price`);
+    if (!resp.ok) return alert("Не удалось загрузить прайс");
+    const { headers, rows } = await resp.json();
+  
+    // Создать модалку
+    const modal = document.createElement("div");
+    modal.className = "custom-modal";
+    Object.assign(modal.style, {
+      position: "fixed", inset: 0,
+      background: "rgba(0,0,0,0.5)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 2000
+    });
+    const content = document.createElement("div");
+    Object.assign(content.style, {
+      width: "90%", maxWidth: "800px", maxHeight: "80vh", overflow: "auto",
+      background: "#fff", padding: "20px", borderRadius: "8px"
+    });
+  
+    // Создаем таблицу с учетом структуры данных из скриншота
+    // Первая колонка - "Этаж" (неизменяемая)
+    // Все остальные колонки - цены (изменяемые)
+    let html = `<h3>Редактирование прайса ЖК "${jkName}"</h3>`;
+    html += `<table style="width:100%; border-collapse:collapse; text-align:left;">`;
+    
+    // Шапка таблицы
+    html += "<thead><tr>";
+    headers.forEach((col, colIdx) => {
+        if (colIdx > 0 && typeof col === 'number') {
+          // format percent header
+          const pct = Math.round(col * 100) + '%';
+          html += `<th>${pct}</th>`;
+        } else {
+          html += `<th>${col}</th>`;
+        }
+      });
+    html += "</tr></thead><tbody>";
+    
+    // Строки с данными
+    rows.forEach((row, rowIdx) => {
+      html += "<tr>";
+      
+      // Обрабатываем каждую ячейку в строке
+      headers.forEach((col, colIdx) => {
+        const value = row[col] != null ? row[col] : "";
+        
+        // Проверяем, является ли это колонкой "Этаж" (обычно первая колонка)
+        const isFloorColumn = colIdx === 0 || (typeof col === 'string' && col.toLowerCase().includes('этаж'));
+        
+        if (isFloorColumn) {
+          // Колонка "Этаж" - только для чтения
+          html += `<td>${value}</td>`;
+        } else {
+          // Все остальные колонки (цены) - редактируемые
+          html += `<td>
+            <input 
+              type="text" 
+              data-row="${rowIdx}" 
+              data-col="${col}" 
+              data-col-index="${colIdx}" 
+              value="${value}" 
+              style="width: 100%; box-sizing: border-box;"
+            />
+          </td>`;
+        }
+      });
+      html += "</tr>";
+    });
+    
+    html += "</tbody></table>";
+    
+    // Кнопки управления
+    html += `
+      <div style="text-align:right; margin-top:12px;">
+        <button id="savePriceBtn">Сохранить</button>
+        <button id="cancelPriceBtn" style="margin-left:8px;">Отмена</button>
+      </div>
+    `;
+    
+    content.innerHTML = html;
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+  
+    // Обработчики ввода - только цифры
+    content.querySelectorAll('input[data-row][data-col]').forEach(input => {
+      input.addEventListener('input', (e) => {
+        // Удаляем все символы кроме цифр
+        e.target.value = e.target.value.replace(/[^\d]/g, '');
+      });
+    });
+  
+    // Обработчики кнопок
+    content.querySelector("#cancelPriceBtn").onclick = () => modal.remove();
+    content.querySelector("#savePriceBtn").onclick = async () => {
+      // Собрать обновлённые данные
+      const updatedRows = JSON.parse(JSON.stringify(rows));
+      const inputs = content.querySelectorAll('input[data-row][data-col]');
+      
+      inputs.forEach(input => {
+        const rowIdx = +input.dataset.row;
+        const colName = input.dataset.col;
+        // Преобразуем в число
+        const numericValue = parseInt(input.value, 10);
+        
+        // Обновляем только если это валидное число
+        if (!isNaN(numericValue)) {
+          updatedRows[rowIdx][colName] = numericValue;
+        }
+      });
+      
+      try {
+        const saveResp = await fetch(
+          `/excel/complexes/${encodeURIComponent(jkName)}/price`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ headers, rows: updatedRows })
+          }
+        );
+        
+        if (!saveResp.ok) {
+          const errorData = await saveResp.json().catch(() => ({}));
+          throw new Error(errorData.detail || 'Ошибка сервера');
+        }
+        
+        alert("Прайс сохранён успешно");
+        modal.remove();
+      } catch (e) {
+        alert(`Ошибка при сохранении прайса: ${e.message}`);
+      }
+    };
+  }

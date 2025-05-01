@@ -48,7 +48,7 @@ class User(Base):
         return f"{self.first_name} {self.last_name}"
 
     def to_dict(self):
-        return  {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 class Attendance(Base):
@@ -142,6 +142,7 @@ class Lead(Base):
             data["user"] = None
 
         return data
+
 
 class Callback(Base):
     __tablename__ = 'callbacks'
@@ -301,3 +302,16 @@ class Contract(Base):
     terms = Column(String, nullable=False)
     status = Column(String, nullable=False, default="Ожидает подтверждения")
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class PriceHistory(Base):
+    __tablename__ = 'price_history'
+
+    id = Column(Integer, primary_key=True)
+    floor = Column(Integer, nullable=False)
+    unit_size = Column(Float, nullable=False)
+    price = Column(Float, nullable=False)
+    recorded_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    def __repr__(self):
+        return f"<PriceHistory(floor={self.floor}, unit_size={self.unit_size}, price={self.price}, recorded_at={self.recorded_at})>"

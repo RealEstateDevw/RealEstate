@@ -1,10 +1,12 @@
 import json
 import os
+import re
 import shutil
 import tempfile
 import uuid
 from datetime import datetime
-from typing import Any, Dict
+from pathlib import Path
+from typing import Any, Dict, List
 
 import fitz
 from fastapi import APIRouter, HTTPException, Body, Query, UploadFile, File, Form
@@ -297,185 +299,6 @@ async def get_apartment_info(
         print(f"Ошибка при обработке запроса: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-#
-# @router.get("/lid/data")
-# async def api_lid_data(jkName: str = Query(..., alias="jkName")):
-#     """
-#     Возвращает данные из таблицы Лид для заданного ЖК (лист).
-#     """
-#     if not jkName:
-#         raise HTTPException(status_code=400, detail="Параметр 'jkName' обязателен")
-#
-#     sheet_name = f"{jkName}"
-#     range_name = f"{sheet_name}!A2:E"
-#
-#     existing_sheets = get_all_sheet_names(SPREADSHEET_ID_LID_ID)
-#     if sheet_name not in existing_sheets:
-#         raise HTTPException(status_code=404, detail=f"Лист '{sheet_name}' не найден")
-#
-#     data = get_google_sheets_data(SPREADSHEET_ID_LID_ID, range_name)
-#     if isinstance(data, dict) and "error" in data:
-#         raise HTTPException(status_code=500, detail=data["error"])
-#
-#     return {"status": "success", "data": data}
-#
-#
-# @router.post("/lid/register")
-# async def register_client(data: Dict[str, Any] = Body(...)):
-#     """
-#     Регистрирует нового клиента (Лид) в Google Sheets и обновляет статус квартиры на "Бронь".
-#     """
-#     name = data.get('name')
-#     phone = data.get('phone')
-#     apartment_number = data.get('apartmentNumber')
-#     apartment_details = data.get('apartmentDetails')
-#     jk_name = data.get('jkName')
-#     block_name = data.get('block')
-#
-#     if not all([name, phone, apartment_number, apartment_details, jk_name, block_name]):
-#         raise HTTPException(
-#             status_code=400,
-#             detail="Все поля (name, phone, apartmentNumber, apartmentDetails, jkName, block) обязательны"
-#         )
-#
-#     sheet_name = f"{jk_name}"
-#     range_name = f"{sheet_name}!A2:E"
-#
-#     existing_sheets = get_all_sheet_names(SPREADSHEET_ID_LID_ID)
-#     if sheet_name not in existing_sheets:
-#         raise HTTPException(status_code=404, detail=f"Лист '{sheet_name}' не найден")
-#
-#     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-#     new_row = [timestamp, name, phone, apartment_number, apartment_details]
-#
-#     append_result = append_to_google_sheet(SPREADSHEET_ID_LID_ID, range_name, [new_row])
-#     if "error" in append_result:
-#         raise HTTPException(status_code=500, detail=append_result["error"])
-#
-#     # Обновляем статус в шахматке на "Бронь"
-#     update_result = update_shaxmatka_status(jk_name, block_name, apartment_number, "Бронь")
-#     if "error" in update_result:
-#         raise HTTPException(status_code=500, detail=update_result["error"])
-#
-#     return {"status": "success", "message": "Бронь успешно зарегистрирована"}
-#
-#
-# @router.get("/last-contract-number")
-# async def get_last_contract_number(jkName: str = Query(..., alias="jkName")):
-#     """
-#     Возвращает следующий номер договора для указанного ЖК, основываясь на существующих данных в Google Sheets (реестр).
-#     """
-#     if not jkName:
-#         raise HTTPException(status_code=400, detail="Имя ЖК обязательно")
-#
-#     sheet_name = jkName
-#     range_name = f"{sheet_name}!A2:A"
-#
-#     result = read_from_google_sheet(SPREADSHEET_ID_REESTR_ID, range_name)
-#     if not result:
-#         # Если данных нет, начинаем с 1
-#         return {"status": "success", "lastContractNumber": 1}
-#
-#     contract_numbers = [int(row[0]) for row in result if row and row[0].isdigit()]
-#     last_contract_number = max(contract_numbers) if contract_numbers else 0
-#
-#     return {"status": "success", "lastContractNumber": last_contract_number + 1}
-#
-#
-# @router.post("/reestr/register_or_update")
-# async def register_or_update_contract(data: Dict[str, Any] = Body(...)):
-#     """
-#     Создаёт или обновляет запись договора в реестре (Google Sheets) и при необходимости меняет статус квартиры на "Продана".
-#     """
-#     try:
-#         jk_name = data.get("jkName")
-#         block_name = data.get("block")
-#         apartment_number = data.get("apartmentNumber")
-#         contract_number = data.get("contractNumber")
-#
-#         if not all([jk_name, block_name, apartment_number, contract_number]):
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail="Все поля (jkName, block, apartmentNumber, contractNumber) обязательны."
-#             )
-#
-#         sheet_name = jk_name
-#         range_name = f"{sheet_name}!A2:R"
-#
-#         existing_sheets = get_all_sheet_names(SPREADSHEET_ID_REESTR_ID)
-#         if sheet_name not in existing_sheets:
-#             raise HTTPException(status_code=404, detail=f"Лист '{sheet_name}' не найден.")
-#
-#         contract_data = [
-#             data.get("contractNumber"),
-#             data.get("contractDate"),
-#             data.get("block"),
-#             data.get("floor"),
-#             data.get("apartmentNumber"),
-#             data.get("rooms"),
-#             data.get("size"),
-#             data.get("totalPrice"),
-#             data.get("pricePerM2"),
-#             data.get("paymentChoice"),
-#             data.get("initialPayment"),
-#             data.get("fullName"),
-#             data.get("passportSeries"),
-#             data.get("pinfl"),
-#             data.get("issuedBy"),
-#             data.get("registrationAddress"),
-#             data.get("phone"),
-#             data.get("salesDepartment")
-#         ]
-#
-#         # Проверяем, что все поля заполнены
-#         if not all(contract_data):
-#             raise HTTPException(status_code=400, detail="Все поля обязательны для заполнения.")
-#
-#         # Читаем существующие данные реестра
-#         existing_data = read_from_google_sheet(SPREADSHEET_ID_REESTR_ID, range_name)
-#         row_index = None
-#         for i, row in enumerate(existing_data or []):
-#             # Сравниваем номер договора (первый столбец)
-#             if len(row) > 0 and str(row[0]) == str(contract_number):
-#                 row_index = i + 2  # +2, учитывая заголовок
-#                 break
-#
-#         service = get_google_sheets_service()
-#
-#         # Если договор уже есть — обновляем
-#         if row_index:
-#             range_to_update = f"{sheet_name}!A{row_index}:R{row_index}"
-#             body = {"values": [contract_data]}
-#             service.spreadsheets().values().update(
-#                 spreadsheetId=SPREADSHEET_ID_REESTR_ID,
-#                 range=range_to_update,
-#                 valueInputOption="USER_ENTERED",
-#                 body=body
-#             ).execute()
-#             return {"status": "success", "message": f"Договор с номером {contract_number} успешно обновлен."}
-#
-#         # Иначе — добавляем новую запись
-#         body = {"values": [contract_data]}
-#         service.spreadsheets().values().append(
-#             spreadsheetId=SPREADSHEET_ID_REESTR_ID,
-#             range=f"{sheet_name}!A1",
-#             valueInputOption="USER_ENTERED",
-#             insertDataOption="INSERT_ROWS",
-#             body=body
-#         ).execute()
-#
-#         # Меняем статус квартиры на "Продана"
-#         update_result = update_shaxmatka_status(jk_name, block_name, apartment_number, "Продана")
-#         if "error" in update_result:
-#             raise HTTPException(status_code=500, detail=update_result["error"])
-#
-#         return {"status": "success", "message": "Договор успешно создан."}
-#
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         print(f"Ошибка при обработке договора: {e}")
-#         raise HTTPException(status_code=500, detail=str(e))
 
 
 STATIC_DIR = "static"
@@ -553,3 +376,65 @@ async def add_excel_files_api(
         raise HTTPException(status_code=500, detail="Ошибка при сохранении метаданных")
 
     return {"message": "Файл загружен успешно", "file": metadata_entry}
+
+
+BASE_DIR = Path(__file__).parent.parent.parent.parent / "static" / "Жилые_Комплексы"
+print(BASE_DIR)
+
+
+
+
+@router.post("/add-complex")
+async def add_complex(
+        name: str = Form(...),
+        jk_file: UploadFile = File(...),
+        price_file: UploadFile = File(...),
+        template_file: UploadFile = File(...)
+):
+    print(name)
+    # 1. Валидация названия
+    if not re.match(r"^ЖК_.+", name):
+        raise HTTPException(400, detail='Название ЖК должно быть в формате "ЖК_Название"')
+
+    # 2. Создаём папку комплекса
+    complex_dir = BASE_DIR / name
+    try:
+        complex_dir.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        raise HTTPException(500, detail="Не удалось создать папку для ЖК")
+
+    # 3. Словарь «загруженный объект → нужное имя»
+    rename_map = {
+        jk_file: "jk_data.xlsx",
+        price_file: "price_shaxamtka.xlsx",
+        template_file: "contract_template.docx"
+    }
+
+    saved = []
+    for upload, new_name in rename_map.items():
+        # Проверка расширений
+        ext = Path(upload.filename).suffix.lower()
+        if new_name.endswith(".xlsx") and ext not in (".xlsx", ".xls", ".csv"):
+            raise HTTPException(400, detail=f"Формат не подходит для {new_name}")
+        if new_name.endswith(".docx") and ext not in (".docx", ".doc"):
+            raise HTTPException(400, detail=f"Формат не подходит для {new_name}")
+
+        dest = complex_dir / new_name
+        try:
+            with dest.open("wb") as buf:
+                shutil.copyfileobj(upload.file, buf)
+        except Exception:
+            raise HTTPException(500, detail=f"Не удалось сохранить файл {new_name}")
+
+        saved.append({"filename": new_name, "size": dest.stat().st_size})
+
+    return {
+        "message": "ЖК успешно добавлен",
+        "complex_name": name,
+        "saved_files": saved
+    }
+
+
+
+
+

@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="/static/register-employer-style.css">
     <link rel="stylesheet" href="/static/add-lead-style.css">
     <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link rel="stylesheet" href="/static/sales_style/complex.css">
+
 
     <style>
     body {
@@ -84,7 +86,14 @@
             
         </div>
 
-        <h2 class="section-title">Выбранные опции</h2>
+        <h2 class="section-title">
+            Выбранные опции
+            <button type="button" class="attach-apartment-button" 
+                    onclick="openAttachModal()" 
+                    style="margin-left: 20px; padding: 8px 12px; font-size: 14px;">
+              Выбрать квартиру
+            </button>
+        </h2>
         <div class="option-grid">
             <div class="option-item">
                 <span class="label">Метров²</span>
@@ -162,8 +171,33 @@
     </div>
     </form>
     
-
+    <div id="attachModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2 class="client-header">Закрепить квартиру к лиду</h2>
+      <input type="hidden" id="attach-lead-id">
+  
+      <!-- Шаг 1: выбор ЖК -->
+      <div class="form-group">
+        <label for="attach-jk-select">Выберите ЖК:</label>
+        <select id="attach-jk-select" class="contract-input">
+          <option value="">Загрузка...</option>
+        </select>
+      </div>
+  
+      <!-- Шаг 2: выбор блока -->
+      <div id="attach-blocks" class="blocks-container" style="margin-top:1rem;"></div>
+  
+      <!-- Шаг 3: шахматка квартир -->
+      <div id="attach-apartments" class="apartment-grid" style="margin-top:1rem;"></div>
+  
+      <div class="container-button" style="margin-top:1.5rem; display:flex; gap:8px;">
+        <button type="button" class="btn" onclick="closeAttachModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
     <script src="/static/add-lead-scripts.js"></script>
+    <script src="/static/search-lead-scripts.js"></script>
+    <script src="/static/sales_style/complex_add_lead.js"></script>
     <script>
          // Список всех регионов Узбекистана
     const regions = [
@@ -183,9 +217,10 @@
         option.textContent = region;
         regionSelect.appendChild(option);
     });
-    </script>
-    <script src="/static/search-lead-scripts.js">
 
-</script>
+    
+    </script>
+    
+    
 </body>
 </html>

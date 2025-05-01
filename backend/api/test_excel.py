@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime
 from io import BytesIO
-from typing import Union, Optional, Dict, List
-from docx import Document
+from typing import Union, Dict, List, Any
 from dateutil.relativedelta import relativedelta
 from docxtpl import DocxTemplate
 from fastapi import APIRouter, HTTPException, Body, Query
+from fastapi import Form, UploadFile, File
+import shutil
 from num2words import num2words
 from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
@@ -714,6 +715,102 @@ async def list_complex_files(jkName: str):
         raise HTTPException(status_code=500, detail=f"Ошибка при чтении файлов ЖК: {e}")
 
 
+# --- Новый эндпоинт: Получить price_shaxamtka.xlsx как JSON ---
+@router.get("/complexes/{jkName}/price", summary="Get price data for a given residential complex")
+async def get_price(jkName: str):
+    """
+    Возвращает содержимое файла price_shaxamtka.xlsx в папке ЖК в виде JSON:
+    {
+      "headers": [...],
+      "rows": [{header1: value1, ...}, ...]
+    }
+    """
+    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
+    file_path = os.path.join(jk_dir, "price_shaxamtka.xlsx")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail=f"Price file not found for '{jkName}'")
+    # Load workbook
+    wb = load_workbook(file_path, data_only=True)
+    ws = wb.active
+    # Read header row
+    headers = [cell.value for cell in ws[1]]
+    # Read data rows
+    rows = []
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        row_dict = {headers[i]: row[i] for i in range(len(headers))}
+        rows.append(row_dict)
+    return {"headers": headers, "rows": rows}
+
+
+@router.put("/complexes/{jkName}/price", summary="Update price data for a given residential complex")
+async def update_price(
+        jkName: str,
+        data: Dict[str, Any] = Body(...,
+                                    description="JSON с ключами 'headers' (list) и 'rows' (list of dict)")
+):
+    headers = data.get("headers")
+    rows = data.get("rows")
+
+    # Validation
+    if not headers or not rows:
+        raise HTTPException(status_code=400, detail="Headers and rows must be provided")
+
+    # Определяем директорию комплекса и путь к файлу
+    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
+    file_path = os.path.join(jk_dir, "price_shaxamtka.xlsx")
+
+    if not os.path.isdir(jk_dir):
+        raise HTTPException(status_code=404, detail=f"Residential complex '{jkName}' not found")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail=f"Price file not found for '{jkName}'")
+
+    try:
+        # Загружаем Excel файл
+        wb = load_workbook(file_path)
+        ws = wb.active
+
+        # Читаем заголовки из Excel
+        excel_headers = [cell.value for cell in ws[1]]
+
+        # Создаем маппинг заголовок -> индекс колонки (1-based)
+        col_map = {str(h): i + 1 for i, h in enumerate(excel_headers)}
+
+        # Находим индекс колонки "Этаж" (обычно первая колонка)
+        floor_col_idx = None
+        for i, header in enumerate(excel_headers):
+            if isinstance(header, str) and "этаж" in header.lower():
+                floor_col_idx = i + 1
+                break
+
+        if floor_col_idx is None:
+            # Если колонка "Этаж" не найдена, предполагаем что это первая колонка
+            floor_col_idx = 1
+
+        # Обновляем данные в Excel
+        for row_idx, row_data in enumerate(rows, start=2):  # Excel rows are 1-indexed, header is row 1
+            for header, value in row_data.items():
+                col_idx = col_map.get(str(header))
+
+                # Пропускаем колонку "Этаж"
+                if col_idx is not None and col_idx != floor_col_idx:
+                    # Конвертируем значение в число если это цена
+                    if isinstance(value, (int, float)) or (isinstance(value, str) and value.isdigit()):
+                        value = int(value)  # Убеждаемся что это целое число
+
+                    # Обновляем ячейку
+                    ws.cell(row=row_idx, column=col_idx, value=value)
+
+        # Сохраняем изменения
+        wb.save(file_path)
+
+        return {"status": "success", "message": f"Price file updated for '{jkName}'"}
+
+    except Exception as e:
+        # Логируем ошибку для отладки
+        print(f"Error updating price file: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating price file: {str(e)}")
+
+
 class ChessUpdate(BaseModel):
     apt: str
     status: str
@@ -745,7 +842,6 @@ async def get_chess(jkName: str):
         grid.append(row_obj)
 
     return {"grid": grid}
-
 
 
 @router.put("/complexes/chess", summary="Update chess grid statuses")
@@ -783,3 +879,39 @@ async def update_chess(data: ChessUpdates):
         raise HTTPException(status_code=404, detail={"not_updated": not_found})
 
     return {"detail": "Все статусы успешно сохранены"}
+
+
+# --- Новый эндпоинт для замены файла в папке ЖК ---
+@router.post("/replace-file", summary="Replace a file in a given residential complex")
+async def replace_file(
+        name: str = Form(..., description="Название жилого комплекса (jkName)"),
+        category: str = Form(..., description="Категория файла: 'jk_data', 'price', 'template'"),
+        file: UploadFile = File(..., description="Загружаемый файл")
+):
+    """
+    Загружает новый файл и заменяет существующий в папке ЖК.
+    """
+    # Определяем директорию комплекса
+    complex_dir = os.path.join(BASE_STATIC_PATH, name)
+    if not os.path.isdir(complex_dir):
+        raise HTTPException(status_code=404, detail=f"ЖК '{name}' не найден")
+
+    # Определяем имя файла на сервере по категории
+    filename_map = {
+        "jk_data": "jk_data.xlsx",
+        "price": "price_shaxamtka.xlsx",
+        "template": "contract_template.docx"
+    }
+    target_filename = filename_map.get(category)
+    if not target_filename:
+        raise HTTPException(status_code=400, detail=f"Неизвестная категория файла: {category}")
+
+    target_path = os.path.join(complex_dir, target_filename)
+    # Сохраняем загруженный файл, перезаписывая существующий
+    try:
+        with open(target_path, "wb") as out_file:
+            shutil.copyfileobj(file.file, out_file)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка при сохранении файла: {e}")
+
+    return {"status": "success", "message": f"Файл '{target_filename}' заменён в ЖК '{name}'"}

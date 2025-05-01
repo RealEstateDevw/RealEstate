@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/static/exact-lead-stylr.css">
     <link rel="stylesheet" href="/static/sales-dashboard-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sales_style/complex.css">
     <style>
         .notification {
             align-items: center;
@@ -30,84 +31,11 @@
         }
 
         body {
-            background: {
-                % if user and user.background_theme %
-            }
-
-            url('{{ user.background_theme }}') lightgray 50% / cover no-repeat {
-                % else %
-            }
-
-            #ffffff {
-                % endif %
-            }
-
-            ;
-            transition: background 0.5s ease;
-        }
-
-        .container-button {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .contract-input {
-            border-radius: 57px;
-            padding: 5px 10px;
-
-            width: 100%;
-        }
-
-        .modal {
-            overflow-y: auto;
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content {
-            background-color: #f5f5f7;
-            margin: 10% auto;
-            padding: 20px;
-            width: 70%;
-            max-width: 500px;
-            border-radius: 30px;
-            height: fit-content;
-            backdrop-filter: blur(25px);
-        }
-
-        .btn {
-            padding: 17px 20px;
-            border: none;
-            border-radius: 57px;
-            font-size: 16px;
-            cursor: pointer;
-            flex: 1 0 0;
-            background: white;
-
-        }
-
-        .btn.active {
-            background-color: #216BF4;
-        }
-
-        #contractForm {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-
-
-    body {
         background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
         transition: background 0.5s ease;
     }
+
+      
 
     </style>
 </head>
@@ -229,6 +157,12 @@
                     </button>
                 </div>
             </div>
+            <div class="attach-apartment-button">
+                <button type="button" onclick="openAttachModal({{ lead.id }})">
+                Закрепить квартиру к лиду
+              </button>
+            </div>
+
 
             <div class="actions">
                 <button class="action-button fix-client" type="button" data-lead-id="{{ lead.id }}">
@@ -334,6 +268,32 @@
             </div>
         </div>
     </div>
+
+    <!-- Attach Apartment Modal -->
+<div id="attachModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2 class="client-header">Закрепить квартиру к лиду</h2>
+      <input type="hidden" id="attach-lead-id">
+  
+      <!-- Шаг 1: выбор ЖК -->
+      <div class="form-group">
+        <label for="attach-jk-select">Выберите ЖК:</label>
+        <select id="attach-jk-select" class="contract-input">
+          <option value="">Загрузка...</option>
+        </select>
+      </div>
+  
+      <!-- Шаг 2: выбор блока -->
+      <div id="attach-blocks" class="blocks-container" style="margin-top:1rem;"></div>
+  
+      <!-- Шаг 3: шахматка квартир -->
+      <div id="attach-apartments" class="apartment-grid" style="margin-top:1rem;"></div>
+  
+      <div class="container-button" style="margin-top:1.5rem; display:flex; gap:8px;">
+        <button type="button" class="btn" onclick="closeAttachModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
     <script src="/static/exact-lead-scripts.js"></script>
     <script src="/static/search-lead-scripts.js"></script>
     <script src="/static/notification-sales.js"></script>
@@ -383,7 +343,7 @@
             }
         });
     </script>
-
+<script src="/static/sales_style/complex.js"></script>
 </body>
 
 </html>
