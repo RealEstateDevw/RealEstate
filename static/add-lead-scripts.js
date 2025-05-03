@@ -110,7 +110,6 @@ document.getElementById("employeeForm").addEventListener("submit", async functio
     const fieldsToValidate = [
         { id: 'fullName', message: 'Пожалуйста, укажите имя и фамилию.' },
         { id: 'phone', message: 'Введите телефон.' },
-        { id: 'regionSelect', message: 'Выберите регион.' },
 
     ];
 
@@ -121,6 +120,13 @@ document.getElementById("employeeForm").addEventListener("submit", async functio
             isValid = false;
         }
     });
+
+    // Validate region selection
+    const selectedRegionText = document.getElementById('selectedRegion').textContent;
+    if (selectedRegionText === 'Выберите регион') {
+        showError(document.getElementById('regionContainer'), 'Выберите регион.');
+        isValid = false;
+    }
 
     const selectedRole = document.getElementById('selectedRole').textContent;
     if (selectedRole === 'Выберите источник') {
@@ -136,7 +142,7 @@ monthly_payment = total_price * (1 + installment_markup / 100) / installment_per
     const leadData = {
         full_name: document.getElementById("fullName").value,
         phone: document.getElementById("phone").value,
-        region: document.getElementById("regionSelect").value,
+        region: document.getElementById('selectedRegion').textContent,
         contact_source: document.getElementById("selectedRole").textContent.trim(), // Источник лида
         status: "COLD",  // Выбор статуса
         state: "NEW",    // Выбор состояния
@@ -283,5 +289,3 @@ function showRoleError(message) {
         dropdownContainer.classList.remove('highlight-error');
     }, 2000);
 }
-
-

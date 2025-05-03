@@ -123,7 +123,21 @@ let userSelection = {};
           : status === 'продана'  ? 'sold'
           : 'booked'
         }`;
-        card.textContent = `№${r[4]}`;
+        // Compute display values
+        const sizeValue = r[5] || '-';
+        const priceValue = (status === 'свободна' && r.length > 7 && r[7])
+          ? Number(r[7]).toLocaleString('ru-RU') + ' сум'
+          : r[2];
+        // Build card inner HTML
+        card.innerHTML = `
+          <div class="apt-card-header">
+            <span>№${r[4] || '—'}</span>
+          </div>
+          <div class="apt-card-body">
+            <span class="apt-size">${sizeValue} м²</span> <br>
+            <span class="apt-price">${priceValue}</span>
+          </div>
+        `;
   
       if (status === 'свободна') {
         card.addEventListener('click', () => {
@@ -136,6 +150,18 @@ let userSelection = {};
   
       floorDiv.appendChild(row);
       container.appendChild(floorDiv);
+    });
+
+    // Equalize all apartment card widths to match the widest card
+    requestAnimationFrame(() => {
+      const cards = container.querySelectorAll('.apt-row .apt-card');
+      let maxWidth = 0;
+      cards.forEach(card => {
+        maxWidth = Math.max(maxWidth, card.offsetWidth);
+      });
+      cards.forEach(card => {
+        card.style.minWidth = maxWidth + 'px';
+      });
     });
   }
 
@@ -214,6 +240,10 @@ function showPaymentOptions(info) {
   fullPaymentBtn.textContent = '100% Оплата';
   fullPaymentBtn.className = 'payment-option-btn';
   fullPaymentBtn.addEventListener('click', () => {
+    // Remove any existing installment options
+    const existingPerc = buttonsContainer.querySelector('.installment-options');
+    if (existingPerc) existingPerc.remove();
+
     // вычисляем стоимость при полной оплате
     const sizeNum = parseFloat(String(userSelection.apartmentSize).replace(',', '.')) || 0;
     const fullPrice = pricePerM2_100 * sizeNum;
@@ -221,7 +251,7 @@ function showPaymentOptions(info) {
     userSelection.paymentType = 'full';
     userSelection.totalPrice = fullPrice;
     userSelection.pricePerM2 = pricePerM2_100;
-    updateInitialPayment(fullPrice);
+    // updateInitialPayment(fullPrice); // Removed as per instructions
     userSelection.termMonths = 0;
     resultContainer.innerHTML = `
       <p><strong>Стоимость (100%):</strong> ${fullPrice.toLocaleString('ru-RU')} сум</p>
@@ -323,7 +353,8 @@ function fillForm() {
     const amountValue = userSelection.paymentType === 'installment'
       ? userSelection.initialPayment
       : userSelection.totalPrice;
-    amountInput.value = amountValue.toLocaleString('ru-RU');
+    // Format number with comma as thousands separator
+    amountInput.value = amountValue.toLocaleString('en-US');
   }
   // Выбрать тип оплаты
   document.querySelectorAll('.payment-type .installment-button').forEach(btn => {

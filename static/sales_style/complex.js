@@ -1,7 +1,12 @@
+// Globals for apartment selection and payment
+let currentShax = [];
+let currentJkName = '';
+let currentBlock = '';
+let userSelection = {};
+
 
   // 1) Открыть модалку и загрузить список ЖК
-  async function openAttachModal(leadId) {
-    document.getElementById('attach-lead-id').value = leadId;
+  async function openAttachModal() {
     document.getElementById('attachModal').style.display = 'flex';
 
     // Сбросим предыдущие шаги
@@ -51,6 +56,8 @@
         const res = await fetch(`/api/complexes/jk/${encodeURIComponent(jkName)}`);
         const data = await res.json();
         const shax = data.shaxmatka || [];
+        currentShax = shax;
+        currentJkName = jkName;
 
         // Список блоков
         const unique = [...new Set(shax.map(r => r[0]))];
@@ -63,6 +70,7 @@
             blocksContainer.querySelectorAll('.block-button')
               .forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            currentBlock = block;
             renderApartments(shax, jkName, block);
           });
           blocksContainer.appendChild(btn);
@@ -115,13 +123,27 @@
           : status === 'продана'  ? 'sold'
           : 'booked'
         }`;
-        card.textContent = `№${r[4]}`;
+        // Compute display values
+        const sizeValue = r[5] || '-';
+        const priceValue = (status === 'свободна' && r.length > 7 && r[7])
+          ? Number(r[7]).toLocaleString('ru-RU') + ' сум'
+          : r[2];
+        // Build card inner HTML
+        card.innerHTML = `
+          <div class="apt-card-header">
+            <span>№${r[4] || '—'}</span>
+          </div>
+          <div class="apt-card-body">
+            <span class="apt-size">${sizeValue} м²</span> <br>
+            <span class="apt-price">${priceValue}</span>
+          </div>
+        `;
   
-        if (status === 'свободна') {
-          card.addEventListener('click', () => {
-            attachApartment(jkName, block, r[6], r[4]);
-          });
-        }
+      if (status === 'свободна') {
+        card.addEventListener('click', () => {
+          fetchAndShowPaymentOptions(r);
+        });
+      }
   
         row.appendChild(card);
       });
@@ -129,19 +151,223 @@
       floorDiv.appendChild(row);
       container.appendChild(floorDiv);
     });
+
+    // Equalize all apartment card widths to match the widest card
+    requestAnimationFrame(() => {
+      const cards = container.querySelectorAll('.apt-row .apt-card');
+      let maxWidth = 0;
+      cards.forEach(card => {
+        maxWidth = Math.max(maxWidth, card.offsetWidth);
+      });
+      cards.forEach(card => {
+        card.style.minWidth = maxWidth + 'px';
+      });
+    });
   }
 
+
+/**
+ * Загружает данные квартиры с сервера и вызывает showPaymentOptions.
+ * @param {Array} r - исходная запись шахматки.
+ */
+async function fetchAndShowPaymentOptions(r) {
+  try {
+    const params = new URLSearchParams({
+      jkName: currentJkName,
+      blockName: currentBlock,
+      apartmentSize: r[5],
+      floor: r[6],
+      apartmentNumber: r[4]
+    });
+    console.log({
+      jkName: currentJkName,
+      blockName: currentBlock,
+      apartmentSize: r[5],
+      floor: r[6],
+      apartmentNumber: r[4]
+    });
+    const res = await fetch(`/api/complexes/apartment-info?${params.toString()}`);
+    if (!res.ok) throw new Error('Ошибка загрузки данных квартиры');
+    const json = await res.json();
+    if (json.status !== 'success') {
+      throw new Error(json.detail || 'Некорректный ответ сервера');
+    }
+    const info = json.data;
+    // Добавляем недостающие поля из r
+    info.roomsCount = 1;
+    showPaymentOptions(info);
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+/**
+ * Отображает выбор способа оплаты для выбранной квартиры,
+ * затем на «Выбрать» заполняет основную форму и закрывает модалку.
+ * @param {Object} info - объект с данными квартиры, где:
+ *   info.floor, info.apartment_number, info.size, info.roomsCount,
+ *   info.pricePerM2_100, info.pricePerM2_70, info.pricePerM2_50, info.pricePerM2_30,
+ *   info.total_price, info.months_left
+ */
+function showPaymentOptions(info) {
+  const container = document.getElementById('attach-apartments');
+  container.innerHTML = '';
+
+  const pricePerM2_100 = info.pricePerM2_100;
+  const pricePerM2_70 = info.pricePerM2_70;
+  const pricePerM2_50 = info.pricePerM2_50;
+  const pricePerM2_30 = info.pricePerM2_30;
+  const total_price = info.total_price;
+  const months_left = info.months_left;
+
+  // Сохраняем базовые данные выбора
+  userSelection.jkName = currentJkName;
+  userSelection.block = currentBlock;
+  userSelection.floor = info.floor;
+  userSelection.number = info.apartment_number;
+  userSelection.apartmentSize = info.size;
+  userSelection.roomsCount = info.roomsCount;
+
+  // Контейнеры для кнопок и результата
+  const buttonsContainer = document.createElement('div');
+  buttonsContainer.className = 'buttons-container';
+  const resultContainer = document.createElement('div');
+  resultContainer.className = 'result-container';
+  resultContainer.style.margin = '10px 0';
+
+  // 1) Кнопка 100% Оплата
+  const fullPaymentBtn = document.createElement('button');
+  fullPaymentBtn.textContent = '100% Оплата';
+  fullPaymentBtn.className = 'payment-option-btn';
+  fullPaymentBtn.addEventListener('click', () => {
+    // Remove any existing installment options
+    const existingPerc = buttonsContainer.querySelector('.installment-options');
+    if (existingPerc) existingPerc.remove();
+
+    // вычисляем стоимость при полной оплате
+    const sizeNum = parseFloat(String(userSelection.apartmentSize).replace(',', '.')) || 0;
+    const fullPrice = pricePerM2_100 * sizeNum;
+    const economy = total_price - fullPrice;
+    userSelection.paymentType = 'full';
+    userSelection.totalPrice = fullPrice;
+    userSelection.pricePerM2 = pricePerM2_100;
+    // updateInitialPayment(fullPrice); // Removed as per instructions
+    userSelection.termMonths = 0;
+    resultContainer.innerHTML = `
+      <p><strong>Стоимость (100%):</strong> ${fullPrice.toLocaleString('ru-RU')} сум</p>
+      ${economy > 0 ? `<p><strong>Экономия:</strong> ${economy.toLocaleString('ru-RU')} сум</p>` : ''}
+    `;
+    document.querySelectorAll('.payment-option-btn').forEach(b => b.classList.remove('active'));
+    fullPaymentBtn.classList.add('active');
+  });
+  buttonsContainer.appendChild(fullPaymentBtn);
+
+  // 2) Кнопка Рассрочка (открывает выбор процента)
+  const installmentBtn = document.createElement('button');
+  installmentBtn.textContent = 'Рассрочка';
+  installmentBtn.className = 'payment-option-btn';
+  installmentBtn.addEventListener('click', () => {
+    resultContainer.innerHTML = ''; // очищаем предыдущее
+    const percContainer = document.createElement('div');
+    percContainer.className = 'installment-options';
+    percContainer.style.display = 'flex';
+    percContainer.style.gap = '5px';
+    percContainer.style.marginBottom = '10px';
+
+    [70, 50, 30].forEach(percent => {
+      const pctBtn = document.createElement('button');
+      pctBtn.textContent = `${percent}%`;
+      pctBtn.className = 'installment-percent-btn';
+      pctBtn.addEventListener('click', () => {
+        // расчет при выбранном проценте
+        const sizeNum = parseFloat(String(userSelection.apartmentSize).replace(',', '.')) || 0;
+        let priceM2 = pricePerM2_30; // по умолчанию
+        if (percent === 70) priceM2 = pricePerM2_70;
+        if (percent === 50) priceM2 = pricePerM2_50;
+        const totalR = priceM2 * sizeNum;
+        const initial = totalR * (percent / 100);
+        const remaining = totalR - initial;
+        const months = userSelection.termMonths || months_left || 1;
+        const monthly = remaining / months;
+        const econ = total_price - totalR;
+
+        userSelection.paymentType = 'installment';
+        userSelection.pricePerM2 = priceM2;
+        userSelection.totalPrice = totalR;
+        userSelection.initialPayment = initial;
+        userSelection.termMonths = months_left;
+        resultContainer.innerHTML = `
+          <p><strong>Рассрочка (${percent}%):</strong></p>
+          <p>Стоимость: ${totalR.toLocaleString('ru-RU')} сум</p>
+          <p>Первый взнос: ${initial.toLocaleString('ru-RU')} сум</p>
+          <p>Ежемесячно (${months} мес.): ${Math.round(monthly).toLocaleString('ru-RU')} сум</p>
+          ${econ > 0 ? `<p><strong>Экономия:</strong> ${econ.toLocaleString('ru-RU')} сум</p>` : ''}
+        `;
+        document.querySelectorAll('.installment-percent-btn').forEach(b => b.classList.remove('active'));
+        pctBtn.classList.add('active');
+      });
+      percContainer.appendChild(pctBtn);
+    });
+
+    buttonsContainer.appendChild(percContainer);
+    document.querySelectorAll('.payment-option-btn').forEach(b => b.classList.remove('active'));
+    installmentBtn.classList.add('active');
+  });
+  buttonsContainer.appendChild(installmentBtn);
+
+  // 3) Контрольные кнопки «Назад» и «Выбрать»
+  const control = document.createElement('div');
+  control.className = 'control-buttons';
+  const backBtn = document.createElement('button');
+  backBtn.textContent = 'Назад';
+  backBtn.addEventListener('click', () => renderApartments(currentShax, currentJkName, currentBlock));
+  const chooseBtn = document.createElement('button');
+  chooseBtn.textContent = 'Выбрать';
+  chooseBtn.addEventListener('click', async () => {
+    try {
+      await attachApartment(
+        userSelection.jkName,
+        userSelection.block,
+        userSelection.floor,
+        userSelection.number
+      );
+      // Page will reload on successful attachApartment call
+    } catch (e) {
+      alert('Ошибка: не удалось закрепить квартиру.');
+    }
+  });
+  control.appendChild(backBtn);
+  control.appendChild(chooseBtn);
+
+  // Добавляем все в контейнер
+  container.appendChild(buttonsContainer);
+  container.appendChild(resultContainer);
+  container.appendChild(control);
+}
+
+
+
+
   // 5) Отправить запрос на привязку к лиду
-  async function attachApartment(jkName, block, floor, number) {
+  async function attachApartment() {
     const leadId = document.getElementById('attach-lead-id').value;
     try {
       const res = await fetch(`/api/leads/${leadId}/attach-apartment`, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ jkName, block, floor, number })
+        body: JSON.stringify({
+            square_meters: userSelection.apartmentSize,
+            rooms: userSelection.roomsCount,
+            floor: userSelection.floor,
+            total_price: userSelection.initialPayment,
+            currency: userSelection.currency || 'UZS',
+            payment_type: userSelection.paymentType === 'full' ? 'Единовременно' : 'Рассрочка',
+            monthly_payment: userSelection.pricePerM2 || null,
+            installment_period: userSelection.termMonths || null,
+          })
       });
       if (!res.ok) throw new Error();
-      alert(`Квартира №${number} закреплена к лиду.`);
+      alert(`Квартира №${userSelection.number} закреплена к лиду.`);
       closeAttachModal();
       location.reload(); // или обновите только часть UI
     } catch (e) {

@@ -115,14 +115,41 @@ e.preventDefault();
         });
 
         if (!response.ok) {
-            throw new Error('Ошибка при добавлении пользователя');
+            // Parse error details from API response
+            let errorMessage = 'Неизвестная ошибка';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.details || errorData.detail || errorData.message || JSON.stringify(errorData);
+            } catch (_) {
+                // ignore JSON parse errors
+            }
+            throw new Error(errorMessage);
         }
 
         const result = await response.json();
-        alert('Пользователь успешно добавлен: ' + result.first_name + ' ' + result.last_name);
+        // Display success message at top of form
+        const form = document.getElementById('employeeForm');
+        // Remove any previous form-level messages
+        form.querySelectorAll('.form-error, .form-success').forEach(el => el.remove());
+        const successMessage = document.createElement('div');
+        successMessage.classList.add('form-success');
+        successMessage.textContent = 'Пользователь успешно добавлен: ' + result.first_name + ' ' + result.last_name;
+        form.prepend(successMessage);
+
+        // Redirect to admin dashboard after a short delay
+        setTimeout(() => {
+            window.location.href = '/dashboard/admin';
+        }, 1500);
     } catch (error) {
         console.error('Ошибка:', error);
-        alert('Произошла ошибка при добавлении пользователя');
+        // Display error message at top of form
+        const form = document.getElementById('employeeForm');
+        // Remove any previous form-level errors
+        form.querySelectorAll('.form-error').forEach(el => el.remove());
+        const formError = document.createElement('div');
+        formError.classList.add('form-error');
+        formError.textContent = error.message;
+        form.prepend(formError);
     }
 });
 
@@ -134,7 +161,7 @@ function showError(input, message) {
     input.parentNode.appendChild(error);
 }
 
-function showRoleError(message) {
+function showRoleError() {
     const dropdownContainer = document.getElementById('dropdownContainer');
 
     // Убираем старые ошибки, если они есть

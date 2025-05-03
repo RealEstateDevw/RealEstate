@@ -35,7 +35,18 @@
         transition: background 0.5s ease;
     }
 
-      
+    .apt-card.available {
+  background-color: #e6ffed; /* light green */
+  border: 1px solid #28a745; /* green border */
+}
+.apt-card.sold {
+  background-color: #ffe6e6; /* light red */
+  border: 1px solid #dc3545; /* red border */
+}
+.apt-card.booked {
+  background-color: #fff4e5; /* light orange */
+  border: 1px solid #ffc107; /* orange border */
+}
 
     </style>
 </head>
@@ -58,16 +69,16 @@
 
             <div class="info-grid">
                 <div class="info-box-tag">
-                    <span class="tag"> {{ lead.contact_source}} Target</span>
+                    <span class="tag input_info_lead"> {{ lead.contact_source}} Target</span>
                 </div>
                 <div class="info-box-tag">
-                    <span>{{ lead.region}}</span>
+                    <span class="input_info_lead">{{ lead.region}}</span>
                 </div>
                 <div class="info-box-tag">
-                    <span>{{ lead.phone}}</span>
+                    <span class="input_info_lead">{{ lead.phone}}</span>
                 </div>
                 <div class="info-box-tag">
-                    <span>{{ lead.created_at.strftime('%d.%m.%Y') }}</span>
+                    <span class="input_info_lead">{{ lead.created_at.strftime('%d.%m.%Y') }}</span>
                 </div>
             </div>
 
@@ -273,7 +284,7 @@
 <div id="attachModal" class="modal" style="display:none;">
     <div class="modal-content">
       <h2 class="client-header">Закрепить квартиру к лиду</h2>
-      <input type="hidden" id="attach-lead-id">
+      <input type="hidden" id="attach-lead-id" value="{{lead.id}}">
   
       <!-- Шаг 1: выбор ЖК -->
       <div class="form-group">

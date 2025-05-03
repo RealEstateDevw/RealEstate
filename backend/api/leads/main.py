@@ -1,7 +1,7 @@
 import shutil
 from datetime import datetime
 
-from fastapi import APIRouter, Query, Depends, HTTPException, Form, UploadFile, File
+from fastapi import APIRouter, Query, Depends, HTTPException, Body, Form, UploadFile, File
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from starlette import status
@@ -259,6 +259,33 @@ async def schedule_callback(lead_id: int, callback: CallbackRequest, db: Session
     db.add(new_callback)
     db.commit()
     return {"message": "Callback scheduled"}
+
+
+# Attach apartment details to a lead
+@router.post("/{lead_id}/attach-apartment", response_model=LeadInDB)
+async def attach_apartment(
+    lead_id: int,
+    apartment: dict = Body(..., description="Apartment details to attach to lead"),
+    db: Session = Depends(get_db)
+):
+    """
+    Attach apartment details to lead. Expects JSON with keys:
+      square_meters, rooms, floor, total_price, currency,
+      payment_type, monthly_payment, installment_period, installment_markup
+    """
+    db_lead = lead_crud.get_lead(db, lead_id)
+    if not db_lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    # Update specified fields on the lead
+    for field in [
+        "square_meters", "rooms", "floor", "total_price", "currency",
+        "payment_type", "monthly_payment", "installment_period"
+    ]:
+        if field in apartment:
+            setattr(db_lead, field, apartment[field])
+    db.commit()
+    db.refresh(db_lead)
+    return db_lead
 
 
 @router.post("/import")

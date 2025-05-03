@@ -391,7 +391,7 @@ ul#dropdownList {
     padding: 10px 15px;
     display: flex;
     align-items: center;
-    font-size: 24px;
+    /* font-size: 24px; */
     cursor: pointer;
     min-height: 45px;
     color: #333;
@@ -519,9 +519,10 @@ border-radius: 57px;
     font-size: 16px;
     min-width: 100px;
 }
-.password-input::selection{
-    border: none;
+input:focus{
+    outline: none;
 }
+
 .button-row, .button-row-lead{
     display: flex;
 align-items: center;
@@ -606,3 +607,25 @@ overflow: hidden;
     height: 0;
 }
 
+/* Сообщения об ошибке */
+.form-error {
+    color: #b71c1c;
+    background-color: #ffebee;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Сообщения об успешном действии */
+.form-success {
+    color: #1b5e20;
+    background-color: #e8f5e9;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Подсветка полей с ошибкой */
+.input-error {
+    border: 1px solid #b71c1c;
+}
