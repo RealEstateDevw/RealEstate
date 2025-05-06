@@ -145,8 +145,8 @@
       <hr class="divider">
       <div class="price-subtitle">Стоимость 1м²</div>
       <div class="price-value">
-        <input type="text" id="pricePerM2Input" class="price-input" 
-               value='{{ "{:,.0f}".format(lead.square_meters_price) }}' />
+        <input type="text" id="pricePerM2Input" class="price-input"
+               value="{% if lead.square_meters_price %}{{ '{:,.0f}'.format(lead.square_meters_price) }}{% else %}0{% endif %}" />
         <span>сум/м²</span>
       </div>
       <input type="hidden" id="downPayment" value="{{ lead.down_payment or 0 }}">
@@ -240,7 +240,7 @@
                     </svg>
                     <div>Бронирование</div>
                 </button>
-                <button id="contractButton" class="action-button" type="button">
+            <button id="contractButton" class="action-button" type="button">
               <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
                 <path opacity="0.5"
                       d="M6 20C6 12.4575 6 8.6863 8.34314 6.34314C10.6863 4 14.4575 4 22 4H26C33.5424 4 37.3138 4 39.6568 6.34314C42 8.6863 42 12.4575 42 20V28C42 35.5424 42 39.3138 39.6568 41.6568C37.3138 44 33.5424 44 26 44H22C14.4575 44 10.6863 44 8.34314 41.6568C6 39.3138 6 35.5424 6 28V20Z"
@@ -256,6 +256,10 @@
                       fill="#216BF4" />
               </svg>
               <div>Заключение договора</div>
+            </button>
+            <button id="deleteLeadButton" class="action-button delete-button" type="button">
+                <i class="fas fa-trash-alt"></i>
+              <div>Удалить лида</div>
             </button>
             </div>
         </div>
@@ -328,6 +332,17 @@
             <div class="modal-actions">
               <button class="btn cancel" onclick="closeUnbookingModal()">Отменить</button>
               <button class="btn confirm" id="confirmUnbookingButton">Снять бронь</button>
+            </div>
+          </div>
+        </div>
+        <div id="deleteModal" class="modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-sure">
+              <h2 class="modal-title">Удалить лида "{{ lead.full_name }}"?</h2>
+            </div>
+            <div class="modal-actions">
+              <button class="btn cancel" onclick="closeDeleteModal()">Отменить</button>
+              <button class="btn danger" id="confirmDeleteButton">Да</button>
             </div>
           </div>
         </div>
@@ -770,4 +785,27 @@ document.addEventListener('DOMContentLoaded', async function() {
   </script>
 </body>
 
+<script>
+function closeDeleteModal() {
+  document.getElementById('deleteModal').style.display = 'none';
+}
+
+document.getElementById('deleteLeadButton').addEventListener('click', function() {
+  document.getElementById('deleteModal').style.display = 'block';
+});
+
+document.getElementById('confirmDeleteButton').addEventListener('click', async function() {
+  const leadId = document.getElementById('leadId').value;
+  try {
+    const response = await fetch(`/api/leads/${leadId}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Ошибка удаления лида');
+    // Store notification for main page
+    sessionStorage.setItem('notificationMessage', 'Лид успешно удалён');
+    sessionStorage.setItem('notificationType', 'success');
+    window.location.href = '/dashboard/sales';
+  } catch (error) {
+    showNotification(error.message, 'error');
+  }
+});
+</script>
 </html>

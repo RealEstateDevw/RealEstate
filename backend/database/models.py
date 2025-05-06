@@ -128,11 +128,11 @@ class Lead(Base):
     next_contact_date = Column(DateTime, nullable=True)
 
     messages = relationship("ChatMessage", back_populates="lead", cascade="all, delete-orphan")
-    comments = relationship("Comment", back_populates="lead")
-    payments = relationship("Payment", back_populates="lead")
-    transactions = relationship("Transaction", back_populates="lead")
-    installment_payments = relationship("InstallmentPayment", back_populates="lead")
-    contracts = relationship("Contract", backref="lead")
+    comments = relationship("Comment", back_populates="lead", cascade="all, delete-orphan")
+    payments = relationship("Payment", back_populates="lead", cascade="all, delete-orphan")
+    transactions = relationship("Transaction", back_populates="lead", cascade="all, delete-orphan")
+    installment_payments = relationship("InstallmentPayment", back_populates="lead", cascade="all, delete-orphan")
+    contracts = relationship("Contract", back_populates="lead", cascade="all, delete-orphan")
     callbacks = relationship("Callback", back_populates="lead", cascade="all, delete-orphan")
 
     def __repr__(self):
@@ -210,7 +210,7 @@ class Payment(Base):
 
     # Relations
     lead = relationship("Lead", back_populates="payments")
-    transactions = relationship("Transaction", back_populates="payment")
+    transactions = relationship("Transaction", back_populates="payment", cascade="all, delete-orphan")
 
 
 class Transaction(Base):
@@ -308,6 +308,8 @@ class Contract(Base):
     terms = Column(String, nullable=False)
     status = Column(String, nullable=False, default="Ожидает подтверждения")
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    lead = relationship("Lead", back_populates="contracts")
 
 
 class PriceHistory(Base):
