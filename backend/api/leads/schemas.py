@@ -29,6 +29,12 @@ class LeadBase(BaseModel):
     square_meters: Optional[float] = None
     rooms: Optional[int] = None
     floor: Optional[int] = None
+    complex_name: Optional[str] = None
+    number_apartments: Optional[int] = None
+    down_payment_percent: Optional[str] = None
+    down_payment: Optional[float] = None
+    square_meters_price: Optional[float] = None
+    block: Optional[str] = None
     total_price: float = Field(..., gt=0)
     currency: str = "UZS"
     payment_type: str
@@ -44,7 +50,8 @@ class LeadBase(BaseModel):
 
 
 class LeadCreate(LeadBase):
-    user_id: Optional[int] = Field(None, description="ID пользователя (продавца), если лид создается вручную. Если null/не указан, будет назначен случайный продавец.")
+    user_id: Optional[int] = Field(None,
+                                   description="ID пользователя (продавца), если лид создается вручную. Если null/не указан, будет назначен случайный продавец.")
 
 
 class LeadUpdate(BaseModel):
@@ -57,6 +64,12 @@ class LeadUpdate(BaseModel):
     square_meters: Optional[float] = None
     rooms: Optional[int] = None
     floor: Optional[int] = None
+    complex_name: Optional[str] = None
+    number_apartments: Optional[int] = None
+    block: Optional[str] = None
+    down_payment: Optional[float] = None
+    down_payment_percent: Optional[str] = None
+    square_meters_price: Optional[float] = None
     total_price: Optional[float] = Field(None, gt=0)
     currency: Optional[str] = None
     payment_type: Optional[str] = None

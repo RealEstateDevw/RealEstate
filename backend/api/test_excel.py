@@ -915,3 +915,60 @@ async def replace_file(
         raise HTTPException(status_code=500, detail=f"Ошибка при сохранении файла: {e}")
 
     return {"status": "success", "message": f"Файл '{target_filename}' заменён в ЖК '{name}'"}
+
+
+# --- Новый эндпоинт: Получить все забронированные квартиры ---
+@router.get("/reserved-apartments", summary="Get reserved apartments for a given residential complex")
+async def get_reserved_apartments(jkName: str):
+    file_path = EXCEL_FILE_PATHS.get(jkName)
+    if not file_path or not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail=f"Excel file not found for '{jkName}'")
+    wb = load_workbook(file_path, data_only=True)
+    ws = wb.active
+
+    block_col = col_letter_to_index(COLUMN_MAPPING["blockName"])
+    floor_col = col_letter_to_index(COLUMN_MAPPING["floor"])
+    apt_col = col_letter_to_index(COLUMN_MAPPING["apartmentNumber"])
+    status_col = col_letter_to_index(COLUMN_MAPPING["status"])
+
+    reserved = []
+    for row_idx in range(DATA_START_ROW, ws.max_row + 1):
+        status_val = ws.cell(row=row_idx, column=status_col).value
+        if str(status_val).strip().lower() == "бронь":
+            reserved.append({
+                "blockName": ws.cell(row=row_idx, column=block_col).value,
+                "floor": ws.cell(row=row_idx, column=floor_col).value,
+                "apartmentNumber": ws.cell(row=row_idx, column=apt_col).value
+            })
+    return {"reservedApartments": reserved}
+
+
+# --- Новый эндпоинт: Получить статус конкретной квартиры ---
+@router.get("/apartment-status", summary="Get status of a specific apartment")
+async def get_apartment_status(
+        jkName: str = Query(..., description="Name of the residential complex"),
+        blockName: str = Query(..., description="Block name"),
+        floor: int = Query(..., description="Floor number"),
+        apartmentNumber: Union[int, str] = Query(..., description="Apartment number")
+):
+    file_path = EXCEL_FILE_PATHS.get(jkName)
+    if not file_path or not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail=f"Excel file not found for '{jkName}'")
+    wb = load_workbook(file_path, data_only=True)
+    ws = wb.active
+
+    block_col = col_letter_to_index(COLUMN_MAPPING["blockName"])
+    floor_col = col_letter_to_index(COLUMN_MAPPING["floor"])
+    apt_col = col_letter_to_index(COLUMN_MAPPING["apartmentNumber"])
+    status_col = col_letter_to_index(COLUMN_MAPPING["status"])
+
+    for row_idx in range(DATA_START_ROW, ws.max_row + 1):
+        cell_block = ws.cell(row=row_idx, column=block_col).value
+        cell_floor = ws.cell(row=row_idx, column=floor_col).value
+        cell_apt = ws.cell(row=row_idx, column=apt_col).value
+
+        if str(cell_block).strip().lower() == blockName.strip().lower() and cell_floor == floor and str(
+                cell_apt) == str(apartmentNumber):
+            status_val = ws.cell(row=row_idx, column=status_col).value
+            return {"apartmentStatus": status_val}
+    raise HTTPException(status_code=404, detail="Apartment not found")

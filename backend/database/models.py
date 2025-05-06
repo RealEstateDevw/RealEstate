@@ -100,10 +100,16 @@ class Lead(Base):
     square_meters = Column(Float, nullable=True)
     rooms = Column(Integer, nullable=True)
     floor = Column(Integer, nullable=True)
+    complex_name = Column(String, nullable=True)
+    number_apartments = Column(Integer, nullable=True)
+    block = Column(String, nullable=True)
 
     # Financial details
-    total_price = Column(Float, nullable=False)  # Предварительная сумма
+    total_price = Column(Float, nullable=False)  # Общая стоимость
+    down_payment = Column(Float, nullable=True)  # Сумма первоначального взноса
+    square_meters_price = Column(Float, nullable=True)  # Стоимость квадратуры
     currency = Column(String, nullable=False, default="UZS")
+    down_payment_percent = Column(String, nullable=True)  # Процент первоначального взноса
     payment_type = Column(String, nullable=False)  # Рассрочка/Полная
     monthly_payment = Column(Float, nullable=True)  # For installment plans
     installment_period = Column(Integer, nullable=True)  # количество месяцев рассрочки

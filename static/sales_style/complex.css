@@ -103,8 +103,9 @@
 .contract-input {
     border-radius: 57px;
     padding: 5px 10px;
-
     width: 100%;
+background-color: #eee;
+
 }
 
 .modal {

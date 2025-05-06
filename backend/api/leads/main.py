@@ -279,7 +279,8 @@ async def attach_apartment(
     # Update specified fields on the lead
     for field in [
         "square_meters", "rooms", "floor", "total_price", "currency",
-        "payment_type", "monthly_payment", "installment_period"
+        "payment_type", "monthly_payment", "installment_period", "complex_name", "number_apartments", "block", "down_payment",
+        "square_meters_price", "down_payment_percent"
     ]:
         if field in apartment:
             setattr(db_lead, field, apartment[field])

@@ -251,6 +251,7 @@ function showPaymentOptions(info) {
     userSelection.paymentType = 'full';
     userSelection.totalPrice = fullPrice;
     userSelection.pricePerM2 = pricePerM2_100;
+    userSelection.percent = "100"
     // updateInitialPayment(fullPrice); // Removed as per instructions
     userSelection.termMonths = 0;
     resultContainer.innerHTML = `
@@ -282,8 +283,9 @@ function showPaymentOptions(info) {
         // расчет при выбранном проценте
         const sizeNum = parseFloat(String(userSelection.apartmentSize).replace(',', '.')) || 0;
         let priceM2 = pricePerM2_30; // по умолчанию
-        if (percent === 70) priceM2 = pricePerM2_70;
-        if (percent === 50) priceM2 = pricePerM2_50;
+        userSelection.percent = "30"
+        if (percent === 70) priceM2 = pricePerM2_70, userSelection.percent = "70";
+        if (percent === 50) priceM2 = pricePerM2_50,  userSelection.percent = "50";
         const totalR = priceM2 * sizeNum;
         const initial = totalR * (percent / 100);
         const remaining = totalR - initial;
@@ -325,12 +327,7 @@ function showPaymentOptions(info) {
   chooseBtn.textContent = 'Выбрать';
   chooseBtn.addEventListener('click', async () => {
     try {
-      await attachApartment(
-        userSelection.jkName,
-        userSelection.block,
-        userSelection.floor,
-        userSelection.number
-      );
+      await attachApartment();
       // Page will reload on successful attachApartment call
     } catch (e) {
       alert('Ошибка: не удалось закрепить квартиру.');
@@ -351,6 +348,7 @@ function showPaymentOptions(info) {
   // 5) Отправить запрос на привязку к лиду
   async function attachApartment() {
     const leadId = document.getElementById('attach-lead-id').value;
+    const monthly_payment = (userSelection.totalPrice-userSelection.initialPayment)/23;
     try {
       const res = await fetch(`/api/leads/${leadId}/attach-apartment`, {
         method: 'POST',
@@ -359,11 +357,17 @@ function showPaymentOptions(info) {
             square_meters: userSelection.apartmentSize,
             rooms: userSelection.roomsCount,
             floor: userSelection.floor,
-            total_price: userSelection.initialPayment,
+            total_price: userSelection.totalPrice,
             currency: userSelection.currency || 'UZS',
             payment_type: userSelection.paymentType === 'full' ? 'Единовременно' : 'Рассрочка',
-            monthly_payment: userSelection.pricePerM2 || null,
+            monthly_payment,
             installment_period: userSelection.termMonths || null,
+            complex_name: currentJkName,
+            number_apartments: userSelection.number,
+            block: currentBlock,
+            down_payment: userSelection.initialPayment,
+            square_meters_price:userSelection.pricePerM2 || null,
+            down_payment_percent: userSelection.percent
           })
       });
       if (!res.ok) throw new Error();
