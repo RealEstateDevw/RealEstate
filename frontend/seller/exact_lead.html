@@ -133,26 +133,24 @@
                 <div class="info-label">Жилой комплекс</div>
                 <div class="info-value">{{ lead.complex_name }}</div>
             </div>
-            <div class="price-card">
-                <div class="price-title">Предварительная сумма</div>
-                <div class="price-main">
-                  {% if lead.down_payment %}
-                    {{ "{:,.0f}".format(lead.down_payment) }} сум
-                  {% else %}
-                    {{ "{:,.0f}".format(lead.total_price) }} сум
-                  {% endif %}
-                </div>
-
-                <hr class="divider">
-                {% if lead.monthly_payment %}
-                <div class="price-subtitle">Мес. оплата</div>
-
-                <div class="price-monthly">{{ "{:,.0f}".format(lead.monthly_payment)}} сум {{ lead.installment_period }}
-                    мес </div>
-                {% else %}
-
-                {% endif %}
-            </div>
+          
+    <div class="price-card">
+      <input type="hidden" id="squareMeters" value="{{ lead.square_meters }}">
+      <div class="price-title">Предварительная сумма</div>
+      <div class="price-main">
+        <input type="text" id="totalPriceInput" class="price-input" 
+               value='{% if lead.down_payment %}{{ "{:,.0f}".format(lead.down_payment) }}{% else %}{{ "{:,.0f}".format(lead.total_price) }}{% endif %}' />
+        <span>сум</span>
+      </div>
+      <hr class="divider">
+      <div class="price-subtitle">Стоимость 1м²</div>
+      <div class="price-value">
+        <input type="text" id="pricePerM2Input" class="price-input" 
+               value='{{ "{:,.0f}".format(lead.square_meters_price) }}' />
+        <span>сум/м²</span>
+      </div>
+    </div>
+          
         </div>
 
         <div class="chat-section">
@@ -725,6 +723,29 @@ document.addEventListener('DOMContentLoaded', async function() {
 <script src="/static/notification-sales.js"></script>
 <script src="/static/notification_scripts.js"></script>
 
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var sqm = parseFloat(document.getElementById('squareMeters').value) || 0;
+    var totalInput = document.getElementById('totalPriceInput');
+    var priceInput = document.getElementById('pricePerM2Input');
+
+    function updateTotal() {
+      // Remove thousand separators before parsing
+      var price = parseFloat(priceInput.value.replace(/,/g, '')) || 0;
+      var totalValue = sqm * price;
+      // Format with commas as thousand separators
+      totalInput.value = totalValue.toLocaleString('en-US');
+    }
+    function updatePrice() {
+      var total = parseFloat(totalInput.value.replace(/,/g, '')) || 0;
+      var priceValue = sqm ? (total / sqm) : 0;
+      priceInput.value = priceValue.toLocaleString('en-US');
+    }
+
+    priceInput.addEventListener('input', updateTotal);
+    totalInput.addEventListener('input', updatePrice);
+  });
+  </script>
 </body>
 
 </html>
