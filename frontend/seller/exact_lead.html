@@ -149,7 +149,18 @@
                value='{{ "{:,.0f}".format(lead.square_meters_price) }}' />
         <span>сум/м²</span>
       </div>
+      <input type="hidden" id="downPayment" value="{{ lead.down_payment or 0 }}">
+    <input type="hidden" id="installmentPeriod" value="{{ lead.installment_period or 1 }}">
+    <hr class="divider">
+    <div class="price-subtitle">Мес. оплата</div>
+    <div class="price-value">
+      <input type="text" id="monthlyPaymentInput" class="price-input"
+             value='{% if lead.monthly_payment %}{{ "{:,.0f}".format(lead.monthly_payment) }}{% else %}0{% endif %}'' />
+      <span>сум / {{ lead.installment_period or 1 }} мес</span>
     </div>
+    </div>
+    <!-- Hidden fields for monthly calculation -->
+    
           
         </div>
 
@@ -625,6 +636,7 @@ function openContractModal(prefilledData) {
         pricePerM2,
         paymentChoice,
         initialPayment,
+        monthlyPayment: parseFloat(document.getElementById('monthlyPaymentInput').value.replace(/,/g, '')),
         contractNumber: nextContractNumber
       });
     });
@@ -728,6 +740,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     var sqm = parseFloat(document.getElementById('squareMeters').value) || 0;
     var totalInput = document.getElementById('totalPriceInput');
     var priceInput = document.getElementById('pricePerM2Input');
+    var monthlyInput = document.getElementById('monthlyPaymentInput');
+    var downPayment  = parseFloat(document.getElementById('downPayment').value.replace(/,/g, '')) || 0;
+    var period       = parseInt(document.getElementById('installmentPeriod').value, 10) || 1;
+    function updateMonthly() {
+      var total   = parseFloat(totalInput.value.replace(/,/g, '')) || 0;
+      var monthly = period ? ((total - downPayment) / period) : 0;
+      monthlyInput.value = monthly.toLocaleString('en-US');
+    }
 
     function updateTotal() {
       // Remove thousand separators before parsing
@@ -735,11 +755,13 @@ document.addEventListener('DOMContentLoaded', async function() {
       var totalValue = sqm * price;
       // Format with commas as thousand separators
       totalInput.value = totalValue.toLocaleString('en-US');
+      updateMonthly();
     }
     function updatePrice() {
       var total = parseFloat(totalInput.value.replace(/,/g, '')) || 0;
       var priceValue = sqm ? (total / sqm) : 0;
       priceInput.value = priceValue.toLocaleString('en-US');
+      updateMonthly();
     }
 
     priceInput.addEventListener('input', updateTotal);
