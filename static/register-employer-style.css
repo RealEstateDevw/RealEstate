@@ -171,9 +171,9 @@ button {
     display: flex;
     align-items: center;
     gap: 15px;
-    flex-grow: 1; /* Allow group to take space */
+ /* Allow group to take space */
     justify-content: flex-end; /* Push items to right */
-    flex-wrap: wrap; /* Allow items to wrap */
+    
 }
 
 .back-button {
