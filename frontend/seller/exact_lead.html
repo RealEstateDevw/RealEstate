@@ -64,6 +64,12 @@
       pointer-events: none;
     }
 
+    .price-input {
+      width: auto;
+      display: inline-block;
+      box-sizing: content-box;
+    }
+
     </style>
 </head>
 
@@ -72,11 +78,16 @@
         <span id="notification-message"></span>
         <button id="close-notification" class="close-btn">&times;</button>
     </div>
+    {% if user.role.id == 2%}
+    {% include 'partials/mop-header.html' %}
+    {% else %}
     {% include 'partials/header.html' %}
+   
+{% endif %}
     <main>
         {% block content %}{% endblock %}
     </main>
-
+    
     <input type="text" id="leadId" value="{{ lead.id }}" hidden="true">
     <div class="main-content">
         <div class="client-info">
@@ -136,25 +147,27 @@
                 <div class="info-value">{{ lead.complex_name }}</div>
             </div>
           
-    <div class="price-card">
-      <input type="hidden" id="squareMeters" value="{{ lead.square_meters }}">
-      <div class="price-title">Предварительная сумма</div>
-      <div class="price-main">
-        <input type="text" id="totalPriceInput" class="price-input" 
-               value='{% if lead.down_payment %}{{ "{:,.0f}".format(lead.down_payment) }}{% else %}{{ "{:,.0f}".format(lead.total_price) }}{% endif %}' />
-        <span>сум</span>
-      </div>
-      <hr class="divider">
-      <div class="price-subtitle">Стоимость 1м²</div>
-      <div class="price-value">
-        <input type="text" id="pricePerM2Input" class="price-input"
-               value="{% if lead.square_meters_price %}{{ '{:,.0f}'.format(lead.square_meters_price) }}{% else %}0{% endif %}" />
-        <span>сум/м²</span>
-      </div>
-      <input type="hidden" id="downPayment" value="{{ lead.down_payment or 0 }}">
-    <input type="hidden" id="installmentPeriod" value="{{ lead.installment_period or 1 }}">
-    
-    </div>
+<div class="price-card">
+  <input type="hidden" id="squareMeters" value="{{ lead.square_meters }}">
+  <div class="price-title">Предварительная сумма</div>
+  <div class="price-main">
+    <input type="text" id="totalPriceInput" class="price-input"
+           value='{% if lead.down_payment %}{{ "{:,.0f}".format(lead.down_payment) }}{% else %}{{ "{:,.0f}".format(lead.total_price) }}{% endif %}'
+           size='{% if lead.down_payment %}{{ "{:,.0f}".format(lead.down_payment)|length }}{% else %}{{ "{:,.0f}".format(lead.total_price)|length }}{% endif %}' />
+    <span>сум</span>
+  </div>
+  <hr class="divider">
+  <div class="price-subtitle">Стоимость 1м²</div>
+  <div class="price-value">
+    <input type="text" id="pricePerM2Input" class="price-input"
+           value="{% if lead.square_meters_price %}{{ '{:,.0f}'.format(lead.square_meters_price) }}{% else %}0{% endif %}"
+           size='{% if lead.square_meters_price %}{{ "{:,.0f}".format(lead.square_meters_price)|length }}{% else %}1{% endif %}' />
+    <span>сум/м²</span>
+  </div>
+  <input type="hidden" id="downPayment" value="{{ lead.down_payment or 0 }}">
+<input type="hidden" id="installmentPeriod" value="{{ lead.installment_period or 1 }}">
+  
+</div>
     <!-- Hidden fields for monthly calculation -->
     
           
@@ -163,7 +176,6 @@
         <div class="chat-section">
             <div class="chat-header">
                 <h1 class="client-header">Управление лидом</h1>
-                <h2 class="massenger-info">{{ lead.contact_source}}</h2>
             </div>
 
             <div class="message">
@@ -378,8 +390,11 @@
 
   
     <script src="/static/exact-lead-scripts.js"></script>
+    {% if user.role.id == 1 %}
     <script src="/static/search-lead-scripts.js"></script>
-    
+    {% else %}
+    <script src="/static/mop-dashboard-main.js"></script>
+{% endif %}
     <script>
 function openContractModal(prefilledData) {
     document.getElementById('contractModal').style.display = 'block';
@@ -463,7 +478,7 @@ function openContractModal(prefilledData) {
             </div>
             <div>
                 <label for="salesDepartment" style="font-weight: 500;">Отдел продаж</label>
-                <input type="text" id="salesDepartment" name="salesDepartment" class="contract-input" required style="width: 100%; margin-bottom: 8px;">
+                <input type="text" id="salesDepartment" name="salesDepartment" class="contract-input" value="${prefilledData.sellerName || ''}" required style="width: 100%; margin-bottom: 8px;">
             </div>
             <div style="grid-column: 1/3; display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px;">
                 <button type="submit" class="action-btn" style="background: #216BF4; color: #fff; border-radius: 6px; padding: 10px 24px; font-weight: 600;">Создать</button>
@@ -626,6 +641,7 @@ function openContractModal(prefilledData) {
 
     document.getElementById('contractButton').addEventListener('click', async function() {
       const jkName = "{{ lead.complex_name }}";
+      const sellerName = "{{ user.first_name }} {{user.last_name }}";
       const blockName = "{{ lead.block }}";
       const floor = parseInt("{{ lead.floor }}", 10);
       const apartmentNumber = parseInt("{{ lead.number_apartments }}", 10);
@@ -654,7 +670,9 @@ function openContractModal(prefilledData) {
         paymentChoice,
         initialPayment,
         monthlyPayment,
-        contractNumber: nextContractNumber
+        sellerName,
+        contractNumber: nextContractNumber,
+        
       });
     });
     </script>

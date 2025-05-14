@@ -28,13 +28,12 @@ select {
 .nav-item {
     cursor: pointer;
     display: flex;
-    font-size: 24px;
     font-style: normal;
     font-weight: 400;
     line-height: normal;
-padding: 20px;
+padding: 14px;
 align-items: center;
-gap: 20px;
+gap: 10px;
 border-radius: 50px;
 background: rgba(245, 245, 245, 0.90);
 }

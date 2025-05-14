@@ -120,7 +120,10 @@ class Lead(Base):
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
     # Relations
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    # Soft-delete and reassignment support
+    is_active = Column(Boolean, nullable=False, default=True)
+    deleted_at = Column(DateTime, nullable=True)
     user = relationship("User", back_populates="leads", lazy="subquery")
 
     # Additional fields for lead management
@@ -146,6 +149,9 @@ class Lead(Base):
             data["user"] = self.user.to_dict()  # Убедись, что у User тоже есть to_dict()
         else:
             data["user"] = None
+
+        data["is_active"] = self.is_active
+        data["deleted_at"] = self.deleted_at
 
         return data
 

@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link rel="stylesheet" href="/static/sales_style/header-sales.css">
     <link rel="stylesheet" href="/static/mop-dashboard.css">
     <style>
         body {
@@ -71,6 +72,7 @@ backdrop-filter: blur(25px);
 }
 .active{
     background-color: #216BF4;
+    color: #FFF;
 }
     </style>
 </head>
@@ -158,16 +160,14 @@ backdrop-filter: blur(25px);
     </div>
     <div class="lead-section inactive">
         <div class="lead-section-header">
-            <h2>Неактуальные <span id="inactive-leads-count">0</span></h2>
-
+          <!-- заголовок теперь имеет общую id -->
+          <h2 id="lead-section-title">
+            Неактуальные <span id="leads-count">0</span>
+          </h2>
         </div>
-        <div class="lead-card" id="inactive-leads-container">
-           
-            
-        </div>
-
-            
-    </div>
+        <!-- общий контейнер для обоих типов лидов -->
+        <div class="lead-card" id="leads-container"></div>
+      </div>
     <div id="importLeadsModal" class="modal" style="display: none;">
     <div class="modal-content">
         <h2>Импортировать лиды</h2>

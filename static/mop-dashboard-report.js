@@ -49,7 +49,7 @@ async function filterEmployees() {
             const userStats = salesStats?.sales_reps?.find(stat => stat.id === user.id) || { stats: { new_leads: 0, processed_leads: 0 } };
             console.log(userStats);
             console.log( user.work_status);
-            const workStatus = user.work_status === 'Рабочий' && userStats.status
+            const workStatus = user.work_status === 'Рабочий' && user.checkin_time
                 ? `<rect y="0.5" width="16" height="16" rx="8" fill="#00FF55"/>`
                 : user.work_status === 'Выходной'
                 ? `<rect y="0.5" width="16" height="16" rx="8" fill="#A0A0A0"/>`
@@ -234,28 +234,48 @@ class LeadFilter {
                         <span class="status-dot" style="background-color: ${this.getStatusColor(lead.state)}"></span>
                         <span>${this.getStatusText(lead.state)}</span>
                     </div>
-                    <a href="/dashboard/lead/${lead.id}" class="open-card">Открыть карточку</a>
+                    <a href="/dashboard/sales/lead/${lead.id}" class="open-card">Открыть карточку</a>
                 </div>
             </div>
         `;
     }
 
-    getStatusColor(state) {
+     getStatusColor(status) {
         const colors = {
-            'NEW': '#0088FF',
+            "COLD": "#00A8E8",
+            "WARM": "#FFB400",
+            "HOT": "#FF5733",
+            "POSTPONED": "orange",
+            "IN_PROCESSING": "blue",
+            "SENT": "green",
+            "WAITING_RESPONSE": "yellow",
+            "DECLINED": "red",
             'PROCESSED': '#00FF55',
-            'IN_PROGRESS': '#FFA500'
+    'IN_WORK': '#FFA500',
+    'NEW': '#0088FF',
+    'CLOSED': '#FF0000'
         };
-        return colors[state] || '#CCCCCC';
+        return colors[status] || "gray";
     }
-
-    getStatusText(state) {
-        const statusMap = {
-            'NEW': 'Новый',
+    
+    // Функция для перевода статусов на русский
+     getStatusText(status) {
+        const translations = {
+            "COLD": "Холодный",
+            "WARM": "Тёплый",
+            "HOT": "Горячий",
+            "POSTPONED": "Отложено",
+            "IN_PROCESSING": "В обработке",
+            "IN_WORK": "В работе",
+            "SENT": "Отправлено",
+            "WAITING_RESPONSE": "Ожидание ответа",
+            "DECLINED": "Отклонено",
             'PROCESSED': 'Обработано',
-            'IN_PROGRESS': 'В обработке'
+    'IN_PROGRESS': 'В обработке',
+    'NEW': 'Новый',
+    'CLOSED': 'Закрыт'
         };
-        return statusMap[state] || state;
+        return translations[status] || "Неизвестный статус";
     }
 }
 

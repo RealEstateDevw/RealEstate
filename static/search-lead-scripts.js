@@ -61,7 +61,7 @@ function displayResults(results) {
 
             searchResults.appendChild(item);
         });
-        searchResults.style.display = 'block';
+        searchResults.style.display = 'flex';
     }
 };
 

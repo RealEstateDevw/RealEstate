@@ -70,12 +70,11 @@ function displayResults(data) {
                 </div>
         `;
 
-        // Добавляем обработчик клика
+        // Добавляем обработчик клика только для лидов
         item.addEventListener('click', () => {
-            const detailUrl = result.type === 'user'
-                ? `/users/${result.id}`
-                : `/leads/${result.id}`;
-            window.location.href = detailUrl;
+            if (result.type !== 'user') {
+                window.location.href = `/dashboard/sales/lead/${result.id}`;
+            }
         });
 
         searchResults.appendChild(item);

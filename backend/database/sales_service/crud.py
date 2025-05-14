@@ -2,8 +2,11 @@ import random
 from datetime import timedelta, datetime
 
 from sqlalchemy.exc import IntegrityError, NoResultFound
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import joinedload, noload
 from sqlalchemy import desc, or_, func, and_, String, cast
+from sqlalchemy.orm import Session
+from datetime import datetime
+
 from typing import Optional, List, Dict, Any, Union
 from fastapi.encoders import jsonable_encoder
 
@@ -99,8 +102,9 @@ class LeadCRUD:
             region: Optional[str] = None,
             payment_type: Optional[str] = None
     ) -> List[Lead]:
-        query = db.query(Lead)
-
+        # Exclude leads without an assigned salesperson
+        query = db.query(Lead).filter(Lead.user_id.isnot(None))
+        query = query.options(noload(Lead.callbacks))
         if status:
             query = query.filter(Lead.status == status)
         if state:
@@ -131,6 +135,19 @@ class LeadCRUD:
             return False
 
         db.delete(db_lead)
+        db.commit()
+        return True
+
+    def unassign_lead(self, db: Session, lead_id: int) -> bool:
+        """
+        Убирает привязку лида к продавцу, устанавливая user_id в None.
+        Возвращает True, если операция успешна, иначе False.
+        """
+        db_lead = self.get_lead(db, lead_id)
+        if not db_lead:
+            return False
+
+        db_lead.user_id = None
         db.commit()
         return True
 
@@ -330,10 +347,37 @@ class InactiveLeadsService:
         }
 
 
-from typing import Optional
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
-from datetime import datetime
+class UnassignedLeadsService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_unassigned_leads(self) -> dict:
+        """
+        Returns leads that are active but not assigned to any salesperson.
+        """
+        unassigned_leads = self.db.query(Lead).filter(
+            Lead.user_id.is_(None),
+            Lead.is_active == True
+        ).all()
+
+        return {
+            "total_count": len(unassigned_leads),
+            "leads": [self._format_lead(lead) for lead in unassigned_leads]
+        }
+
+    def _format_lead(self, lead: 'Lead') -> dict:
+        return {
+            "id": lead.id,
+            "full_name": lead.full_name,
+            "date": lead.created_at.strftime("%d.%m.%Y"),
+            "contact_source": lead.contact_source,
+            "region": lead.region,
+            "phone": lead.phone,
+            "payment_type": lead.payment_type,
+            "total_price": lead.total_price,
+            "user": "Не назначен",
+            "state": lead.state.value if hasattr(lead.state, 'value') else str(lead.state)
+        }
 
 
 class LeadFilterService:

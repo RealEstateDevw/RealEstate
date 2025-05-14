@@ -305,9 +305,6 @@
             overflow-y: auto;
             padding: 8px; /* Add padding around the list of items */
             display: none; /* Hide by default - controlled by JS */
-        
-            /* Use flex to enable gap between items */
-            display: flex;
             flex-direction: column;
             gap: 8px; /* Space between result items */
         }

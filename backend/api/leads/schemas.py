@@ -78,6 +78,7 @@ class LeadUpdate(BaseModel):
     installment_markup: Optional[float] = None
     notes: Optional[str] = None
     next_contact_date: Optional[datetime] = None
+    user_id: Optional[int] = None
 
 
 class LeadInDB(LeadBase):

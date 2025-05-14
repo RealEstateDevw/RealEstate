@@ -12,7 +12,7 @@ from backend.api.leads.schemas import LeadSearchResponse, LeadInDB, LeadUpdate, 
 from backend.core.deps import get_current_user_from_cookie
 from backend.database import get_db
 from backend.database.models import Comment, User, Contract, Lead, Callback
-from backend.database.sales_service.crud import LeadCRUD, LeadStatisticsService, InactiveLeadsService, LeadFilterService
+from backend.database.sales_service.crud import LeadCRUD, LeadStatisticsService, InactiveLeadsService, LeadFilterService ,UnassignedLeadsService
 from config import logger, TEMP_DIR
 import pandas as pd
 import gspread
@@ -41,6 +41,15 @@ async def search_leads(
 async def get_inactive_leads(db: Session = Depends(get_db)):
     service = InactiveLeadsService(db)
     return service.get_inactive_leads()
+
+
+@router.get("/unassigned")
+async def get_unassigned_leads(db: Session = Depends(get_db)):
+    """
+    Returns leads that are active but not assigned to any salesperson.
+    """
+    service = UnassignedLeadsService(db)
+    return service.get_unassigned_leads()
 
 
 @router.get("/filter")
@@ -88,7 +97,7 @@ async def update_lead(lead_id: int, lead_update: LeadUpdate, db: Session = Depen
 
 @router.delete("/{lead_id}")
 async def delete_lead(lead_id: int, db: Session = Depends(get_db)):
-    success = lead_crud.delete_lead(db, lead_id)
+    success = lead_crud.unassign_lead(db, lead_id)
     if not success:
         raise HTTPException(status_code=404, detail="Lead not found")
     return {"message": "Lead successfully deleted"}
