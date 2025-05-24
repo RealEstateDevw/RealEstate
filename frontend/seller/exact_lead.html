@@ -193,8 +193,8 @@
                 <div class="time">12:33</div>
             </div>
 
-            <div id="comments-container" class="space-y-4  overflow-y-auto mb-4 mt-10">
-                <!-- Comments will be inserted here -->
+            <!-- <div id="comments-container" class="space-y-4  overflow-y-auto mb-4 mt-10">
+                Comments will be inserted here 
 
             </div>
 
@@ -217,12 +217,13 @@
                         </svg>
                     </button>
                 </div>
-            </div>
+            </div> -->
             <div class="attach-apartment-button">
                 <button type="button" onclick="openAttachModal({{ lead.id }})">
                 Закрепить квартиру к лиду
               </button>
             </div>
+            
 
 
             <div class="actions">
@@ -273,6 +274,13 @@
                     <path opacity="0.5" d="M23.1912 44.0002H24.8088C30.3742 44.0002 33.157 44.0002 34.9662 42.2284C36.7756 40.4566 36.9606 37.5502 37.3308 31.7372L37.8642 23.3614C38.0652 20.2074 38.1656 18.6305 37.2578 17.6312C36.3502 16.6318 34.8174 16.6318 31.752 16.6318H16.2481C13.1825 16.6318 11.6498 16.6318 10.7421 17.6312C9.83444 18.6305 9.93488 20.2074 10.1358 23.3614L10.6692 31.7372C11.0394 37.5502 11.2245 40.4566 13.0338 42.2284C14.8431 44.0002 17.6258 44.0002 23.1912 44.0002Z" fill="#FF0000"/>
                   </svg>
               <div>Удалить лида</div>
+            </button>
+            <button id="markInactiveButton" class="action-button inactive-button" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none">
+                    <!-- simple "archive" icon -->
+                    <path d="M3 3h18v2H3V3zm2 4h14v12H5V7zm2 2v8h10V9H7z" fill="#FFAA00"/>
+                </svg>
+                <div>Сделать неактуальным</div>
             </button>
             </div>
         </div>
@@ -356,6 +364,18 @@
             <div class="modal-actions">
               <button class="btn cancel" onclick="closeDeleteModal()">Отменить</button>
               <button class="btn danger" id="confirmDeleteButton">Да</button>
+            </div>
+          </div>
+        </div>
+        <!-- Inactive Lead Modal -->
+        <div id="inactiveModal" class="modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-sure">
+              <h2 class="modal-title">Сделать лида неактуальным?</h2>
+            </div>
+            <div class="modal-actions" style="display: flex; gap: 8px; justify-content: flex-end;">
+              <button class="btn cancel" onclick="closeInactiveModal()">Отмена</button>
+              <button class="btn confirm" id="confirmInactiveButton">Да</button>
             </div>
           </div>
         </div>
@@ -823,5 +843,33 @@ document.getElementById('confirmDeleteButton').addEventListener('click', async f
     showNotification(error.message, 'error');
   }
 });
+</script>
+<script>
+  // Open Inactive Modal
+  document.getElementById('markInactiveButton').addEventListener('click', function() {
+    document.getElementById('inactiveModal').style.display = 'block';
+  });
+  // Close Inactive Modal
+  function closeInactiveModal() {
+    document.getElementById('inactiveModal').style.display = 'none';
+  }
+  // Confirm Inactivation
+  document.getElementById('confirmInactiveButton').addEventListener('click', async function() {
+    const leadId = document.getElementById('leadId').value;
+    try {
+      const response = await fetch(`/api/leads/${leadId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: 'INACTIVE' })
+      });
+      if (!response.ok) throw new Error('Не удалось обновить статус лида');
+      showNotification('Лид помечен неактуальным', 'success');
+      closeInactiveModal();
+      // Optionally, redirect or reload to refresh UI
+      location.reload();
+    } catch (error) {
+      showNotification(error.message, 'error');
+    }
+  });
 </script>
 </html>

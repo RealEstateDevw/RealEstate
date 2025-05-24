@@ -103,7 +103,7 @@ class LeadCRUD:
             payment_type: Optional[str] = None
     ) -> List[Lead]:
         # Exclude leads without an assigned salesperson
-        query = db.query(Lead).filter(Lead.user_id.isnot(None))
+        query = db.query(Lead).filter(Lead.user_id.isnot(None), Lead.state != 'INACTIVE')
         query = query.options(noload(Lead.callbacks))
         if status:
             query = query.filter(Lead.status == status)
@@ -153,7 +153,8 @@ class LeadCRUD:
 
     def get_leads_by_user(self, db: Session, user_id: int, include_callbacks: bool = False, skip: int = 0,
                           limit: int = 100) -> List[Lead]:
-        query = db.query(Lead).filter(Lead.user_id == user_id).order_by(desc(Lead.created_at))
+        query = db.query(Lead).filter(Lead.user_id == user_id,
+                                      Lead.state != 'INACTIVE').order_by(desc(Lead.created_at))
 
         if include_callbacks:
             query = query.options(joinedload(Lead.callbacks))
@@ -323,8 +324,11 @@ class InactiveLeadsService:
         threshold_date = datetime.utcnow() - timedelta(days=30)
 
         inactive_leads = self.db.query(Lead).filter(
-            Lead.updated_at < threshold_date,
-            Lead.state != 'CLOSED'  # Adjust based on your LeadState enum
+            or_(
+                Lead.updated_at < threshold_date,
+                Lead.state == 'INACTIVE'
+            ),
+            Lead.state != 'CLOSED'
         ).all()
 
         return {

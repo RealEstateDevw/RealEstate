@@ -268,3 +268,10 @@ backdrop-filter: blur(25px);
     cursor: pointer;
     transition: all 0.2s ease;
 }
+
+
+@media (max-width: 576px){
+    .lead-card{
+        display: block;
+    }
+}

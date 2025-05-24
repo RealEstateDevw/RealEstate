@@ -17,6 +17,7 @@ class LeadState(str, Enum):
     SENT = "SENT"
     WAITING_RESPONSE = "WAITING_RESPONSE"
     CLOSED = "CLOSED"
+    INACTIVE = "INACTIVE"
 
 
 class LeadBase(BaseModel):

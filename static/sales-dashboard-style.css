@@ -220,3 +220,20 @@ line-height: normal;
 .column::-webkit-scrollbar {
     display: none;             /* Chrome, Safari, Opera */
 }
+
+/* Responsive layout: two columns on tablets, single column on phones */
+@media (max-width: 1024px) {
+    .columns {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .columns {
+        grid-template-columns: 1fr;
+    }
+    .column {
+        max-height: none;      /* Allow full vertical scrolling on mobile */
+        margin-bottom: 1rem;   /* Space between stacked columns */
+    }
+}

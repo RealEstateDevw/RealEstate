@@ -1,8 +1,11 @@
 "use strict";
 
+let searchContainer, searchInput, searchResults;
+
 document.addEventListener("DOMContentLoaded", function () {
-    const searchInput = document.getElementById('searchInput');
-const searchResults = document.getElementById('searchResults');
+    searchResults = document.getElementById('searchResults');
+    searchContainer = document.querySelector('.search-container');
+    searchInput = document.getElementById('searchInput');
 
 console.log('Элемент найден:', searchInput); 
 // Обработчик ввода текста
@@ -32,12 +35,16 @@ searchInput.addEventListener('input', async () => {
 
 // Функция отображения результатов
 function displayResults(results) {
-    const searchResults = document.getElementById('searchResults');
     searchResults.innerHTML = '';  // Очищаем список результатов
 
     if (results.length === 0) {
         searchResults.innerHTML = '<div class="no-results">Нет результатов</div>';
         searchResults.style.display = 'block';
+        // On phone screens, show results as fullscreen overlay
+        if (window.matchMedia('(max-width: 576px)').matches) {
+            searchContainer.classList.add('results-visible');
+            document.body.classList.add('search-overlay-active');
+        }
     } else {
         results.forEach(result => {
             console.log(result);
@@ -62,8 +69,31 @@ function displayResults(results) {
             searchResults.appendChild(item);
         });
         searchResults.style.display = 'flex';
+        // On phone screens, show results as fullscreen overlay
+        if (window.matchMedia('(max-width: 576px)').matches) {
+            searchContainer.classList.add('results-visible');
+            document.body.classList.add('search-overlay-active');
+        }
     }
 };
+
+// Close fullscreen overlay when clicking outside on mobile
+document.addEventListener('click', (e) => {
+    if (window.matchMedia('(max-width: 576px)').matches && !searchContainer.contains(e.target)) {
+        searchContainer.classList.remove('results-visible');
+        document.body.classList.remove('search-overlay-active');
+    }
+});
+
+// Close overlay on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && window.matchMedia('(max-width: 576px)').matches) {
+        searchContainer.classList.remove('results-visible');
+        document.body.classList.remove('search-overlay-active');
+        searchResults.style.display = 'none';
+        searchInput.blur();
+    }
+});
 
 function showNotification(message, type = "success") {
     const notification = document.getElementById("notification");
