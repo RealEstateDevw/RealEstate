@@ -15,7 +15,37 @@
             box-sizing: border-box;
             font-family: Arial, sans-serif;
         }
+        /* Контейнер для рендера, чтобы внутри нього можно было позиционировать кнопки */
+.jk-image-wrapper {
+  position: relative;
+  display: inline-block;   /* чтобы по размеру подстраивался под img */
+}
 
+/* Сам рендер */
+.jk-image-wrapper img {
+  display: block;
+  width: 100%;      /* если нужно, чтобы изображение было адаптивным */
+  height: auto;
+}
+
+/* Класс для кнопок-блоков, которые накладываем на изображение */
+.overlay-block-btn {
+  position: absolute;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.overlay-block-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+  /* можно добавить тень, подсветку и т. д. */
+}
         body {
             background-color: #f8f9fa;
         }
@@ -406,7 +436,9 @@
         </div>
     </header>
     <div id="complexes-container" style="display: none;"></div>
-    <div id="jk-details-container" style="display: none;"></div>
+    <div id="jk-details-container" style="display: none;">
+        
+    </div>
 
 <script>
     async function fetchData(url, errorMessage) {
@@ -583,30 +615,58 @@ function showJKDetails(shaxmatkaData, renderImage, jkName) {
     jkDetailsContainer.style.position = "relative";
     jkDetailsContainer.style.maxWidth = ""; // Reset max-width if it was changed
 
-    const blocksContainer = document.createElement("div");
-    blocksContainer.className = "blocks-container";
+    const wrapper = document.createElement("div");
+        wrapper.className = "jk-image-wrapper";
 
-    const uniqueBlocks = [...new Set(shaxmatkaData.map(row => row[0]))];
-    uniqueBlocks.forEach(block => {
-        const button = document.createElement("button");
-        button.textContent = `${block}`;
-        button.className = "block-button";
-        button.addEventListener("click", () => {
-            console.log(`Выбран блок: ${block}`);
-            // Pass the current global data to the next step
-            filterBlockData(globalShaxmatkaData, block, globalRenderImage, jkName);
+        // 2) Вставляем само <img>
+        const image = document.createElement("img");
+        image.src = renderImage;
+        image.alt = `Рендер ЖК ${jkName}`;
+        image.className = "jk-render-image";
+        wrapper.appendChild(image);
+
+        // 3) Добавляем «наклеенные» кнопки поверх картинки
+        // Заполните coordsMap актуальными координатами каждого блока
+        // (тут примеры, их нужно подкорректировать «на глаз»)
+        const coordsMap = {
+            "Блок-1":   { top:  34, left:  78 },
+            "Блок-1,1": { top: 26, left: 56 },
+            "Блок 2":   { top: 20, left: 40 },
+            "Блок 1,2": { top:  14, left: 27 },
+            "Блок 1,3": { top: 10, left: 13 },
+            "Блок 3":   { top: 50, left: 61 },
+            "Блок 3,1": { top: 33, left: 28 },
+            "Блок 3,2": { top: 22, left: 7 }
+            // Добавьте остальные блоки и скорректируйте координаты
+        };
+
+        // Берём уникальные названия блоков из shaxmatkaData
+        const uniqueBlocks = [...new Set(shaxmatkaData.map(row => row[0]))];
+        uniqueBlocks.forEach(blockName => {
+            const btn = document.createElement("button");
+            btn.className = "overlay-block-btn";
+            btn.textContent = blockName;
+
+            // Если блока нет в coordsMap, ставим ему (0,0)
+            const pos = coordsMap[blockName] || { top: 0, left: 0 };
+            btn.style.top  = pos.top + "%";
+            btn.style.left = pos.left + "%";
+
+            btn.addEventListener("click", () => {
+                filterBlockData(globalShaxmatkaData, blockName, globalRenderImage, jkName);
+            });
+
+            wrapper.appendChild(btn);
         });
-        blocksContainer.appendChild(button);
-    });
 
-    jkDetailsContainer.appendChild(blocksContainer);
+    jkDetailsContainer.appendChild(wrapper);
 
-    const image = document.createElement("img");
-    console.log(`Проверка пути к изображению: ${renderImage}`);
-    image.src = renderImage;
-    image.alt = `Рендер ЖК ${jkName}`;
-    image.className = "jk-render-image";
-    jkDetailsContainer.appendChild(image);
+    // const image = document.createElement("img");
+    // console.log(`Проверка пути к изображению: ${renderImage}`);
+    // image.src = renderImage;
+    // image.alt = `Рендер ЖК ${jkName}`;
+    // image.className = "jk-render-image";
+    // jkDetailsContainer.appendChild(image);
 
     // --- Use the helper function to update the back button ---
     updateBackButton("Назад к ЖК", () => { // Pass the TEXT and the ACTION

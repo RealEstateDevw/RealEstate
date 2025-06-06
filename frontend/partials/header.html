@@ -1,6 +1,33 @@
 <header class="header">
     <a href="{% if user and user.role.name == 'Продажник' %}/dashboard/sales{% elif user and user.role.name == 'Финансист' %}/dashboard/finance {% elif user and user.role.name == 'Админ' %}/dashboard/admin {% elif user and user.role.name == 'МОП' %}/dashboard/mop {% elif user and user.role.name == 'РОП' %}/dashboard/rop{% else %}/{% endif %}" class="logo">CRM</a>
     <div class="search">
+        {% if user %}
+        {% if user.telegram_id %}
+            <button class="tg-status-btn">
+                <!-- SVG-иконка Telegram (сжатый вариант) -->
+                <svg class="tg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+                    <circle cx="120" cy="120" r="120" fill="#37AEE2"/>
+                    <path d="M100.5 167.4l-5-66.9 123.7-36.7-100 103.6s-2.7 1.6-6.3 0z" fill="#C8DAEA"/>
+                    <path d="M100.5 167.4l-5-66.9 123.7-36.7-100 103.6s-2.7 1.6-6.3 0z" opacity=".5"/>
+                    <path d="M60.8 117.7l107.8-47.6-60.9 62.1s-2.4 1.7-6.3 0z" fill="#A9DCEC"/>
+                    <path d="M60.8 117.7l107.8-47.6-60.9 62.1s-2.4 1.7-6.3 0z" opacity=".8"/>
+                </svg>
+                <span class="tg-text">Telegram связан</span>
+            </button>
+        {% else %}
+        
+        <a href="https://t.me/DxBotru_bot?start=sales_{{user.id}}" class="tg-link-btn">    
+        <svg class="tg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+                    <circle cx="120" cy="120" r="120" fill="#37AEE2"/>
+                    <path d="M100.5 167.4l-5-66.9 123.7-36.7-100 103.6s-2.7 1.6-6.3 0z" fill="#C8DAEA"/>
+                    <path d="M100.5 167.4l-5-66.9 123.7-36.7-100 103.6s-2.7 1.6-6.3 0z" opacity=".5"/>
+                    <path d="M60.8 117.7l107.8-47.6-60.9 62.1s-2.4 1.7-6.3 0z" fill="#A9DCEC"/>
+                    <path d="M60.8 117.7l107.8-47.6-60.9 62.1s-2.4 1.7-6.3 0z" opacity=".8"/>
+                </svg>
+                <span class="tg-text">Привязать Telegram</span>
+            </a>
+        {% endif %}
+    {% endif %}
         <div class="search-container">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"
                 class="search-icon">

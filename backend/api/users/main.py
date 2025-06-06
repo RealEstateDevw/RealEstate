@@ -1,13 +1,15 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Depends, status, Query
+from fastapi import APIRouter, HTTPException, Depends, status, Query, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from starlette.requests import Request
+from starlette.responses import RedirectResponse
 
 from backend.core.deps import get_current_user, get_current_user_from_cookie
 from backend.database import get_db
-from backend.database.models import User
+from backend.database.models import User, TelegramAccount, TelegramRole
 from backend.database.sales_service.crud import SalesLeadsService
 from backend.database.userservice import add_user, get_user_by_login, add_role, get_user_by_id, get_all_users, \
     update_user, get_by_role_employees, get_all_roles, delete_user
@@ -39,8 +41,6 @@ async def register_user(user: UserCreate):
         "role": new_user.role.name if new_user.role else None,  # Возвращаем название роли, если оно есть
         "role_id": new_user.role_id
     }
-
-
 
 
 @user_router.post("/token", response_model=Token)
@@ -143,3 +143,15 @@ async def get_sales_stats(
 ):
     service = SalesLeadsService(db)
     return service.get_sales_stats(user_id)
+
+
+@user_router.get("/{user_id}/link-telegram")
+async def link_telegram(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
+    # Формируем deep-link. Параметр start будет 'crm_<user_id>'
+    bot_username = "DxBotru_bot"  # <-- замените на реальное имя вашего бота
+    param = f"sales_{user_id}"
+    deep_link = f"https://t.me/DxBotru_bot?start={param}"
+    return RedirectResponse(url=deep_link, status_code=302)

@@ -1,5 +1,5 @@
+import enum
 from datetime import datetime
-
 from backend.api.finance.schemas import PaymentStatus, PaymentType
 from backend.api.leads.schemas import LeadState, LeadStatus
 from backend.api.rop.schemas import ExpenseCategory
@@ -37,6 +37,8 @@ class User(Base):
     background_theme = Column(String, nullable=True, default=None)
     reg_date = Column(DateTime, default=datetime.now())
     last_login = Column(DateTime, default=datetime.now())
+    # telegram_id = Column(Integer, unique=True, nullable=True, index=True)
+
     # Связи
     role = relationship('Role', back_populates='users', lazy="subquery")
     attendances = relationship("Attendance", back_populates="user", lazy='joined')
@@ -172,17 +174,67 @@ class Callback(Base):
     lead = relationship("Lead", back_populates="callbacks")
 
 
+class SenderRole(enum.Enum):
+    CLIENT = "client"
+    SALES = "sales"
+
+
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
 
     id = Column(Integer, primary_key=True, index=True)
-    lead_id = Column(Integer, ForeignKey("leads_prototype.id"))  # Связь с лидами
-    source = Column(String, nullable=False)  # 'instagram' или 'telegram'
-    message = Column(String, nullable=False)  # Текст сообщения
-    sender = Column(String, nullable=False)  # Отправитель (например, username)
-    timestamp = Column(String, nullable=False)  # Время сообщения
+    lead_id = Column(
+        Integer,
+        ForeignKey("leads_prototype.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
 
-    lead = relationship("Lead", back_populates="messages")
+    source = Column(String, nullable=False, default="telegram")  # 'instagram' или 'telegram'
+    text = Column(String, nullable=False)
+
+    sender_id = Column(Integer, nullable=False)
+
+    sender_role = Column(Enum(SenderRole), nullable=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    is_from_sales = Column(Boolean, nullable=False, default=False, index=True)
+
+    lead = relationship(
+        "Lead",
+        back_populates="messages",
+        lazy="joined",
+
+    )
+
+    def __repr__(self):
+        role = "Sales" if self.is_from_sales else "Client"
+        ts = self.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        return f"<ChatMessage(lead={self.lead_id}, sender={self.sender_id} ({role}), at={ts})>"
+
+    def to_dict(self):
+        """
+        {
+            'id': ...,
+            'lead_id': ...,
+            'text': ...,
+            'sender_id': ...,
+            'sender_role': 'client' или 'sales',
+            'created_at': '2025-06-02T14:09:56',
+            'is_from_sales': True или False
+        }
+        """
+        return {
+            "id": self.id,
+            "lead_id": self.lead_id,
+            "text": self.text,
+            "sender_id": self.sender_id,
+            "sender_role": self.sender_role.value,
+            "created_at": self.created_at.isoformat(),
+            "is_from_sales": self.is_from_sales,
+            "source": self.source,
+        }
 
 
 class Comment(Base):
@@ -329,3 +381,60 @@ class PriceHistory(Base):
 
     def __repr__(self):
         return f"<PriceHistory(floor={self.floor}, unit_size={self.unit_size}, price={self.price}, recorded_at={self.recorded_at})>"
+
+
+class TelegramRole(enum.Enum):
+    client = "client"
+    sales = "sales"
+
+
+class TelegramAccount(Base):
+    """
+    Храним связь между telegram_id и вашим CRM-пользователем (User).
+    Через role_id → Role в CRM можно узнать, Sales или нет. Но
+    для простоты заведём здесь явное поле role (client/sales).
+    """
+    __tablename__ = 'telegram_accounts'
+
+    id = Column(Integer, primary_key=True)
+    telegram_id = Column(Integer, unique=True, nullable=False, index=True)
+    crm_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    role = Column(Enum(TelegramRole), nullable=False)
+    # Время регистрации (при первом /start)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Если нужно, можно держать связь на CRM-пользователя:
+    crm_user = relationship("User", backref="telegram_account", lazy="joined")
+
+
+class ClientRequestStatus(enum.Enum):
+    new = "new"
+    taken = "taken"
+    closed = "closed"
+
+
+class ClientRequest(Base):
+    """
+    Запись каждого клика «Связаться с продажником» от клиента.
+    После нажатия клиентом мы создаём эту запись со статусом 'new'.
+    Когда продажник нажмёт «Взять клиента», он обновит эту запись status->'taken',
+    а в поле sales_tg_id запишет telegram_id продажника.
+    """
+    __tablename__ = 'client_requests'
+
+    id = Column(Integer, primary_key=True)
+    client_tg_id = Column(Integer, nullable=False, index=True)
+    status = Column(Enum(ClientRequestStatus), default=ClientRequestStatus.new, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    taken_at = Column(DateTime, nullable=True)
+    # Когда продажник «берёт» клиента, запомним его telegram_id
+    sales_tg_id = Column(Integer, nullable=True)
+
+    # Когда продажник «закрывает» запрос (после завершения общения), можно ставить status='closed'
+    closed_at = Column(DateTime, nullable=True)
+
+    # Опционально: можно хранить lead_id, если сразу привязали к лид-карточке
+    lead_id = Column(Integer, ForeignKey("leads_prototype.id"), nullable=True)
+
+    # Связь на Lead (если привязали)
+    lead = relationship("Lead", backref="client_requests", lazy="joined")

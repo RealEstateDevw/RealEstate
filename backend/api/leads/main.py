@@ -13,7 +13,7 @@ from backend.core.deps import get_current_user_from_cookie
 from backend.database import get_db
 from backend.database.models import Comment, User, Contract, Lead, Callback
 from backend.database.sales_service.crud import LeadCRUD, LeadStatisticsService, InactiveLeadsService, LeadFilterService ,UnassignedLeadsService
-from config import logger, TEMP_DIR
+from config import logger
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
@@ -231,7 +231,7 @@ async def create_contract(
         }
 
         # Создание Excel-файла
-        filename = TEMP_DIR / f"contract_{contract.contract_number}.xlsx"
+        filename =  f"contract_{contract.contract_number}.xlsx"
         df = pd.DataFrame([excel_data])
         df.to_excel(filename, index=False)
         print(f"Excel-файл создан: {filename}")

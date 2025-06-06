@@ -218,11 +218,26 @@
                     </button>
                 </div>
             </div> -->
-            <div class="attach-apartment-button">
-                <button type="button" onclick="openAttachModal({{ lead.id }})">
-                Закрепить квартиру к лиду
-              </button>
+            <div class="buttons-row">
+              <div class="attach-apartment-button">
+                <button type="button" onclick="openAttachModal({{ lead.id }})"><span>Закрепить квартиру к лиду</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none"><path d="M6 3.83329L10 8.49996L6 13.1666" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              </div>
+              <div class="view-chat-button">
+                <button type="button" id="viewChatButton"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none"><path d="M9.33325 15.1667C9.33325 12.6526 9.33325 11.3954 10.1143 10.6144C10.8953 9.83337 12.1525 9.83337 14.6666 9.83337" stroke="#1967F2" stroke-width="1.5" stroke-linecap="round"/><path opacity="0.5" d="M1.33325 9.83337C3.84741 9.83337 5.10449 9.83337 5.88554 10.6144C6.66659 11.3954 6.66659 12.6526 6.66659 15.1667" stroke="#1967F2" stroke-width="1.5" stroke-linecap="round"/><path d="M1.33325 7.16671C3.84741 7.16671 5.10449 7.16671 5.88554 6.38566C6.66659 5.60461 6.66659 4.34753 6.66659 1.83337" stroke="#1967F2" stroke-width="1.5" stroke-linecap="round"/><path opacity="0.5" d="M14.6666 7.16671C12.1525 7.16671 10.8953 7.16671 10.1143 6.38566C9.33325 5.60461 9.33325 4.34753 9.33325 1.83337" stroke="#1967F2" stroke-width="1.5" stroke-linecap="round"/></svg><span>Посмотреть чат полностью</span></button>
+              </div>
             </div>
+          <!-- Chat Modal -->
+<div id="chatModal" class="modal" style="display:none;">
+  <div class="modal-content chat-modal-content">
+      <div class="chat-modal-header">
+          <h2>Запись чата</h2>
+          <button type="button" class="modal-close-button" onclick="closeChatModal()">×</button>
+      </div>
+      <div class="chat-modal-body full-chat-content">
+          <!-- Full chat will be populated here -->
+      </div>
+  </div>
+</div>
             
 
 
@@ -415,6 +430,20 @@
     {% else %}
     <script src="/static/mop-dashboard-main.js"></script>
 {% endif %}
+
+    <!-- Chat Modal Script -->
+    <script>
+      function openChatModal() {
+        var modalBody = document.querySelector('#chatModal .full-chat-content');
+        document.getElementById('chatModal').style.display = 'block';
+      }
+
+      function closeChatModal() {
+        document.getElementById('chatModal').style.display = 'none';
+      }
+
+      document.getElementById('viewChatButton').addEventListener('click', openChatModal);
+    </script>
     <script>
 function openContractModal(prefilledData) {
     document.getElementById('contractModal').style.display = 'block';
@@ -846,7 +875,7 @@ document.getElementById('confirmDeleteButton').addEventListener('click', async f
 </script>
 <script>
   // Open Inactive Modal
-  document.getElementById('markInactiveButton').addEventListener('click', function() {
+  document.getElementById('markInactiveButton').addEventListener('click', function() { 
     document.getElementById('inactiveModal').style.display = 'block';
   });
   // Close Inactive Modal

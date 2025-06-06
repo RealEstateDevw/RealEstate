@@ -4,7 +4,8 @@ from datetime import datetime
 from io import BytesIO
 from typing import Union, Dict, List, Any
 from dateutil.relativedelta import relativedelta
-from docxtpl import DocxTemplate
+from docx.shared import Mm
+from docxtpl import DocxTemplate, InlineImage
 from fastapi import APIRouter, HTTPException, Body, Query
 from fastapi import Form, UploadFile, File
 import shutil
@@ -254,6 +255,45 @@ def clean_number(value: str | None) -> float:
         return 0.0
 
 
+from pdf2image import convert_from_path
+
+FLOORPLAN_IMAGES_DIR = os.path.join(BASE_DIR, "static", "floorplans")
+
+PDF_PLAN_PATH = os.path.join(BASE_STATIC_PATH, "ЖК_Бахор", "Plan pradaja.pdf")
+
+
+def convert_floorplan_pdf_to_images(pdf_path: str, output_dir: str) -> list[str]:
+    """
+    Конвертирует PDF поэтажных планов в PNG, сохраняет в output_dir.
+    Возвращает список имен файлов изображений в том порядке, в каком страницы в PDF.
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    print(f"Конвертируем PDF {pdf_path} в PNG в директории {output_dir}")
+
+    pil_images = convert_from_path(pdf_path, dpi=150)
+
+    saved_paths: list[str] = []
+
+    crop_box = (529, 530, 960, 982)  # (left, upper, right, lower)
+
+    for idx, image in enumerate(pil_images):
+        page_number = idx + 1
+        # full_fname = os.path.join(output_dir, f"floorplan_page_{page_number}_full.png")
+        # image.save(full_fname, "PNG")
+
+        cropped_img = image.crop(crop_box)
+
+        cropped_fname = os.path.join(output_dir, f"floorplan_page_{page_number}.png")
+        cropped_img.save(cropped_fname, "PNG")
+        print(f"Сохранён скропанный план этажа: {cropped_fname}")
+        saved_paths.append(cropped_fname)
+
+    return saved_paths
+
+
+floorplan_images = convert_floorplan_pdf_to_images(PDF_PLAN_PATH, FLOORPLAN_IMAGES_DIR)
+
+
 @router.post("/generate-contract")
 async def generate_contract(data: ContractData):
     """Генерация договора в формате DOCX и обновление реестра в XLSX (с использованием docxtpl)."""
@@ -277,7 +317,14 @@ async def generate_contract(data: ContractData):
         # Подготовка контекста (словаря) для Jinja2
         # Имена ключей должны ТОЧНО соответствовать плейсхолдерам БЕЗ {{ }}
         context = _prepare_context_for_tpl(data)
-
+        img_index = data.floor - 1
+        if 0 <= img_index < len(floorplan_images):
+            img_path = floorplan_images[img_index]
+            # Задаём желаемую ширину картинки (например, 140 мм). Высота подгонится автоматически:
+            context["FloorPlan"] = InlineImage(doc, img_path, width=Mm(140))
+        else:
+            # Если нет подходящего плана, можно вставить пустую строку или сообщение:
+            context["FloorPlan"] = "План этажа недоступен"
         # Рендеринг шаблона (заполнение)
         doc.render(context)
 
