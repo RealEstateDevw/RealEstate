@@ -455,3 +455,5 @@ class DrawUser(Base):
     phone = Column(String, unique=True, nullable=False, index=True)
     lang = Column(Enum(UserLang), nullable=False, default=UserLang.ru)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+# sfdsfsdfsfsdfsf
