@@ -438,3 +438,20 @@ class ClientRequest(Base):
 
     # Связь на Lead (если привязали)
     lead = relationship("Lead", backref="client_requests", lazy="joined")
+
+
+class UserLang(enum.Enum):
+    ru = "ru"
+    uz = "uz"
+
+
+class DrawUser(Base):
+    __tablename__ = 'draw_users'
+
+    id = Column(Integer, primary_key=True)
+    telegram_id = Column(Integer, unique=True, nullable=False, index=True)
+    first_name = Column(String)
+    last_name = Column(String)
+    phone = Column(String, unique=True, nullable=False, index=True)
+    lang = Column(Enum(UserLang), nullable=False, default=UserLang.ru)
+    created_at = Column(DateTime, default=datetime.utcnow)

@@ -1,10 +1,14 @@
 <header class="header">
    
         <a href="/dashboard/admin" class="logo">Main Admin</a>
-        {% if request.path == '/dashboard/admin/' or request.path == '/dashboard/admin/data-base'%}
+
+        {% if request.path in[ '/dashboard/admin/', '/dashboard/admin/data-base', '/dashboard/admin/draws'] %}
         <div class="actions-group">
             
             <button class="shahmatki">Реестр Договоров</button>
+            <a href="/dashboard/admin/draws" class="shahmatki draw-button" aria-label="Страница розыгрыша">
+                Розыгрыш
+            </a>
             <a class="shahmatki" href="/dashboard/admin/data-base/">База Данных</a>
             <a href="/complexes" class="shahmatki">Шахматки</a>
             <a href="/dashboard/admin/add_user" class="register-btn" aria-label="Зарегистрировать сотрудника">

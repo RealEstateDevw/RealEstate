@@ -812,3 +812,17 @@ body {
     border-color: #dc3545;
 }
 
+
+/* Стили для кнопки «Розыгрыш» */
+.shahmatki.draw-button {
+    /* все базовые стили .shahmatki уже применяются */
+    /* при необходимости можно скорректировать отступы: */
+    padding: 12px 20px;
+    /* запретим сжиматься в flex-контейнере */
+    flex-shrink: 0;
+}
+
+/* Поведение при наведении */
+.shahmatki.draw-button:hover {
+    background-color: #e0e0e0; /* совпадает с .shahmatki:hover */
+}

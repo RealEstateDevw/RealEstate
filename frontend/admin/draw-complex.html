@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Main Admin</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="/static/main_admin_style.css">
+        <link rel="stylesheet" href="/static/modal-content.css">
+        <link rel="stylesheet" href="/static/admin_style/style.css">
+        <style>
+            html, body {
+  height: 100%;
+}
+            body {
+                background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+                transition: background 0.5s ease;
+            }
+
+            /* ========== Draw Registrations ========== */
+.draw-registrations {
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 3rem auto;
+  max-width: 1000px;
+}
+
+.draw-registrations__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e40af;  /* синий акцент */
+  margin-bottom: 1rem;
+}
+
+.draw-registrations__table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.draw-registrations__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.draw-registrations__table th,
+.draw-registrations__table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.draw-registrations__table th {
+  background-color: #f3f4f6;
+  color: #374151;
+  font-weight: 500;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.draw-registrations__table tr:nth-child(even) td {
+  background-color: #fafafa;
+}
+
+.draw-registrations__table td {
+  border-bottom: 1px solid #e5e7eb;
+  color: #1f2937;
+}
+
+.draw-registrations__table .no-data {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.draw-registrations__export {
+  text-align: center;
+}
+
+.draw-registrations__export .export-button {
+  /* если нужен собственный стиль — иначе наследуются стили .shahmatki */
+  display: inline-block;
+  padding: 0.6rem 1.5rem;
+  background-color: #2563eb;
+  color: #ffffff;
+  border-radius: 9999px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.draw-registrations__export .export-button:hover {
+  background-color: #1e3a8a;
+}
+        </style>
+    
+    </head>
+    
+    <body>
+    
+        {% include 'partials/admin-header.html' %}
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+        <div class="draw-registrations">
+            <h2 class="draw-registrations__title">Участники розыгрыша</h2>
+            <div class="draw-registrations__table-wrapper">
+              <table class="draw-registrations__table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Имя</th>
+                    <th>Фамилия</th>
+                    <th>Телефон</th>
+                    <th>Дата регистрации</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for draw in draw_users %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ draw.first_name }}</td>
+                    <td>{{ draw.last_name }}</td>
+                    <td>{{ draw.phone }}</td>
+                    <td>
+                      {{ draw.created_at.strftime('%d.%m.%Y %H:%M') }}
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="5" class="no-data">Пока нет зарегистрированных участников</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          
+            <div class="draw-registrations__export">
+              <a href="/draw-users/export" class="shahmatki export-button">
+                Скачать в Excel
+              </a>
+            </div>
+          </div>
+
+          <script src="/static/scripts.js"></script>
+    <script src="/static/modal-scripts.js"></script>
+    <script src="/static/modal-scripts-excel.js"></script>
+</body>
+</html>

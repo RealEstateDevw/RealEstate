@@ -1,6 +1,8 @@
 import asyncio
 from datetime import timedelta, datetime, timezone
 
+from aiogram import Bot
+from aiogram.client.session.aiohttp import AiohttpSession
 from authlib.jose import jwt
 from fastapi.openapi.models import Response
 from fastapi_cache import FastAPICache
@@ -17,11 +19,12 @@ from backend.api.users.main import user_router
 from backend.api.leads.main import router as leads_router, lead_crud
 from backend.api.mop.main import router as mop_api_router
 from backend.api.users.schemas import ROLE_REDIRECTS, UserRead
+from backend.bot.main import run_bot
 from backend.core.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password, SECRET_KEY, ALGORITHM
 from backend.core.deps import get_current_user, get_current_user_from_cookie
 # from backend.core.google_sheets import schedule_lid_check, load_data_to_cache
 from backend.database import Base, engine, get_db
-from fastapi import FastAPI, Request, HTTPException, Form, Depends
+from fastapi import FastAPI, Request, HTTPException, Form, Depends, BackgroundTasks, Body
 from fastapi.responses import HTMLResponse
 from backend.database.userservice import get_user_by_login, get_all_users
 from config import logger, templates
@@ -34,6 +37,7 @@ from backend.crm.rop.main import router as rop_router
 from backend.api.rop.main import router as rop_api_router
 from backend.crm.shaxmatki.main import router as shaxmatki_router
 from backend.api.complexes.main import router as shaxmatki_api_router
+from backend.api.draws.main import router as draw_users_router
 # from backend.api.excel_utils import router as excel_router
 from backend.api.test_excel import router as test_excel
 
@@ -51,6 +55,7 @@ app.include_router(rop_router)
 app.include_router(rop_api_router)
 app.include_router(shaxmatki_router)
 app.include_router(shaxmatki_api_router)
+app.include_router(draw_users_router)
 # app.include_router(excel_router)
 app.include_router(test_excel)
 
@@ -66,16 +71,52 @@ app.add_middleware(
 )
 
 
+#
+# WEBHOOK_BASE = "https://2c67-213-230-72-140.ngrok-free.app"
+# WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
+# WEBHOOK_URL = f"{WEBHOOK_BASE}{WEBHOOK_PATH}"
+# USED_UPDATE_TYPES: list = [
+#     "message",
+#     "callback_query",
+#     "chat_member"
+# ]
+
+
 @app.on_event("startup")
 async def on_startup():
     """Функция, которая выполняется при старте сервера."""
     FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache")
     # Можно также выполнить первоначальную загрузку данных, если необходимо:
-
     Base.metadata.create_all(bind=engine)  # Создание таблиц, если их нет
     init_roles()
-    # asyncio.create_task(schedule_lid_check(60, 60))
-    # await load_data_to_cache()
+    asyncio.get_event_loop().create_task(run_bot())
+    # await bot.set_webhook(WEBHOOK_URL, allowed_updates=USED_UPDATE_TYPES)
+    # dp.include_router(draw_router)
+    # print(f"[startup] Webhook set to {WEBHOOK_URL}")
+
+
+#
+# bot_session = AiohttpSession()
+#
+#
+# async def feed_update(token, update):
+#     async with Bot(token, bot_session, parse_mode="HTML").context(auto_close=False) as bot_:
+#         await dp.feed_raw_update(bot_, update)
+#
+#
+#
+# @app.post(WEBHOOK_PATH, include_in_schema=False)
+# async def telegram_update(token: str, background_tasks: BackgroundTasks,
+#                           update: dict = Body(...)) -> Response:
+#     print("here")
+#     if token == bot.token:
+#         background_tasks.add_task(feed_update, token, update)
+#         return Response(status_code=status.HTTP_202_ACCEPTED)
+#     return Response(status_code=status.HTTP_401_UNAUTHORIZED)
+
+
+# asyncio.create_task(schedule_lid_check(60, 60))
+# await load_data_to_cache()
 
 
 # @app.get("/", response_class=HTMLResponse)
@@ -132,29 +173,8 @@ async def login(
     )
 
     return response
-    # # Проверяем наличие пользователя по логину
-    # user = get_user_by_login(login=username)
-    # if not user or not verify_password(password, user.hashed_password):
-    #     raise HTTPException(status_code=400, detail="Неверное имя пользователя или пароль")
-    #
-    # # Генерируем JWT-токен с временем жизни ACCESS_TOKEN_EXPIRE_MINUTES
-    # access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    # token = create_access_token(data={"sub": user.login, "role_id": user.role_id}, expires_delta=timedelta(minutes=60))
-    # redirect_url = ROLE_REDIRECTS.get(
-    #     user.role_id,
-    #     "/dashboard/default"  # Дефолтный редирект если роль не найдена
-    # )
-    # response = RedirectResponse(
-    #     url=redirect_url,
-    #     status_code=status.HTTP_303_SEE_OTHER  # Более правильный код для редиректа после POST
-    # )
-    #
-    # # Устанавливаем токен в HTTP-only cookie (если требуется для дальнейшей авторизации)
-    # response.set_cookie(key="access_token", value=f"Bearer {token}", httponly=True)
-    # return response
 
 
-# 3. Простой эндпоинт /home для отображения страницы после входа
 @app.get("/profile", response_class=HTMLResponse, name="user_profile")
 async def home(request: Request, current_user=Depends(get_current_user_from_cookie)):
     return templates.TemplateResponse("profile.html", {"request": request, "user": current_user})
@@ -184,7 +204,9 @@ async def auth_middleware(request: Request, call_next):
     # Используем startswith для /static и /docs и т.д.
     public_paths_exact = {"/", "/login", "/register", "/api/auth/login", "/api/auth/register", "/complexes"}
     public_paths_startswith = {"/static", "/docs",
-                               "/openapi.json", "/complexes", "/api/complexes", "/excel"}  # Добавь сюда /docs и /openapi.json, если используешь Swagger/OpenAPI UI
+                               "/openapi.json", "/complexes", "/api/complexes",
+                               "/excel",
+                               "/webhook"}  # Добавь сюда /docs и /openapi.json, если используешь Swagger/OpenAPI UI
 
     is_public = False
     if path in public_paths_exact:
@@ -253,7 +275,8 @@ async def auth_middleware(request: Request, call_next):
         logger.error(f"JWT Error: {str(e)}")
         # Если токен невалиден (ошибка подписи, неверный формат и т.д.), перенаправляем на логин
         response = RedirectResponse(url="/login", status_code=303)
-        response.delete_cookie("access_token", path="/", domain=None, secure=True, httponly=True)  # Удаляем невалидный куки
+        response.delete_cookie("access_token", path="/", domain=None, secure=True,
+                               httponly=True)  # Удаляем невалидный куки
         return response
 
     except Exception as e:
