@@ -1,5 +1,7 @@
 import enum
 from datetime import datetime
+from zoneinfo import ZoneInfo
+
 from backend.api.finance.schemas import PaymentStatus, PaymentType
 from backend.api.leads.schemas import LeadState, LeadStatus
 from backend.api.rop.schemas import ExpenseCategory
@@ -454,6 +456,6 @@ class DrawUser(Base):
     last_name = Column(String)
     phone = Column(String, unique=True, nullable=False, index=True)
     lang = Column(Enum(UserLang), nullable=False, default=UserLang.ru)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(tz=ZoneInfo("Asia/Tashkent")))
 
 # sfdsfsdfsfsdfsf
