@@ -458,4 +458,3 @@ class DrawUser(Base):
     lang = Column(Enum(UserLang), nullable=False, default=UserLang.ru)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(tz=ZoneInfo("Asia/Tashkent")))
 
-# sfdsfsdfsfsdfsf

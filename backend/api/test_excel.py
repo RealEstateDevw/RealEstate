@@ -387,10 +387,45 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     """Подготовка словаря (контекста) для docxtpl."""
     total_amount = clean_number(data.totalPrice)
     initial_payment = clean_number(data.initialPayment)
+
+    start_date = datetime(2025, 7, 1)
+    end_date = start_date + relativedelta(months=22)
+
+    # Текущая дата (сегодня)
+    today = datetime.today()
+
+    # Считаем разницу в месяцах
+    diff_years = end_date.year - today.year
+    diff_months = end_date.month - today.month
+    total_months_left = diff_years * 12 + diff_months
+
+    # Если день уже прошел текущий месяц, уменьшаем на 1
+    if today.day > 1:
+        total_months_left -= 1
+
+    # Не допускаем отрицательных значений
+    total_months_left = max(total_months_left, 0)
     # Осторожно с делением на 0, если total_amount может быть 0
-    monthly_payment = (total_amount - initial_payment) / 22 if total_amount and initial_payment is not None else 0
+    monthly_payment = (total_amount - initial_payment) / total_months_left if total_amount and initial_payment is not None else 0
     contract_date = parse_date(data.contractDate)  # Предполагаем, что parse_date возвращает datetime объект
     print(data.contractDate)
+    start_date = datetime(2025, 7, 1)
+    end_date = start_date + relativedelta(months=22)
+
+    # Текущая дата (сегодня)
+    today = datetime.today()
+
+    # Считаем разницу в месяцах
+    diff_years = end_date.year - today.year
+    diff_months = end_date.month - today.month
+    total_months_left = diff_years * 12 + diff_months
+
+    # Если день уже прошел текущий месяц, уменьшаем на 1
+    if today.day > 1:
+        total_months_left -= 1
+
+    # Не допускаем отрицательных значений
+    total_months_left = max(total_months_left, 0)
     # Ключи БЕЗ {{ }}
     context = {
         "Номер_Договора": data.contractNumber or "N/A",
@@ -406,7 +441,7 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
         "Номер_КВ": str(data.apartmentNumber) if data.apartmentNumber is not None else "N/A",
         "Кол_во_Ком": str(data.rooms) if data.rooms is not None else "N/A",
         "Квадратура_Квартиры": str(data.size) if data.size is not None else "N/A",
-        "Общ_Стоимость": f"{(monthly_payment * 22):,.0f}".replace(",", " ") if total_amount is not None else "N/A",
+        "Общ_Стоимость": f"{(monthly_payment * total_months_left):,.0f}".replace(",", " ") if total_amount is not None else "N/A",
         "Общ_Стоимость_1": f"{total_amount :,.0f}".replace(",", " ") if total_amount is not None else "N/A",
         "Общ_Стоимость_Про": _number_to_words(f"{total_amount :,.0f}"),
         "Стоимость_1_м2": (data.pricePerM2 or "N/A").replace(" ", "").replace("\xa0", ""),

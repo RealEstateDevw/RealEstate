@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import fitz
+from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, HTTPException, Body, Query, UploadFile, File, Form
 from starlette.responses import FileResponse
 
@@ -276,10 +277,23 @@ async def get_apartment_info(
         print(f"price_30={prices['30']}, calculated total_price={total_price}")
 
         # Вычисляем оставшиеся месяцы (например, до 30 июня 2027)
-        current_date = datetime.now()
-        end_date = datetime(2027, 6, 30)
-        months_left = 22
+        start_date = datetime(2025, 7, 1)
+        end_date = start_date + relativedelta(months=22)
 
+        # Текущая дата (сегодня)
+        today = datetime.today()
+
+        # Считаем разницу в месяцах
+        diff_years = end_date.year - today.year
+        diff_months = end_date.month - today.month
+        total_months_left = diff_years * 12 + diff_months
+
+        # Если день уже прошел текущий месяц, уменьшаем на 1
+        if today.day > 1:
+            total_months_left -= 1
+
+        # Не допускаем отрицательных значений
+        total_months_left = max(total_months_left, 0)
         return {
             "status": "success",
             "data": {
@@ -292,7 +306,7 @@ async def get_apartment_info(
                 "floor": floor,
                 "size": apartmentSize,
                 "apartment_number": apartmentNumber,
-                "months_left": months_left
+                "months_left": total_months_left
             }
         }
     except Exception as e:

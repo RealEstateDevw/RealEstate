@@ -89,12 +89,10 @@ async def on_startup():
     # Можно также выполнить первоначальную загрузку данных, если необходимо:
     Base.metadata.create_all(bind=engine)  # Создание таблиц, если их нет
     init_roles()
-    asyncio.get_event_loop().create_task(run_bot())
+    # asyncio.get_event_loop().create_task(run_bot())
     # await bot.set_webhook(WEBHOOK_URL, allowed_updates=USED_UPDATE_TYPES)
     # dp.include_router(draw_router)
     # print(f"[startup] Webhook set to {WEBHOOK_URL}")
-
-
 #
 # bot_session = AiohttpSession()
 #
