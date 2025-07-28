@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="/static/admin_style/style.css">
+
+    <link rel="stylesheet" href="/static/register-employer-style.css">
+    <title>CRM</title>
+
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+  {% include 'partials/admin-header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+
+    <form class="main-form" id="employeeForm">
+        <div class="input-row">
+            <input type="text" class="input-field" placeholder="Имя и Фамилия" id="fullName" required>
+            
+
+                <div class="input-field" onclick="toggleDropdown()" id="dropdownContainer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33" fill="none">
+                        <path d="M16.0001 13.8333C18.9456 13.8333 21.3334 11.4455 21.3334 8.49999C21.3334 5.55447 18.9456 3.16666 16.0001 3.16666C13.0546 3.16666 10.6667 5.55447 10.6667 8.49999C10.6667 11.4455 13.0546 13.8333 16.0001 13.8333Z" fill="black"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M21.9999 29.8333C19.8001 29.8333 18.7001 29.8333 18.0167 29.1499C17.3333 28.4665 17.3333 27.3665 17.3333 25.1667C17.3333 22.9668 17.3333 21.8668 18.0167 21.1835C18.7001 20.5 19.8001 20.5 21.9999 20.5C24.1998 20.5 25.2998 20.5 25.9831 21.1835C26.6666 21.8668 26.6666 22.9668 26.6666 25.1667C26.6666 27.3665 26.6666 28.4665 25.9831 29.1499C25.2998 29.8333 24.1998 29.8333 21.9999 29.8333ZM24.6239 24.1611C24.9277 23.8573 24.9277 23.3649 24.6239 23.0612C24.3202 22.7573 23.8278 22.7573 23.5241 23.0612L20.9629 25.6223L20.4758 25.1352C20.1721 24.8315 19.6797 24.8315 19.3759 25.1352C19.0722 25.4389 19.0722 25.9315 19.3759 26.2352L20.4129 27.2721C20.7166 27.576 21.2091 27.576 21.5129 27.2721L24.6239 24.1611Z" fill="black"/>
+                        <path opacity="0.5" d="M24.1263 20.5416C23.5599 20.5 22.865 20.5 22.0001 20.5C19.8002 20.5 18.7002 20.5 18.0169 21.1835C17.3334 21.8668 17.3334 22.9668 17.3334 25.1667C17.3334 26.7217 17.3334 27.7272 17.5749 28.4244C17.0629 28.4741 16.5367 28.5 16.0001 28.5C10.8454 28.5 6.66675 26.1121 6.66675 23.1667C6.66675 20.2212 10.8454 17.8333 16.0001 17.8333C19.4846 17.8333 22.5233 18.9245 24.1263 20.5416Z" fill="black"/>
+                      </svg>
+                    <span id="selectedRole">Выберите должность</span>
+                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                
+            
+                <ul id="dropdownList" class="dropdown-list hidden">
+                    <li data-value="1" onclick="selectRole('Продажник', 1)">Продажник</li>
+            <li data-value="2" onclick="selectRole('МОП', 2)">МОП</li>
+            <li data-value="4" onclick="selectRole('Финансист', 4)">Финансист</li>
+            <li data-value="3" onclick="selectRole('РОП', 3)">РОП</li>
+                </ul>
+            </div>
+        </div>
+        <div class="profile-form-info">
+        <h2 class="section-title">Личная информация</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <label class="info-label">Дата рождения</label>
+                <input type="datetime" class="info-input" placeholder="ДД.ММ.ГГГГ" onkeydown="this.style.width = ((this.value.length + 1) * 8) + 'px';" type="date" id="birthDate" required>
+                <svg xmlns="http://www.w3.org/2000/svg" onclick="openFlatpickr()" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                    <path d="M6.96006 2.5C7.37758 2.5 7.71605 2.80996 7.71605 3.19231V4.58883C8.38663 4.57692 9.13829 4.57692 9.98402 4.57692H14.016C14.8617 4.57692 15.6134 4.57692 16.284 4.58883V3.19231C16.284 2.80996 16.6224 2.5 17.0399 2.5C17.4575 2.5 17.7959 2.80996 17.7959 3.19231V4.65008C19.2468 4.75647 20.1992 5.01758 20.899 5.65838C21.5987 6.29917 21.8838 7.17139 22 8.5V9.5H2V8.5C2.11618 7.17139 2.4013 6.29917 3.10104 5.65838C3.80079 5.01758 4.75323 4.75647 6.20406 4.65008V3.19231C6.20406 2.80996 6.54253 2.5 6.96006 2.5Z" fill="#216BF4"/>
+                    <path opacity="0.5" d="M21.9999 14.5V12.5C21.9999 11.661 21.9872 10.1653 21.9743 9.5H2.00579C1.99289 10.1653 2.00557 11.661 2.00557 12.5V14.5C2.00557 18.2712 2.00557 20.1569 3.17681 21.3284C4.34806 22.5 6.23314 22.5 10.0033 22.5H14.0022C17.7723 22.5 19.6574 22.5 20.8287 21.3284C21.9999 20.1569 21.9999 18.2712 21.9999 14.5Z" fill="#216BF4"/>
+                    <path d="M18 17C18 17.8284 17.3284 18.5 16.5 18.5C15.6716 18.5 15 17.8284 15 17C15 16.1716 15.6716 15.5 16.5 15.5C17.3284 15.5 18 16.1716 18 17Z" fill="#216BF4"/>
+                  </svg>
+            </div>
+            <div class="info-item">
+                <label class="info-label">Логин</label>
+                <input type="text" class="info-input" placeholder="kamronislamov" onkeydown="this.style.width = ((this.value.length + 1) * 8) + 'px';" required id="login">
+            </div>
+            <div class="info-item">
+                <label class="info-label">Телефон</label>
+                <input type="text" class="info-input" placeholder="+XXX (XX) XXX XX XX" onkeydown="this.style.width = ((this.value.length + 1) * 8) + 'px';" required id="phone">
+            </div>
+            <div class="info-item">
+                <label class="info-label">Почта</label>
+                <input type="email" class="info-input" placeholder="example@email.com" onkeydown="this.style.width = ((this.value.length + 1) * 8) + 'px';" required id="email">
+            </div>
+        </div>
+
+        <h2 class="section-title">Временный пароль</h2>
+        <div class="password-field">
+            <input type="password"  class="password-input" id="passwordInput"value="qwerty123">
+            <div class="password-icons">
+                <svg onclick="generateRandomPassword()" xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M9.53033 2.96967C9.23744 2.67678 8.76256 2.67678 8.46967 2.96967C8.17678 3.26256 8.17678 3.73744 8.46967 4.03033L9.18934 4.75H9C4.71979 4.75 1.25 8.21979 1.25 12.5C1.25 16.7802 4.72011 20.25 9.00028 20.25H9.5C9.91421 20.25 10.25 19.9142 10.25 19.5C10.25 19.0858 9.91421 18.75 9.5 18.75H9.00028C5.54846 18.75 2.75 15.9517 2.75 12.5C2.75 9.04822 5.54822 6.25 9 6.25H11C11.3033 6.25 11.5768 6.06727 11.6929 5.78701C11.809 5.50676 11.7448 5.18417 11.5303 4.96967L9.53033 2.96967Z" fill="#216BF4"/>
+                    <path opacity="0.5" d="M14.5 4.75C14.0858 4.75 13.75 5.08579 13.75 5.5C13.75 5.91421 14.0858 6.25 14.5 6.25H15C18.4518 6.25 21.25 9.04822 21.25 12.5C21.25 15.9518 18.4518 18.75 15 18.75H13C12.6967 18.75 12.4232 18.9327 12.3071 19.213C12.191 19.4932 12.2552 19.8158 12.4697 20.0303L14.4697 22.0303C14.7626 22.3232 15.2375 22.3232 15.5304 22.0303C15.8232 21.7374 15.8232 21.2626 15.5304 20.9697L14.8107 20.25H15C19.2802 20.25 22.75 16.7802 22.75 12.5C22.75 8.21979 19.2802 4.75 15 4.75H14.5Z" fill="#216BF4"/>
+                  </svg>
+                  <svg onclick="togglePasswordVisibility()" xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                    <path opacity="0.5" d="M2 12.5C2 14.1394 2.42496 14.6915 3.27489 15.7957C4.97196 18.0004 7.81811 20.5 12 20.5C16.1819 20.5 19.028 18.0004 20.7251 15.7957C21.575 14.6915 22 14.1394 22 12.5C22 10.8606 21.575 10.3085 20.7251 9.20433C19.028 6.99956 16.1819 4.5 12 4.5C7.81811 4.5 4.97196 6.99956 3.27489 9.20433C2.42496 10.3085 2 10.8606 2 12.5Z" fill="black"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.25 12.5C8.25 10.4289 9.92893 8.75 12 8.75C14.0711 8.75 15.75 10.4289 15.75 12.5C15.75 14.5711 14.0711 16.25 12 16.25C9.92893 16.25 8.25 14.5711 8.25 12.5ZM9.75 12.5C9.75 11.2574 10.7574 10.25 12 10.25C13.2426 10.25 14.25 11.2574 14.25 12.5C14.25 13.7426 13.2426 14.75 12 14.75C10.7574 14.75 9.75 13.7426 9.75 12.5Z" fill="black"/>
+                  </svg>
+            </div>
+        </div>
+
+        <div class="button-row">
+             <a class="import-button button-info" href="{{ url_for('add_excel_file') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="49" viewBox="0 0 48 49" fill="none">
+                    <path opacity="0.5" d="M10.0001 13C9.37236 13 8.81102 13.3909 8.59324 13.9796C8.37546 14.5683 8.54728 15.2304 9.02388 15.6389L23.0238 27.6388C23.5856 28.1204 24.4146 28.1204 24.9762 27.6388L38.9762 15.6389C39.4528 15.2304 39.6246 14.5683 39.407 13.9796C39.1892 13.3909 38.6278 13 38 13H10.0001Z" fill="black"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.86114 21.5238C9.40028 20.8948 10.3472 20.822 10.9762 21.3612L24 32.5244L37.0238 21.3612C37.6528 20.822 38.5998 20.8948 39.139 21.5238C39.678 22.1528 39.6052 23.0998 38.9762 23.639L24.9762 35.639C24.4144 36.1204 23.5856 36.1204 23.0238 35.639L9.02384 23.639C8.39486 23.0998 8.322 22.1528 8.86114 21.5238Z" fill="black"/>
+                  </svg>
+                Загрузить данные 
+            </a> 
+            <button class="register-button button-info" type="submit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="49" viewBox="0 0 48 49" fill="none">
+                    <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M6.5 24.5C6.5 23.6716 7.17158 23 8 23H26.5V26H8C7.17158 26 6.5 25.3284 6.5 24.5Z" fill="#216BF4"/>
+                    <path d="M26.5 26V36.5C26.5 37.1068 26.8654 37.6536 27.426 37.8858C27.9864 38.118 28.6316 37.9898 29.0606 37.5608L41.0606 25.5608C41.342 25.2794 41.5 24.8978 41.5 24.5C41.5 24.1022 41.342 23.7206 41.0606 23.4394L29.0606 11.4394C28.6316 11.0104 27.9864 10.8821 27.426 11.1142C26.8654 11.3464 26.5 11.8934 26.5 12.5V23V26Z" fill="#216BF4"/>
+                  </svg>
+                <span>Зарегистрировать сотрудника</span>
+                
+            </button>
+        </div>
+    </div>
+    </form>
+
+
+    
+<script src="/static/register-user-scripts.js"></script>
+</body>
+</html>

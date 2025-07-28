@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller CRM Prototype</title>
+    <link rel="stylesheet" href="/static/marekting-style/main-style.css">
+    <style>
+        head{
+            height: 100%;
+        }
+        body {
+            background-size: 120%;
+            background-position: bottom;
+            background-repeat: no-repeat;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #333;
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <a class="header-text" href="/dashboard/admin">Seller CRM Prototype</a>
+            <div class="header-controls">
+                <div class="dropdown-container">
+                    <select class="dropdown">
+                        <option>Статус</option>
+                        <option>Активна</option>
+                        <option>Пауза</option>
+                    </select>
+                    <select class="dropdown">
+                        <option>Источник</option>
+                        <option>Instagram</option>
+                        <option>Facebook</option>
+                        <option>Telegram</option>
+                    </select>
+                    <select class="dropdown">
+                        <option>Период</option>
+                        <option>За день</option>
+                        <option>За неделю</option>
+                        <option>За месяц</option>
+                    </select>
+                    <select class="dropdown">
+                        <option>Сводка</option>
+                    </select>
+                </div>
+                <input type="text" class="search-box" placeholder="Поиск">
+                <a href="/dashboard/admin/marketing/add-campaigns" class="user-avatar">+</a>
+                <a href="{{ url_for('user_profile') }}" class="user-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 48 48" fill="none">
+  <path d="M24 21C28.4183 21 32 17.4183 32 13C32 8.58172 28.4183 5 24 5C19.5817 5 16 8.58172 16 13C16 17.4183 19.5817 21 24 21Z" fill="#216BF4"/>
+  <path d="M24 43.002C31.732 43.002 38 39.4203 38 35.002C38 30.5837 31.732 27.002 24 27.002C16.268 27.002 10 30.5837 10 35.002C10 39.4203 16.268 43.002 24 43.002Z" fill="#216BF4"/>
+</svg></a>
+            </div>
+        </div>
+        <!-- Metrics Section -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value">203$</div>
+                <div class="metric-label">Бюджет потрачен</div>
+                <div class="metric-change positive">
+                    <span>↗</span> +12%
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">2.4$</div>
+                <div class="metric-label">Процент лидов, перешедших в сделку</div>
+                <div class="metric-change negative">
+                    <span>↗</span> +5%
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">13%</div>
+                <div class="metric-label">Процент успешных лидов</div>
+            </div>
+        </div>
+        <!-- Campaigns Section -->
+        <section class="campaigns-section">
+  <!-- Header секции -->
+  <div class="section-header">
+    <h2 class="section-title">Кампании</h2>
+    <div class="section-count">5</div>
+  </div>
+
+  <!-- Сетка карточек -->
+  <div class="campaigns-grid">
+    <!-- Повторяйте этот блок 5 раз -->
+    <div class="campaign-card">
+      <div class="campaign-header">
+        <h3 class="campaign-name">Таргет ЖК</h3>
+        <div class="campaign-platform">
+          <span class="platform-name">Instagram</span>
+          <span class="platform-account">@Bahor.LC</span>
+        </div>
+      </div>
+      <div class="campaign-stats">
+        <div class="stat-row">
+          <span class="stat-label">Дата запуска:</span>
+          <span class="stat-value">12.07.2025</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Дата окончания:</span>
+          <span class="stat-value">20.07.2025</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Планируемый бюджет:</span>
+          <span class="stat-value">120$</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Использовано:</span>
+          <span class="stat-value">80$</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Просмотры:</span>
+          <span class="stat-value">12 700</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Переходы:</span>
+          <span class="stat-value">2 902</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Получено лидов:</span>
+          <span class="stat-value">800</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Активных лидов:</span>
+          <span class="stat-value">710</span>
+        </div>
+      </div>
+      <div class="campaign-footer">
+        <span class="status-badge status-active">
+          <span class="status-dot"></span>
+          Активна
+        </span>
+        <a href="/dashboard/admin/marketing/campaigns/" class="btn-action">Открыть карточку</a>
+      </div>
+    </div>
+    <!-- /campaign-card -->
+    <!-- ... ещё 4 карточки ... -->
+    <div class="campaign-card">
+      <div class="campaign-header">
+        <h3 class="campaign-name">Таргет ЖК</h3>
+        <div class="campaign-platform">
+          <span class="platform-name">Instagram</span>
+          <span class="platform-account">@Bahor.LC</span>
+        </div>
+      </div>
+      <div class="campaign-stats">
+        <div class="stat-row">
+          <span class="stat-label">Дата запуска:</span>
+          <span class="stat-value">12.07.2025</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Дата окончания:</span>
+          <span class="stat-value">20.07.2025</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Планируемый бюджет:</span>
+          <span class="stat-value">120$</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Использовано:</span>
+          <span class="stat-value">80$</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Просмотры:</span>
+          <span class="stat-value">12 700</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Переходы:</span>
+          <span class="stat-value">2 902</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Получено лидов:</span>
+          <span class="stat-value">800</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Активных лидов:</span>
+          <span class="stat-value">710</span>
+        </div>
+      </div>
+      <div class="campaign-footer">
+        <span class="status-badge status-active">
+          <span class="status-dot"></span>
+          Активна
+        </span>
+        <a href="/dashboard/admin/marketing/campaigns/" class="btn-action">Открыть карточку</a>
+      </div>
+    </div>
+    <div class="campaign-card">
+      <div class="campaign-header">
+        <h3 class="campaign-name">Таргет ЖК</h3>
+        <div class="campaign-platform">
+          <span class="platform-name">Instagram</span>
+          <span class="platform-account">@Bahor.LC</span>
+        </div>
+      </div>
+      <div class="campaign-stats">
+        <div class="stat-row">
+          <span class="stat-label">Дата запуска:</span>
+          <span class="stat-value">12.07.2025</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Дата окончания:</span>
+          <span class="stat-value">20.07.2025</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Планируемый бюджет:</span>
+          <span class="stat-value">120$</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Использовано:</span>
+          <span class="stat-value">80$</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Просмотры:</span>
+          <span class="stat-value">12 700</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Переходы:</span>
+          <span class="stat-value">2 902</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Получено лидов:</span>
+          <span class="stat-value">800</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Активных лидов:</span>
+          <span class="stat-value">710</span>
+        </div>
+      </div>
+      <div class="campaign-footer">
+        <span class="status-badge status-active">
+          <span class="status-dot"></span>
+          Активна
+        </span>
+        <a href="/dashboard/admin/marketing/campaigns/" class="btn-action">Открыть карточку</a>
+      </div>
+    </div>
+    <div class="campaign-card">
+      <div class="campaign-header">
+        <h3 class="campaign-name">Таргет ЖК</h3>
+        <div class="campaign-platform">
+          <span class="platform-name">Instagram</span>
+          <span class="platform-account">@Bahor.LC</span>
+        </div>
+      </div>
+      <div class="campaign-stats">
+        <div class="stat-row">
+          <span class="stat-label">Дата запуска:</span>
+          <span class="stat-value">12.07.2025</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Дата окончания:</span>
+          <span class="stat-value">20.07.2025</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Планируемый бюджет:</span>
+          <span class="stat-value">120$</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Использовано:</span>
+          <span class="stat-value">80$</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Просмотры:</span>
+          <span class="stat-value">12 700</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Переходы:</span>
+          <span class="stat-value">2 902</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Получено лидов:</span>
+          <span class="stat-value">800</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-label">Активных лидов:</span>
+          <span class="stat-value">710</span>
+        </div>
+      </div>
+      <div class="campaign-footer">
+        <span class="status-badge status-active">
+          <span class="status-dot"></span>
+          Активна
+        </span>
+        <a href="/dashboard/admin/marketing/campaigns/" class="btn-action">Открыть карточку</a>
+      </div>
+    </div>
+  </div>
+</section>
+    </div>
+<!--    <script>-->
+<!--        // Campaign card interactions-->
+<!--        document.querySelectorAll('.btn-action').forEach(button => {-->
+<!--            button.addEventListener('click', function() {-->
+<!--                const campaignName = this.closest('.campaign-card').querySelector('.campaign-name').textContent;-->
+<!--                alert(`Открытие карточки кампании: ${campaignName}`);-->
+<!--            });-->
+<!--        });-->
+<!--        // Create campaign button-->
+<!--        document.querySelector('.btn-primary').addEventListener('click', function() {-->
+<!--            alert('Создание новой кампании');-->
+<!--        });-->
+<!--        // Dropdown interactions-->
+<!--        document.querySelectorAll('.dropdown').forEach(dropdown => {-->
+<!--            dropdown.addEventListener('change', function() {-->
+<!--                console.log(`${this.options[0].text}: ${this.value}`);-->
+<!--            });-->
+<!--        });-->
+<!--        // Search functionality-->
+<!--        const searchBox = document.querySelector('.search-box');-->
+<!--        searchBox.addEventListener('input', function() {-->
+<!--            const searchTerm = this.value.toLowerCase();-->
+<!--            const campaignCards = document.querySelectorAll('.campaign-card');-->
+<!--            campaignCards.forEach(card => {-->
+<!--                const campaignName = card.querySelector('.campaign-name').textContent.toLowerCase();-->
+<!--                const campaignAccount = card.querySelector('.campaign-account').textContent.toLowerCase();-->
+<!--                if (campaignName.includes(searchTerm) || campaignAccount.includes(searchTerm)) {-->
+<!--                    card.style.display = 'block';-->
+<!--                } else {-->
+<!--                    card.style.display = searchTerm ? 'none' : 'block';-->
+<!--                }-->
+<!--            });-->
+<!--        });-->
+<!--        // Add smooth scroll behavior-->
+<!--        document.documentElement.style.scrollBehavior = 'smooth';-->
+<!--        // Add loading animation to cards-->
+<!--        document.querySelectorAll('.campaign-card').forEach((card, index) => {-->
+<!--            card.style.opacity = '0';-->
+<!--            card.style.transform = 'translateY(20px)';-->
+<!--            setTimeout(() => {-->
+<!--                card.style.transition = 'all 0.6s ease';-->
+<!--                card.style.opacity = '1';-->
+<!--                card.style.transform = 'translateY(0)';-->
+<!--            }, index * 100);-->
+<!--        });-->
+<!--    </script>-->
+</body>
+</html>

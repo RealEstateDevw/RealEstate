@@ -1,0 +1,239 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #e6f0ff 0%, #f0f5ff 100%);
+    padding: 1.25rem;
+}
+
+a {
+    text-decoration: none;
+    color: rgb(255, 255, 255);
+}
+
+
+
+.profile-icon {
+    width: 2.1875rem;
+    height: 2.1875rem;
+    background: #ddd;
+    border-radius: 1.875rem;
+    margin-left: 0.9375rem;
+}
+
+.columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-top: 1.5625rem;
+}
+
+.column {
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);;
+
+    border-radius: 1.875rem;
+    padding: 1.25rem;
+    display: flex;
+        padding: 1.25rem;
+        flex-direction: column;
+        gap: 1.25rem;
+        flex-shrink: 0;
+        background: rgba(245, 245, 245, 0.90);
+        backdrop-filter: blur(25px);
+        
+}
+
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    font-family: "Vela Sans GX";
+font-size: 2.2rem;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+}
+
+
+
+.lead-count {
+    color: #666;
+
+}
+
+.card {
+    margin-bottom: 0.9375rem;
+    display: flex;
+padding: 1.25rem;
+flex-direction: column;
+gap: 0.625rem;
+align-self: stretch;
+
+border-radius: 1.875rem;
+background: #FFF;
+}
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: move;
+}
+
+.card.dragging {
+    opacity: 0.5;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Тень на перетаскиваемую карточку */
+    transform: scale(1.02); /* Немного увеличиваем размер */
+}
+
+/* Стили для колонок при наведении (drag-over) */
+.column.drag-over {
+    border: 2px dashed #2196F3; /* Обводка при наведении */
+    background-color: #f5faff; /* Лёгкий фон для наглядности */
+    transition: border 0.3s ease, background-color 0.3s ease;
+}
+
+/* Анимация для сброса карточки */
+@keyframes dropAnimation {
+    0% { transform: scale(1.1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.card.animate-drop {
+    animation: dropAnimation 0.5s ease-out;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.625rem;
+    font-family: "Vela Sans GX";
+font-size: 1.5rem;
+font-style: normal;
+font-weight: 700;
+line-height: normal;
+}
+
+
+
+.date {
+    color: #666;
+}
+
+.contact-info {
+    display: flex;
+    gap: 0.625rem;
+    margin-bottom: 0.625rem;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+.messenger {
+    color: #2563eb;
+}
+
+.Instagram { color: #E1306C; }
+.Telegram { color: #0088cc; }
+.Whatsapp { color: #25D366; }
+.Viber { color: #665CAC; }
+.Facebook { color: #1877F2; }
+.Skype { color: #00AFF0; }
+
+.elements-info{
+font-family: "Vela Sans GX";
+font-size: 1rem;
+font-style: normal;
+font-weight: 700;
+line-height: normal;
+display: flex;
+
+padding: 0.625rem 0.625rem;
+justify-content: center;
+align-items: center;
+gap: 0.625rem;
+flex: 1 0 0;
+border-radius: 1.875rem;
+background: rgba(245, 245, 245, 0.90);
+}
+.location {
+    color: #666;
+}
+
+.phone {
+    color: #666;
+}
+
+.payment-info {
+    margin-bottom: 0.3125rem;
+    color: #000;
+
+font-family: "Vela Sans GX";
+font-size: 1rem;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+}
+
+.status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.3125rem;
+    color: #000;
+
+font-family: "Vela Sans GX";
+font-size: 1rem;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+}
+
+.status-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+}
+
+.status-dot.orange { background: #ff9800; }
+.status-dot.green { background: #4caf50; }
+.status-dot.gray { background: #9e9e9e; }
+
+.open-card {
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+/* Hide scrollbars on columns but allow scrolling */
+.column {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;     /* Firefox */
+}
+.column::-webkit-scrollbar {
+    display: none;             /* Chrome, Safari, Opera */
+}
+
+/* Responsive layout: two columns on tablets, single column on phones */
+@media (max-width: 1024px) {
+    .columns {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .columns {
+        grid-template-columns: 1fr;
+    }
+    .column {
+        max-height: none;      /* Allow full vertical scrolling on mobile */
+        margin-bottom: 1rem;   /* Space between stacked columns */
+    }
+}

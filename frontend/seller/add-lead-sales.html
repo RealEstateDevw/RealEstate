@@ -1,0 +1,268 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Form</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/register-employer-style.css">
+    <link rel="stylesheet" href="/static/add-lead-style.css">
+    <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link rel="stylesheet" href="/static/sales_style/complex.css">
+    <link rel="stylesheet" href="/static/sales_style/header-sales.css">
+    
+
+
+    <style>
+    body {
+        background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+        transition: background 0.5s ease;
+    }
+
+    .dropdown-container { position: relative; cursor: pointer; }
+    .dropdown-container .dropdown-icon { margin-left: 8px; }
+    .dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); max-height: 200px; overflow-y: auto; list-style: none; padding: 0; margin: 4px 0 0; }
+    .dropdown-list.hidden { display: none; }
+    .dropdown-list.visible { display: block; }
+    .dropdown-list li { padding: 8px 12px; cursor: pointer; }
+    .dropdown-list li:hover { background: #f0f0f0; }
+    .apt-card.available {
+  background-color: #e6ffed; /* light green */
+  border: 1px solid #28a745; /* green border */
+}
+.apt-card.sold {
+  background-color: #ffe6e6; /* light red */
+  border: 1px solid #dc3545; /* red border */
+}
+.apt-card.booked {
+  background-color: #fff4e5; /* light orange */
+  border: 1px solid #ffc107; /* orange border */
+}
+</style>
+</head>
+<body>
+    <div id="notification" class="notification" style="display: none;">
+        <span id="notification-message"></span>
+        <button id="close-notification" class="close-btn">&times;</button>
+    </div>
+    {% include 'partials/header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+
+    <form class="main-form" id="employeeForm">
+        <div class="input-row">
+            <input type="text" class="input-field" placeholder="Имя и Фамилия" id="fullName" required>
+            
+
+                <div class="input-field dropdown-container" onclick="toggleDropdown()" id="dropdownContainer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33" fill="none">
+                        <path d="M16.0001 13.8333C18.9456 13.8333 21.3334 11.4455 21.3334 8.49999C21.3334 5.55447 18.9456 3.16666 16.0001 3.16666C13.0546 3.16666 10.6667 5.55447 10.6667 8.49999C10.6667 11.4455 13.0546 13.8333 16.0001 13.8333Z" fill="black"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M21.9999 29.8333C19.8001 29.8333 18.7001 29.8333 18.0167 29.1499C17.3333 28.4665 17.3333 27.3665 17.3333 25.1667C17.3333 22.9668 17.3333 21.8668 18.0167 21.1835C18.7001 20.5 19.8001 20.5 21.9999 20.5C24.1998 20.5 25.2998 20.5 25.9831 21.1835C26.6666 21.8668 26.6666 22.9668 26.6666 25.1667C26.6666 27.3665 26.6666 28.4665 25.9831 29.1499C25.2998 29.8333 24.1998 29.8333 21.9999 29.8333ZM24.6239 24.1611C24.9277 23.8573 24.9277 23.3649 24.6239 23.0612C24.3202 22.7573 23.8278 22.7573 23.5241 23.0612L20.9629 25.6223L20.4758 25.1352C20.1721 24.8315 19.6797 24.8315 19.3759 25.1352C19.0722 25.4389 19.0722 25.9315 19.3759 26.2352L20.4129 27.2721C20.7166 27.576 21.2091 27.576 21.5129 27.2721L24.6239 24.1611Z" fill="black"/>
+                        <path opacity="0.5" d="M24.1263 20.5416C23.5599 20.5 22.865 20.5 22.0001 20.5C19.8002 20.5 18.7002 20.5 18.0169 21.1835C17.3334 21.8668 17.3334 22.9668 17.3334 25.1667C17.3334 26.7217 17.3334 27.7272 17.5749 28.4244C17.0629 28.4741 16.5367 28.5 16.0001 28.5C10.8454 28.5 6.66675 26.1121 6.66675 23.1667C6.66675 20.2212 10.8454 17.8333 16.0001 17.8333C19.4846 17.8333 22.5233 18.9245 24.1263 20.5416Z" fill="black"/>
+                      </svg>
+                    <span id="selectedRole">Выберите источник</span>
+                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                
+            
+                <ul id="dropdownList" class="dropdown-list hidden">
+                    <li data-value="1" onclick="selectRole('Telegram', 1)"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <path opacity="0.5" d="M7.83832 3.8382C6.66675 5.00977 6.66675 6.89539 6.66675 10.6666V21.3333C6.66675 25.1045 6.66675 26.9901 7.83832 28.1617C9.00989 29.3333 10.8955 29.3333 14.6667 29.3333H17.3334C21.1046 29.3333 22.9902 29.3333 24.1618 28.1617C25.3334 26.9901 25.3334 25.1045 25.3334 21.3333V10.6666C25.3334 6.89539 25.3334 5.00977 24.1618 3.8382C22.9902 2.66663 21.1046 2.66663 17.3334 2.66663H14.6667C10.8955 2.66663 9.00989 2.66663 7.83832 3.8382Z" fill="#216BF4"/>
+                        <path d="M12.6667 24.3334C12.1145 24.3334 11.6667 24.7811 11.6667 25.3334C11.6667 25.8856 12.1145 26.3334 12.6667 26.3334H19.3334C19.8857 26.3334 20.3334 25.8856 20.3334 25.3334C20.3334 24.7811 19.8857 24.3334 19.3334 24.3334H12.6667Z" fill="#216BF4"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M2.21975 7.10579C2.71374 6.8588 3.3144 7.05903 3.56139 7.553L4.59659 9.62339C4.92503 10.2803 4.92503 11.0535 4.59659 11.7104L3.85954 13.1845C3.81262 13.2783 3.81262 13.3888 3.85954 13.4827L4.59659 14.9567C4.92503 15.6136 4.92503 16.3868 4.59659 17.0437L3.85954 18.5179C3.81262 18.6116 3.81262 18.7221 3.85954 18.816L4.59659 20.29C4.92503 20.9469 4.92503 21.7201 4.59659 22.3771L3.56139 24.4475C3.3144 24.9415 2.71374 25.1416 2.21975 24.8947C1.72578 24.6476 1.52555 24.0469 1.77254 23.5531L2.80774 21.4827C2.85466 21.3888 2.85466 21.2783 2.80774 21.1845L2.07068 19.7104C1.74223 19.0535 1.74223 18.2803 2.07068 17.6233L2.80774 16.1493C2.85466 16.0555 2.85466 15.9449 2.80774 15.8512L2.07068 14.3771C1.74223 13.7201 1.74223 12.9469 2.07068 12.2901L2.80774 10.816C2.85466 10.7221 2.85466 10.6117 2.80774 10.5178L1.77254 8.44743C1.52555 7.95346 1.72578 7.35279 2.21975 7.10579ZM29.7809 7.10579C30.2749 7.35279 30.475 7.95346 30.2281 8.44743L29.1929 10.5178C29.1459 10.6117 29.1459 10.7221 29.1929 10.816L29.9299 12.2901C30.2583 12.9469 30.2583 13.7201 29.9299 14.3771L29.1929 15.8512C29.1459 15.9449 29.1459 16.0555 29.1929 16.1493L29.9299 17.6233C30.2583 18.2803 30.2583 19.0535 29.9299 19.7104L29.1929 21.1845C29.1459 21.2783 29.1459 21.3888 29.1929 21.4827L30.2281 23.5531C30.475 24.0469 30.2749 24.6476 29.7809 24.8947C29.2869 25.1416 28.6862 24.9415 28.4391 24.4475L27.4039 22.3771C27.0756 21.7201 27.0756 20.9469 27.4039 20.29L28.141 18.816C28.1879 18.7221 28.1879 18.6116 28.141 18.5179L27.4039 17.0437C27.0756 16.3868 27.0756 15.6136 27.4039 14.9567L28.141 13.4827C28.1879 13.3888 28.1879 13.2783 28.141 13.1845L27.4039 11.7104C27.0756 11.0535 27.0756 10.2803 27.4039 9.62339L28.4391 7.553C28.6862 7.05903 29.2869 6.8588 29.7809 7.10579Z" fill="#216BF4"/>
+                      </svg> Telegram</li>
+            <li data-value="2" onclick="selectRole('Instagram', 2)"> <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path opacity="0.5" d="M7.83832 3.8382C6.66675 5.00977 6.66675 6.89539 6.66675 10.6666V21.3333C6.66675 25.1045 6.66675 26.9901 7.83832 28.1617C9.00989 29.3333 10.8955 29.3333 14.6667 29.3333H17.3334C21.1046 29.3333 22.9902 29.3333 24.1618 28.1617C25.3334 26.9901 25.3334 25.1045 25.3334 21.3333V10.6666C25.3334 6.89539 25.3334 5.00977 24.1618 3.8382C22.9902 2.66663 21.1046 2.66663 17.3334 2.66663H14.6667C10.8955 2.66663 9.00989 2.66663 7.83832 3.8382Z" fill="#216BF4"/>
+                <path d="M12.6667 24.3334C12.1145 24.3334 11.6667 24.7811 11.6667 25.3334C11.6667 25.8856 12.1145 26.3334 12.6667 26.3334H19.3334C19.8857 26.3334 20.3334 25.8856 20.3334 25.3334C20.3334 24.7811 19.8857 24.3334 19.3334 24.3334H12.6667Z" fill="#216BF4"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M2.21975 7.10579C2.71374 6.8588 3.3144 7.05903 3.56139 7.553L4.59659 9.62339C4.92503 10.2803 4.92503 11.0535 4.59659 11.7104L3.85954 13.1845C3.81262 13.2783 3.81262 13.3888 3.85954 13.4827L4.59659 14.9567C4.92503 15.6136 4.92503 16.3868 4.59659 17.0437L3.85954 18.5179C3.81262 18.6116 3.81262 18.7221 3.85954 18.816L4.59659 20.29C4.92503 20.9469 4.92503 21.7201 4.59659 22.3771L3.56139 24.4475C3.3144 24.9415 2.71374 25.1416 2.21975 24.8947C1.72578 24.6476 1.52555 24.0469 1.77254 23.5531L2.80774 21.4827C2.85466 21.3888 2.85466 21.2783 2.80774 21.1845L2.07068 19.7104C1.74223 19.0535 1.74223 18.2803 2.07068 17.6233L2.80774 16.1493C2.85466 16.0555 2.85466 15.9449 2.80774 15.8512L2.07068 14.3771C1.74223 13.7201 1.74223 12.9469 2.07068 12.2901L2.80774 10.816C2.85466 10.7221 2.85466 10.6117 2.80774 10.5178L1.77254 8.44743C1.52555 7.95346 1.72578 7.35279 2.21975 7.10579ZM29.7809 7.10579C30.2749 7.35279 30.475 7.95346 30.2281 8.44743L29.1929 10.5178C29.1459 10.6117 29.1459 10.7221 29.1929 10.816L29.9299 12.2901C30.2583 12.9469 30.2583 13.7201 29.9299 14.3771L29.1929 15.8512C29.1459 15.9449 29.1459 16.0555 29.1929 16.1493L29.9299 17.6233C30.2583 18.2803 30.2583 19.0535 29.9299 19.7104L29.1929 21.1845C29.1459 21.2783 29.1459 21.3888 29.1929 21.4827L30.2281 23.5531C30.475 24.0469 30.2749 24.6476 29.7809 24.8947C29.2869 25.1416 28.6862 24.9415 28.4391 24.4475L27.4039 22.3771C27.0756 21.7201 27.0756 20.9469 27.4039 20.29L28.141 18.816C28.1879 18.7221 28.1879 18.6116 28.141 18.5179L27.4039 17.0437C27.0756 16.3868 27.0756 15.6136 27.4039 14.9567L28.141 13.4827C28.1879 13.3888 28.1879 13.2783 28.141 13.1845L27.4039 11.7104C27.0756 11.0535 27.0756 10.2803 27.4039 9.62339L28.4391 7.553C28.6862 7.05903 29.2869 6.8588 29.7809 7.10579Z" fill="#216BF4"/>
+              </svg>Instagram</li>
+            <li data-value="4" onclick="selectRole('Пеший', 4)"> <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path opacity="0.5" d="M7.83832 3.8382C6.66675 5.00977 6.66675 6.89539 6.66675 10.6666V21.3333C6.66675 25.1045 6.66675 26.9901 7.83832 28.1617C9.00989 29.3333 10.8955 29.3333 14.6667 29.3333H17.3334C21.1046 29.3333 22.9902 29.3333 24.1618 28.1617C25.3334 26.9901 25.3334 25.1045 25.3334 21.3333V10.6666C25.3334 6.89539 25.3334 5.00977 24.1618 3.8382C22.9902 2.66663 21.1046 2.66663 17.3334 2.66663H14.6667C10.8955 2.66663 9.00989 2.66663 7.83832 3.8382Z" fill="#216BF4"/>
+                <path d="M12.6667 24.3334C12.1145 24.3334 11.6667 24.7811 11.6667 25.3334C11.6667 25.8856 12.1145 26.3334 12.6667 26.3334H19.3334C19.8857 26.3334 20.3334 25.8856 20.3334 25.3334C20.3334 24.7811 19.8857 24.3334 19.3334 24.3334H12.6667Z" fill="#216BF4"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M2.21975 7.10579C2.71374 6.8588 3.3144 7.05903 3.56139 7.553L4.59659 9.62339C4.92503 10.2803 4.92503 11.0535 4.59659 11.7104L3.85954 13.1845C3.81262 13.2783 3.81262 13.3888 3.85954 13.4827L4.59659 14.9567C4.92503 15.6136 4.92503 16.3868 4.59659 17.0437L3.85954 18.5179C3.81262 18.6116 3.81262 18.7221 3.85954 18.816L4.59659 20.29C4.92503 20.9469 4.92503 21.7201 4.59659 22.3771L3.56139 24.4475C3.3144 24.9415 2.71374 25.1416 2.21975 24.8947C1.72578 24.6476 1.52555 24.0469 1.77254 23.5531L2.80774 21.4827C2.85466 21.3888 2.85466 21.2783 2.80774 21.1845L2.07068 19.7104C1.74223 19.0535 1.74223 18.2803 2.07068 17.6233L2.80774 16.1493C2.85466 16.0555 2.85466 15.9449 2.80774 15.8512L2.07068 14.3771C1.74223 13.7201 1.74223 12.9469 2.07068 12.2901L2.80774 10.816C2.85466 10.7221 2.85466 10.6117 2.80774 10.5178L1.77254 8.44743C1.52555 7.95346 1.72578 7.35279 2.21975 7.10579ZM29.7809 7.10579C30.2749 7.35279 30.475 7.95346 30.2281 8.44743L29.1929 10.5178C29.1459 10.6117 29.1459 10.7221 29.1929 10.816L29.9299 12.2901C30.2583 12.9469 30.2583 13.7201 29.9299 14.3771L29.1929 15.8512C29.1459 15.9449 29.1459 16.0555 29.1929 16.1493L29.9299 17.6233C30.2583 18.2803 30.2583 19.0535 29.9299 19.7104L29.1929 21.1845C29.1459 21.2783 29.1459 21.3888 29.1929 21.4827L30.2281 23.5531C30.475 24.0469 30.2749 24.6476 29.7809 24.8947C29.2869 25.1416 28.6862 24.9415 28.4391 24.4475L27.4039 22.3771C27.0756 21.7201 27.0756 20.9469 27.4039 20.29L28.141 18.816C28.1879 18.7221 28.1879 18.6116 28.141 18.5179L27.4039 17.0437C27.0756 16.3868 27.0756 15.6136 27.4039 14.9567L28.141 13.4827C28.1879 13.3888 28.1879 13.2783 28.141 13.1845L27.4039 11.7104C27.0756 11.0535 27.0756 10.2803 27.4039 9.62339L28.4391 7.553C28.6862 7.05903 29.2869 6.8588 29.7809 7.10579Z" fill="#216BF4"/>
+              </svg>Пеший</li>
+            <li data-value="3" onclick="selectRole('Телефонный звонок', 3)"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M14.2487 8.63884L13.3834 7.08827C12.2041 4.97529 9.24093 4.72575 7.38367 6.58301C6.26765 7.69901 5.39928 9.06617 5.34199 10.5775C5.26773 12.5362 5.63229 15.5479 7.78184 18.8082L13.4862 13.1038C14.7162 11.8738 15.0297 10.0381 14.2487 8.63884ZM18.8962 18.5138L13.1918 24.2182C16.4521 26.3676 19.4638 26.7322 21.4225 26.6579C22.9338 26.6007 24.301 25.7323 25.417 24.6163C27.2742 22.759 27.0247 19.7958 24.9117 18.6166L23.3611 17.7512C21.9618 16.9703 20.1262 17.2838 18.8962 18.5138Z" fill="#216BF4"/>
+                <path opacity="0.5" d="M14.6994 17.301C11.9944 14.5961 13.4863 13.1041 13.4863 13.1041L7.78198 18.8085C8.42444 19.7829 9.22636 20.7794 10.2237 21.7768C11.221 22.7741 12.2176 23.576 13.192 24.2185L18.8963 18.5141C18.8963 18.5141 17.4043 20.006 14.6994 17.301Z" fill="#216BF4"/>
+              </svg> Телефонный звонок</li>
+                </ul>
+            </div>
+        </div>
+        <div class="profile-form-info">
+        <h2 class="section-title">Личная информация</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <label class="info-label" for="regionSelect">Выберите регион</label>
+                <div class="dropdown-container info-input" id="regionContainer" onclick="toggleRegionDropdown()">
+                  <span id="selectedRegion">Выберите регион</span>
+                  <i class="fas fa-chevron-down dropdown-icon"></i>
+                  <ul id="regionList" class="dropdown-list hidden"></ul>
+                </div>
+            </div>
+            <div class="info-item">
+                <label class="info-label">Телефон</label>
+                <input type="text" class="info-input" placeholder="+XXX (XX) XXX XX XX" onkeydown="this.style.width = ((this.value.length + 1) * 8) + 'px';" required id="phone">
+            </div>
+            
+        </div>
+
+        <h2 class="section-title">
+            Выбранные опции
+            <button type="button" class="attach-apartment-button" 
+                    onclick="openAttachModal()" 
+                    style="margin-left: 20px; padding: 8px 12px; font-size: 14px;">
+              Выбрать квартиру
+            </button>
+        </h2>
+        <div class="option-grid">
+            <div class="option-item">
+                <span class="label">Метров²</span>
+                <input type="float" required class="value" min="1" placeholder="180">
+            </div>
+            <div class="option-item">
+                <span class="label">Количество комнат</span>
+                <input type="number" required class="value" min="1" placeholder="5">
+            </div>
+            <div class="option-item">
+                <span class="label">Этаж</span>
+                <input type="number" required class="value gray" placeholder="0">
+            </div>
+            <div class="option-item">
+                <span class="label">Номер квартиры</span>
+                <input type="number" required class="value" placeholder="98">
+            </div>
+        </div>
+
+        <div class="payment-container">
+            <div class="payment-section">
+                <h2 class="section-title">Предварительная сумма <span>(без рассрочки)</span></h2>
+                <div class="payment-sec">
+                <input type="text" id="amountInput" class="amount-display-input" value="1,430,000,000" oninput="formatAmount(this)">
+                <div class="currency-toggle">
+                    <button class="currency-button active" data-currency="UZS" type="button">UZS</button>
+                    <button class="currency-button" data-currency="USD" type="button">USD</button>
+                </div>
+            </div>
+            </div>
+        
+            <div class="payment-section">
+                <h2 class="section-title">Вид оплаты</h2>
+                <div class="payment-type">
+                    <button class="installment-button" type="button">Единовременно</button>
+                    <button class="installment-button active" type="button">Рассрочка</button>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Срок рассрочки <span>(месяцы)</span></h2>
+        <div class="installment-period-container">
+            <div class="period-buttons">
+                <button class="period-button" data-months="2" type="button">2</button>
+                <button class="period-button" data-months="4" type="button">4</button>
+                <button class="period-button" data-months="8" type="button">8</button>
+                <button class="period-button active" data-months="12" type="button">12</button>
+                <button class="period-button" data-months="24" type="button">24</button>
+                <button class="period-button" data-months="32" type="button">32</button>
+                <button class="period-button" data-months="48" type="button">48</button>
+            </div>
+            <div class="manual-input">
+                <label>Вписать вручную:</label>
+                <input type="number" id="manualMonthsInput" min="0" placeholder="0">
+            </div>
+        </div>
+
+        
+    </div>
+    <div class="button-row-lead">
+        <a class="previous-button" type="button" href="{{ url_for('sales_dashboard') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path d="M26.6668 16H5.3335M5.3335 16L13.3335 8M5.3335 16L13.3335 24" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            Назад
+        </a>
+        <button class="register-lead-button" type="submit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M4.3335 16C4.3335 15.4477 4.78122 15 5.3335 15H17.6668V17H5.3335C4.78122 17 4.3335 16.5523 4.3335 16Z" fill="#216BF4"/>
+                <path d="M17.6665 17V24C17.6665 24.4045 17.9101 24.7691 18.2838 24.9239C18.6574 25.0787 19.0876 24.9932 19.3736 24.7072L27.3736 16.7072C27.5612 16.5196 27.6665 16.2652 27.6665 16C27.6665 15.7348 27.5612 15.4804 27.3736 15.2929L19.3736 7.29292C19.0876 7.00692 18.6574 6.92137 18.2838 7.07615C17.9101 7.23093 17.6665 7.59557 17.6665 8.00003V15V17Z" fill="#216BF4"/>
+              </svg>
+            <span>Добавить сделку</span>
+            
+        </button>
+    </div>
+    </form>
+    
+    <div id="attachModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2 class="client-header">Закрепить квартиру к лиду</h2>
+      <input type="hidden" id="attach-lead-id">
+  
+      <!-- Шаг 1: выбор ЖК -->
+      <div class="form-group">
+        <label for="attach-jk-select">Выберите ЖК:</label>
+        <select id="attach-jk-select" class="contract-input">
+          <option value="">Загрузка...</option>
+        </select>
+      </div>
+  
+      <!-- Шаг 2: выбор блока -->
+      <div id="attach-blocks" class="blocks-container" style="margin-top:1rem;"></div>
+  
+      <!-- Шаг 3: шахматка квартир -->
+      <div id="attach-apartments" class="apartment-grid" style="margin-top:1rem;"></div>
+  
+      <div class="container-button" style="margin-top:1.5rem; display:flex; gap:8px;">
+        <button type="button" class="btn" onclick="closeAttachModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
+    <script src="/static/add-lead-scripts.js"></script>
+    <script src="/static/search-lead-scripts.js"></script>
+    <script src="/static/sales_style/complex_add_lead.js"></script>
+    <script>
+         // Список всех регионов Узбекистана
+    const regions = [
+        "Ташкент", "Каракалпакстан", "Андижанская область", "Бухарская область",
+        "Джизакская область", "Кашкадарьинская область", "Навоийская область",
+        "Наманганская область", "Самаркандская область", "Сурхандарьинская область",
+        "Сырдарьинская область", "Ферганская область", "Хорезмская область"
+    ];
+
+    // Populate custom dropdown for regions
+    const regionList = document.getElementById('regionList');
+    regions.forEach(region => {
+      const li = document.createElement('li');
+      li.textContent = region;
+      li.dataset.value = region;
+      li.onclick = () => selectRegion(region);
+      regionList.appendChild(li);
+    });
+
+    function toggleRegionDropdown() {
+      document.getElementById('regionList').classList.toggle('visible');
+    }
+
+    function selectRegion(regionName) {
+      document.getElementById('selectedRegion').textContent = regionName;
+      // set hidden value if needed for form submission
+      // close list
+      document.getElementById('regionList').classList.remove('visible');
+    }
+
+    // Close region dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const container = document.getElementById('regionContainer');
+      const list = document.getElementById('regionList');
+      if (!container.contains(event.target)) {
+        list.classList.remove('visible');
+      }
+    });
+    </script>
+
+  
+    
+    
+</body>
+</html>

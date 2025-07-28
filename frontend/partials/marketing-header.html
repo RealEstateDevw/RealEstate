@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Seller CRM Header</title>
+  <link rel="stylesheet" href="/static/headers/sales_headers.css">
+  <style>
+    /* ================ Reset & Font ================ */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                   Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+      background: #eef2f6; /* любой ваш фон */
+    }
+
+    /* ================ Header ================ */
+    .header {
+      position: fixed;
+      top: 0; left: 0; width: 100%;
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.8);
+      z-index: 1000;
+    }
+    .header__inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 32px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* ================ Logo ================ */
+    .logo {
+      font-size: 24px;
+      font-weight: 600;
+      color: #121316;
+    }
+    .logo .crm {
+      font-weight: 400;
+      margin-left: 8px;
+    }
+    .logo .proto {
+      font-weight: 300;
+      color: #666;
+      margin-left: 8px;
+    }
+
+    /* ================ Filters ================ */
+    .filters {
+      display: flex;
+      gap: 18px;
+      margin-left: 48px;
+    }
+    .dropdown {
+      position: relative;
+    }
+    .dropdown__toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      font-size: 15px;
+      color: #121316;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 999px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .dropdown__toggle svg {
+      width: 14px; height: 14px;
+      fill: #555;
+      transition: transform .2s;
+    }
+    .dropdown.open .dropdown__toggle svg {
+      transform: rotate(180deg);
+    }
+    .dropdown__menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      list-style: none;
+      padding: 8px 0;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      display: none;
+      min-width: 180px;
+    }
+    .dropdown.open .dropdown__menu {
+      display: block;
+    }
+    .dropdown__menu li {
+      padding: 8px 20px;
+      font-size: 14px;
+      color: #121316;
+      cursor: pointer;
+    }
+    .dropdown__menu li:hover {
+      background: #f5f7fa;
+    }
+
+    /* ================ Actions ================ */
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-left: auto;
+    }
+    .search {
+      position: relative;
+    }
+    .search input {
+      height: 40px;
+      padding: 0 48px 0 16px;
+      font-size: 15px;
+      color: #121316;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 999px;
+      outline: none;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .search input::placeholder {
+      color: #858699;
+    }
+    .search svg {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px; height: 16px;
+      fill: #858699;
+      pointer-events: none;
+    }
+
+    .btn-create {
+      height: 40px;
+      padding: 0 24px;
+      font-size: 15px;
+      color: #fff;
+      background: #3366FF;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(51,102,255,0.3);
+    }
+
+    .profile {
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 50%;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header__inner">
+
+      <!-- Logo -->
+      <div class="logo">
+        Seller<span class="crm">CRM</span><span class="proto">Prototype</span>
+      </div>
+
+      <!-- Filters -->
+      <nav class="filters">
+        <!-- Пример одной кнопки -->
+        <div class="dropdown">
+          <div class="dropdown__toggle">
+            Статус
+            <svg viewBox="0 0 20 20">
+              <path d="M5.23 7.21l4.77 4.77 4.77-4.77a.75.75 0 1 1 1.06 1.06l-5.3 5.3a.75.75 0 0 1-1.06 0l-5.3-5.3a.75.75 0 0 1 1.06-1.06z"/>
+            </svg>
+          </div>
+          <ul class="dropdown__menu">
+            <li>Все</li>
+            <li>Активные</li>
+            <li>Завершённые</li>
+          </ul>
+        </div>
+
+        <div class="dropdown">
+          <div class="dropdown__toggle">
+            Источник
+            <svg viewBox="0 0 20 20">
+              <path d="M5.23 7.21l4.77 4.77 4.77-4.77a.75.75 0 1 1 1.06 1.06l-5.3 5.3a.75.75 0 0 1-1.06 0l-5.3-5.3a.75.75 0 0 1 1.06-1.06z"/>
+            </svg>
+          </div>
+          <ul class="dropdown__menu">
+            <li>Instagram</li>
+            <li>Facebook</li>
+            <li>Telegram</li>
+          </ul>
+        </div>
+
+        <div class="dropdown">
+          <div class="dropdown__toggle">
+            Период
+            <svg viewBox="0 0 20 20">
+              <path d="M5.23 7.21l4.77 4.77 4.77-4.77a.75.75 0 1 1 1.06 1.06l-5.3 5.3a.75.75 0 0 1-1.06 0l-5.3-5.3a.75.75 0 0 1 1.06-1.06z"/>
+            </svg>
+          </div>
+          <ul class="dropdown__menu">
+            <li>Сегодня</li>
+            <li>Неделя</li>
+            <li>Месяц</li>
+          </ul>
+        </div>
+
+        <div class="dropdown">
+          <div class="dropdown__toggle">
+            Сводка
+            <svg viewBox="0 0 20 20">
+              <path d="M5.23 7.21l4.77 4.77 4.77-4.77a.75.75 0 1 1 1.06 1.06l-5.3 5.3a.75.75 0 0 1-1.06 0l-5.3-5.3a.75.75 0 0 1 1.06-1.06z"/>
+            </svg>
+          </div>
+          <ul class="dropdown__menu">
+            <li>Лиды</li>
+            <li>Расходы</li>
+            <li>ROI</li>
+          </ul>
+        </div>
+      </nav>
+
+      <!-- Search + Button + Avatar -->
+      <div class="actions">
+        <div class="search">
+          <input type="text" placeholder="Поиск" />
+          <svg viewBox="0 0 24 24">
+            <path d="M10 18a8 8 0 1 1 5.293-2.707l4.707 4.707a1 1 0 0 1-1.414 1.414l-4.707-4.707A7.963 7.963 0 0 1 10 18zm0-14a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/>
+          </svg>
+        </div>
+        <button class="btn-create">+ Создать кампанию</button>
+       <a class="user-icon" href="{{ url_for('user_profile') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon-svg">
+                <path
+                    d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z" />
+            </svg>
+      </div>
+
+    </div>
+  </header>
+
+  <script>
+    // Открытие/закрытие выпадашек
+    document.querySelectorAll('.dropdown').forEach(dd => {
+      dd.querySelector('.dropdown__toggle').addEventListener('click', e => {
+        e.stopPropagation();
+        dd.classList.toggle('open');
+      });
+    });
+    // Закрыть все при клике вне
+    window.addEventListener('click', () => {
+      document.querySelectorAll('.dropdown.open')
+              .forEach(dd => dd.classList.remove('open'));
+    });
+  </script>
+</body>
+</html>

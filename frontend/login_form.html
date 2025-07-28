@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в аккаунт</title>
+    <!-- Подключаем Tailwind CSS через CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Опционально: Можно оставить кастомный шрифт, если он используется */
+        /* @import url('ссылка_на_Vela_Sans.css'); */
+        body {
+            /* font-family: "Vela Sans", sans-serif; */ /* Раскомментируйте, если Vela Sans подключен */
+            /* Применяем градиент к body, так как Tailwind градиенты немного другие */
+            background: linear-gradient(135deg, #f0f0ff 0%, #f8f0f8 100%);
+        }
+        /* Убираем стандартные стрелки у input[type=number] (если будут использоваться) */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <form action="/login" method="post" class="w-full max-w-xl bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-lg flex flex-col gap-6">
+        
+        <h1 class="text-3xl font-bold text-gray-900 text-center mb-4">Вход в аккаунт</h1>
+
+        <!-- Группа для Логина -->
+        <div class="relative">
+            <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Логин:</label>
+            <!-- Используем focus-within на обертке для стилизации при фокусе input -->
+            <div class="flex items-center bg-gray-100 rounded-full px-4 py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-1 transition duration-150 ease-in-out">
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    required
+                    class="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-gray-900 placeholder-gray-500"
+                    placeholder="Введите ваш логин"
+                />
+            </div>
+        </div>
+
+        <!-- Группа для Пароля -->
+        <div class="relative">
+             <label for="passwordField" class="block text-sm font-medium text-gray-700 mb-1">Пароль:</label>
+             <!-- Используем focus-within на обертке для стилизации при фокусе input -->
+             <div class="flex items-center bg-gray-100 rounded-full px-4 py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-1 transition duration-150 ease-in-out relative">
+                 <input
+                     type="password"
+                     id="passwordField"
+                     name="password"
+                     required
+                     class="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-gray-900 placeholder-gray-500 pr-10" /* Добавили pr-10 для места под иконку */
+                     placeholder="Введите ваш пароль"
+                 />
+                 <!-- Иконка глаза -->
+                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" onclick="togglePasswordVisibility()" class="cursor-pointer text-gray-500 hover:text-gray-700" id="eyeIcon">
+                         <!-- Изначально показываем иконку "закрытого глаза" или стандартную -->
+                         <path opacity="0.6" d="M2 12C2 13.6394 2.42496 14.1915 3.27489 15.2957C4.97196 17.5004 7.81811 20 12 20C16.1819 20 19.028 17.5004 20.7251 15.2957C21.575 14.1915 22 13.6394 22 12C22 10.3606 21.575 9.80853 20.7251 8.70433C19.028 6.49956 16.1819 4 12 4C7.81811 4 4.97196 6.49956 3.27489 8.70433C2.42496 9.80853 2 10.3606 2 12Z" fill="currentColor"/>
+                         <path fill-rule="evenodd" clip-rule="evenodd" d="M8.25 12C8.25 9.92893 9.92893 8.25 12 8.25C14.0711 8.25 15.75 9.92893 15.75 12C15.75 14.0711 14.0711 15.75 12 15.75C9.92893 15.75 8.25 14.0711 8.25 12ZM9.75 12C9.75 10.7574 10.7574 9.75 12 9.75C13.2426 9.75 14.25 10.7574 14.25 12C14.25 13.2426 13.2426 14.25 12 14.25C10.7574 14.25 9.75 13.2426 9.75 12Z" fill="currentColor"/>
+                     </svg>
+                      <!-- Сюда можно добавить вторую SVG (перечеркнутый глаз) и переключать их видимость через JS -->
+                 </div>
+             </div>
+        </div>
+
+        <!-- Контейнер для кнопок -->
+        <div class="flex flex-col sm:flex-row gap-4 mt-6">
+            <!-- Кнопка Назад -->
+             <a href="/" class="flex-1 flex flex-col items-start gap-2 p-4 bg-gray-100 text-gray-800 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition duration-150 ease-in-out">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 48 48" fill="none" class="w-9 h-9">
+                     <path d="M40 24H8M8 24L20 12M8 24L20 36" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                   </svg>
+                 <span class="text-lg font-medium">Назад</span>
+                </a>
+
+             <!-- Кнопка Войти -->
+             <button type="submit" class="flex-1 flex flex-col items-start gap-2 p-4 bg-gray-100 text-blue-600 rounded-xl hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 48 48" fill="none" class="w-9 h-9">
+                     <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M6.5 24C6.5 23.1716 7.17158 22.5 8 22.5H26.5V25.5H8C7.17158 25.5 6.5 24.8284 6.5 24Z" fill="currentColor"/>
+                     <path d="M26.5 25.5V36C26.5 36.6068 26.8654 37.1536 27.426 37.3858C27.9864 37.618 28.6316 37.4898 29.0606 37.0608L41.0606 25.0608C41.342 24.7794 41.5 24.3978 41.5 24C41.5 23.6022 41.342 23.2206 41.0606 22.9394L29.0606 10.9394C28.6316 10.5104 27.9864 10.3821 27.426 10.6142C26.8654 10.8464 26.5 11.3934 26.5 12V22.5V25.5Z" fill="currentColor"/>
+                   </svg>
+                 <span class="text-lg font-medium">Войти в аккаунт</span>
+             </button>
+        </div>
+    </form>
+
+    <script>
+        function togglePasswordVisibility() {
+            const passwordField = document.getElementById('passwordField');
+            const eyeIcon = document.getElementById('eyeIcon'); // Желательно добавить ID к иконке
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+
+            // Опционально: меняем саму иконку (нужна вторая SVG иконка - перечеркнутый глаз)
+             if (type === 'password') {
+                 // Показываем иконку "виден" (стандартный глаз)
+                 // eyeIcon.innerHTML = `<path ... />`; // SVG для открытого глаза
+                 eyeIcon.classList.remove('text-blue-600'); // Пример изменения стиля
+             } else {
+                 // Показываем иконку "скрыт" (перечеркнутый глаз)
+                 // eyeIcon.innerHTML = `<path ... />`; // SVG для закрытого глаза
+                 eyeIcon.classList.add('text-blue-600'); // Пример изменения стиля
+             }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/main_admin_style.css">
+    <link rel="stylesheet" href="/static/modal-content.css">
+    <link rel="stylesheet" href="/static/admin_style/data-comples.css">
+    <link rel="stylesheet" href="/static/admin_style/style.css">
+
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+        .employee-item.selected {
+  background-color: #f0f8ff;
+}
+    </style>
+
+</head>
+
+<body>
+
+    {% include 'partials/admin-header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <div id="notification" class="notification hidden"></div>
+    <div class="main-content">
+        <div class="employees-section">
+            <h1 class="section-title-main">Жилие комплексы</h1>
+            <div class="employee-list">
+
+
+            </div>
+
+        </div>
+
+
+        <div class="admin-section" id="rightPanel">
+            <form id="userEditForm">
+                <input type="hidden" id="userId" name="user_id">
+                <h1 class="section-title-main">Администрирование</h1>
+                <div class="admin-header">
+                    <!-- Карточка 1 -->
+                    <div class="info-card-profile"> 
+                        <div class="icon-profile" data-field="full_name">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"
+                                fill="none">
+                                <path opacity="0.5"
+                                    d="M16.0003 29.3333C23.3641 29.3333 29.3337 23.3638 29.3337 16C29.3337 8.63619 23.3641 2.66666 16.0003 2.66666C8.63653 2.66666 2.66699 8.63619 2.66699 16C2.66699 23.3638 8.63653 29.3333 16.0003 29.3333Z"
+                                    fill="#216BF4" />
+                                <path
+                                    d="M18.5681 19.0691C18.8948 18.8143 19.1911 18.518 19.7836 17.9255L27.1707 10.5383C27.3493 10.3597 27.2676 10.0521 27.0289 9.96933C26.1571 9.66681 25.0227 9.09885 23.9617 8.03779C22.9007 6.97675 22.3327 5.84247 22.0301 4.9705C21.9473 4.73189 21.6397 4.65014 21.4612 4.82874L14.074 12.2159C13.4815 12.8084 13.1852 13.1047 12.9304 13.4315C12.6298 13.8168 12.3721 14.2337 12.1619 14.6749C11.9836 15.0489 11.8511 15.4464 11.5861 16.2413L11.2437 17.2687L10.6992 18.902L10.1887 20.4336C10.0583 20.8248 10.1601 21.2561 10.4517 21.5477C10.7433 21.8393 11.1747 21.9412 11.5659 21.8108L13.0974 21.3003L14.7308 20.7557L15.7581 20.4133C16.5531 20.1484 16.9505 20.0159 17.3245 19.8376C17.7657 19.6273 18.1827 19.3697 18.5681 19.0691Z"
+                                    fill="#216BF4" />
+                                <path
+                                    d="M29.4834 8.22541C31.06 6.64876 31.06 4.09249 29.4834 2.51584C27.9067 0.939179 25.3504 0.939179 23.7739 2.51584L23.5363 2.75333C23.3072 2.9825 23.2034 3.30261 23.2606 3.62161C23.2966 3.82228 23.3634 4.11566 23.4848 4.46574C23.7278 5.16586 24.1864 6.08492 25.0504 6.94888C25.9143 7.81282 26.8334 8.27153 27.5335 8.51442C27.8836 8.63588 28.177 8.70264 28.3776 8.73866C28.6967 8.79592 29.0167 8.69208 29.2459 8.4629L29.4834 8.22541Z"
+                                    fill="#216BF4" />
+                            </svg>
+                        </div>
+                        <input class="text-profile" type="text" value="" readonly name="full_name">
+                    </div>
+
+                    <!-- Карточка 2 -->
+               
+                </div>
+
+                <div class="personal-info">
+                    <div class="upload-section">
+      <div class="upload-header">Данные о Жилом Комплексе</div>
+      <div class="file-list">
+        <div class="file-pill">
+          <span>жк_бахор_8мкр.xls</span>
+          <div class="actions">
+            <button type="button" class="edit" title="Редактировать">✏️</button>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Прайсы -->
+    <div class="upload-section">
+      <div class="upload-header">Прайсы</div>
+      <div class="file-list">
+        <div class="file-pill">
+          <span>бахор.xls</span>
+          <div class="actions">
+            <button type="button" class="edit" title="Редактировать">✏️</button>
+          
+          </div>
+        </div>
+        <div class="file-pill">
+          <span>бахор_со_скидкой.xls</span>
+          <div class="actions">
+            <button type="button" class="edit" title="Редактировать">✏️</button>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Шаблоны договоров -->
+    <div class="upload-section">
+      <div class="upload-header">Шаблоны договоров</div>
+      <div class="file-list">
+        <div class="file-pill">
+          <span>шаблон_договора.xls</span>
+          <div class="actions">
+            <button type="button" class="edit" title="Редактировать">✏️</button>
+           
+          </div>
+        </div>
+      </div>
+    </div>
+                </div>
+               
+
+               
+        </div>
+        </form>
+    </div>
+    <span id="textMeasurer" style="visibility: hidden; white-space: pre; position: absolute;"></span>
+
+
+    
+    <script>
+        function showNotification(message, isSuccess = true) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+
+            // Меняем цвет в зависимости от результата
+            notification.style.backgroundColor = isSuccess ? '#4CAF50' : '#f44336'; // Зеленый или красный
+
+            // Показываем уведомление
+            notification.classList.remove('hidden');
+            notification.classList.add('visible');
+
+            // Скрываем уведомление через 3 секунды
+            setTimeout(() => {
+                notification.classList.remove('visible');
+                notification.classList.add('hidden');
+                window.location.reload();
+            }, 3000);
+
+        }
+
+
+       
+    </script>
+    <script src="/static/admin_style/data-complex.js"></script>
+    <script src="/static/modal-scripts.js"></script>
+    <script src="/static/modal-scripts-excel.js"></script>
+
+</body>
+
+</html>

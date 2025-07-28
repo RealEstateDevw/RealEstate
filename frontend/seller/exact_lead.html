@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller CRM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/static/exact-lead-stylr.css">
+    <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sales_style/complex.css">
+    <link rel="stylesheet" href="/static/sales_style/header-sales.css">
+
+   
+    <style>
+        .notification {
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            max-width: 500px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: white;
+            margin-left: 15px;
+            padding: 0;
+            line-height: 1;
+        }
+
+        body {
+        background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+        transition: background 0.5s ease;
+    }
+
+    .apt-card.available {
+  background-color: #e6ffed; /* light green */
+  border: 1px solid #28a745; /* green border */
+}
+.apt-card.sold {
+  background-color: #ffe6e6; /* light red */
+  border: 1px solid #dc3545; /* red border */
+}
+    .apt-card.booked {
+  background-color: #fff4e5; /* light orange */
+  border: 1px solid #ffc107; /* orange border */
+}
+    .action-button.booked {
+      background-color: #fff4e5; /* light orange */
+      border: 1px solid #ffc107; /* orange border */
+      color: #000;
+    }
+
+    .action-button.disabled {
+      background-color: #e0e0e0;
+      border: 1px solid #ccc;
+      color: #666;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .price-input {
+      width: auto;
+      display: inline-block;
+      box-sizing: content-box;
+    }
+
+    </style>
+</head>
+
+<body>
+    <div id="notification" class="notification" style="display: none;">
+        <span id="notification-message"></span>
+        <button id="close-notification" class="close-btn">&times;</button>
+    </div>
+    {% if user.role.id == 2%}
+    {% include 'partials/mop-header.html' %}
+    {% else %}
+    {% include 'partials/header.html' %}
+   
+{% endif %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <input type="text" id="leadId" value="{{ lead.id }}" hidden="true">
+    <div class="main-content">
+        <div class="client-info">
+            <h1 class="client-header">{{ lead.full_name }} </h1>
+            <hr class="divider">
+
+            <div class="info-grid">
+                <div class="info-box-tag">
+                    <span class="tag input_info_lead"> {{ lead.contact_source}}</span>
+                </div>
+                <div class="info-box-tag">
+                    <span class="input_info_lead">{{ lead.region}}</span>
+                </div>
+                <div class="info-box-tag">
+                    <span class="input_info_lead">{{ lead.phone}}</span>
+                </div>
+                <div class="info-box-tag">
+                    <span class="input_info_lead">{{ lead.created_at.strftime('%d.%m.%Y') }}</span>
+                </div>
+            </div>
+
+
+            <hr class="divider">
+
+
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <div class="info-label">Метров²</div>
+                    <div class="info-value">{{ lead.square_meters }}м²</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Количество комнат</div>
+                    <div class="info-value">{{ lead.rooms }} комнат</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Этаж</div>
+                    <div class="info-value">{{ lead.floor }} этаж</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Вид оплаты</div>
+                    <div class="info-value">{{ lead.payment_type}}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Блок</div>
+                    <div class="info-value">{{ lead.block }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Номер квартиры</div>
+                    <div class="info-value">№{{ lead.number_apartments}}</div>
+                </div>
+                
+            </div>
+            <hr class="divider">
+            <div class="info-box">
+                <div class="info-label">Жилой комплекс</div>
+                <div class="info-value">{{ lead.complex_name }}</div>
+            </div>
+          
+<div class="price-card">
+  <input type="hidden" id="squareMeters" value="{{ lead.square_meters }}">
+  <div class="price-title">Предварительная сумма</div>
+  <div class="price-main">
+    <input type="text" id="totalPriceInput" class="price-input"
+           value='{% if lead.down_payment %}{{ "{:,.0f}".format(lead.down_payment) }}{% else %}{{ "{:,.0f}".format(lead.total_price) }}{% endif %}'
+           size='{% if lead.down_payment %}{{ "{:,.0f}".format(lead.down_payment)|length }}{% else %}{{ "{:,.0f}".format(lead.total_price)|length }}{% endif %}' />
+    <span>сум</span>
+  </div>
+  <hr class="divider">
+  <div class="price-subtitle">Стоимость 1м²</div>
+  <div class="price-value">
+    <input type="text" id="pricePerM2Input" class="price-input"
+           value="{% if lead.square_meters_price %}{{ '{:,.0f}'.format(lead.square_meters_price) }}{% else %}0{% endif %}"
+           size='{% if lead.square_meters_price %}{{ "{:,.0f}".format(lead.square_meters_price)|length }}{% else %}1{% endif %}' />
+    <span>сум/м²</span>
+  </div>
+  <input type="hidden" id="downPayment" value="{{ lead.down_payment or 0 }}">
+<input type="hidden" id="installmentPeriod" value="{{ lead.installment_period or 1 }}">
+  
+</div>
+    <!-- Hidden fields for monthly calculation -->
+    
+          
+        </div>
+
+        <div class="chat-section">
+            <div class="chat-header">
+                <h1 class="client-header">Управление лидом</h1>
+            </div>
+
+            <div class="message">
+                Добрый день! Я бы хотел узнать подробнее про здание и обсудить сроки въезда.
+                <div class="time">12:30</div>
+            </div>
+
+            <div class="message sent">
+                Здравствуйте!
+                <div class="time">12:32</div>
+            </div>
+
+            <div class="message sent">
+                Для уточнения данного вопроса вам необходимо связаться с нами по телефону
+                <div class="time">12:33</div>
+            </div>
+
+            <!-- <div id="comments-container" class="space-y-4  overflow-y-auto mb-4 mt-10">
+                Comments will be inserted here 
+
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                    <label class="flex items-center gap-2 text-sm">
+                        <input type="checkbox" id="internal-comment" class="rounded border-gray-300">
+                        Внутренний комментарий
+                    </label>
+                </div>
+
+                <div class="flex gap-2">
+                    <textarea id="comment-input" placeholder="Введите комментарий..."
+                        class="flex-1 min-h-[80px] p-2 border rounded-lg resize-none"></textarea>
+                    <button id="send-comment"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 self-end">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div> -->
+            <div class="buttons-row">
+              <div class="attach-apartment-button">
+                <button type="button" onclick="openAttachModal({{ lead.id }})"><span>Закрепить квартиру к лиду</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none"><path d="M6 3.83329L10 8.49996L6 13.1666" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              </div>
+              <div class="view-chat-button">
+                <button type="button" id="viewChatButton"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none"><path d="M9.33325 15.1667C9.33325 12.6526 9.33325 11.3954 10.1143 10.6144C10.8953 9.83337 12.1525 9.83337 14.6666 9.83337" stroke="#1967F2" stroke-width="1.5" stroke-linecap="round"/><path opacity="0.5" d="M1.33325 9.83337C3.84741 9.83337 5.10449 9.83337 5.88554 10.6144C6.66659 11.3954 6.66659 12.6526 6.66659 15.1667" stroke="#1967F2" stroke-width="1.5" stroke-linecap="round"/><path d="M1.33325 7.16671C3.84741 7.16671 5.10449 7.16671 5.88554 6.38566C6.66659 5.60461 6.66659 4.34753 6.66659 1.83337" stroke="#1967F2" stroke-width="1.5" stroke-linecap="round"/><path opacity="0.5" d="M14.6666 7.16671C12.1525 7.16671 10.8953 7.16671 10.1143 6.38566C9.33325 5.60461 9.33325 4.34753 9.33325 1.83337" stroke="#1967F2" stroke-width="1.5" stroke-linecap="round"/></svg><span>Посмотреть чат полностью</span></button>
+              </div>
+            </div>
+          <!-- Chat Modal -->
+<div id="chatModal" class="modal" style="display:none;">
+  <div class="modal-content chat-modal-content">
+      <div class="chat-modal-header">
+          <h2>Запись чата</h2>
+          <button type="button" class="modal-close-button" onclick="closeChatModal()">×</button>
+      </div>
+      <div class="chat-modal-body full-chat-content">
+          <!-- Full chat will be populated here -->
+      </div>
+  </div>
+</div>
+            
+
+
+            <div class="actions">
+                <button class="action-button fix-client" type="button" data-lead-id="{{ lead.id }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd"
+                            d="M32.4376 9.67511L38.367 15.6103C42.3908 19.6381 44.4028 21.652 43.9334 23.823C43.4638 25.9938 40.8 26.9946 35.4724 28.9962L31.7844 30.382C30.3576 30.918 29.6442 31.186 29.0936 31.6628C28.8524 31.8716 28.6368 32.108 28.4508 32.367C28.026 32.959 27.8238 33.6944 27.419 35.165C26.4986 38.5102 26.0384 40.1828 24.9426 40.8082C24.4808 41.0716 23.9584 41.2098 23.4268 41.209C22.1654 41.2072 20.9398 39.9804 18.4888 37.527L15.5568 34.5922L13.3987 32.4326L10.5695 29.6C8.13396 27.162 6.91618 25.943 6.90826 24.6892C6.90484 24.147 7.0456 23.6138 7.31608 23.1442C7.94176 22.0578 9.60214 21.6 12.9229 20.6846C14.3962 20.2784 15.1329 20.0754 15.725 19.649C15.9907 19.4577 16.2324 19.2351 16.4448 18.9858C16.9182 18.4304 17.1813 17.7123 17.7075 16.2762L19.0434 12.6301C21.0172 7.24311 22.0042 4.54961 24.1808 4.06937C26.3576 3.58915 28.3842 5.61781 32.4376 9.67511Z"
+                            fill="#216BF4" />
+                        <path
+                            d="M6.60472 43.5528L15.5568 34.5922L13.3987 32.4326L4.4469 41.393C3.85103 41.9894 3.85103 42.9564 4.4469 43.5528C5.04276 44.1494 6.00886 44.1494 6.60472 43.5528Z"
+                            fill="#216BF4" />
+                    </svg>
+                    <div>Фиксация клиента</div>
+                </button>
+    <button id="bookingButton" class="action-button" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <path opacity="0.5"
+                            d="M6.92894 41.071C9.85786 44 14.5719 44 24 44C33.428 44 38.1422 44 41.071 41.071C44 38.1422 44 33.428 44 24C44 14.5719 44 9.85786 41.071 6.92894C38.1422 4 33.428 4 24 4C14.5719 4 9.85786 4 6.92894 6.92894C4 9.85786 4 14.5719 4 24C4 33.428 4 38.1422 6.92894 41.071Z"
+                            fill="#216BF4" />
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M24 14.5C24.8284 14.5 25.5 15.1716 25.5 16V23.3786L30.0606 27.9394C30.6464 28.5252 30.6464 29.4748 30.0606 30.0606C29.4748 30.6464 28.5252 30.6464 27.9394 30.0606L22.9394 25.0606C22.658 24.7794 22.5 24.3978 22.5 24V16C22.5 15.1716 23.1716 14.5 24 14.5Z"
+                            fill="#216BF4" />
+                    </svg>
+                    <div>Бронирование</div>
+                </button>
+            <button id="contractButton" class="action-button" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <path opacity="0.5"
+                      d="M6 20C6 12.4575 6 8.6863 8.34314 6.34314C10.6863 4 14.4575 4 22 4H26C33.5424 4 37.3138 4 39.6568 6.34314C42 8.6863 42 12.4575 42 20V28C42 35.5424 42 39.3138 39.6568 41.6568C37.3138 44 33.5424 44 26 44H22C14.4575 44 10.6863 44 8.34314 41.6568C6 39.3138 6 35.5424 6 28V20Z"
+                      fill="#216BF4" />
+                <path
+                      d="M33.0378 33.0026C33.3878 32.7296 33.7052 32.4122 34.3402 31.7772L42.255 23.8624C42.4462 23.6712 42.3586 23.3416 42.103 23.2528C41.1688 22.9288 39.9534 22.3202 38.8166 21.1834C37.6798 20.0466 37.0712 18.8312 36.7472 17.897C36.6584 17.6413 36.3288 17.5537 36.1376 17.7451L28.2228 25.6598C27.5878 26.2948 27.2704 26.6122 26.9974 26.9622C26.6754 27.3752 26.3992 27.8218 26.174 28.2946C25.983 28.6952 25.841 29.1212 25.5572 29.973L25.1902 31.0736L24.6068 32.8236L24.0598 34.4646C23.9202 34.8838 24.0292 35.3458 24.3416 35.6584C24.6542 35.9708 25.1162 36.0798 25.5354 35.9402L27.1764 35.3932L28.9264 34.8098L30.027 34.4428C30.8786 34.159 31.3048 34.017 31.7054 33.826C32.1782 33.6008 32.6248 33.3246 33.0378 33.0026Z"
+                      fill="#216BF4" />
+                <path
+                      d="M44.7331 21.3844C46.4225 19.6951 46.4225 16.9562 44.7331 15.267C43.0439 13.5777 40.3051 13.5777 38.6157 15.267L38.3613 15.5214C38.1157 15.767 38.0045 16.1099 38.0659 16.4517C38.1045 16.6667 38.1759 16.9811 38.3061 17.3561C38.5663 18.1063 39.0577 19.091 39.9835 20.0166C40.9091 20.9424 41.8939 21.4338 42.6439 21.694C43.0191 21.8242 43.3333 21.8956 43.5483 21.9342C43.8901 21.9956 44.2331 21.8844 44.4787 21.6388L44.7331 21.3844Z"
+                      fill="#216BF4" />
+                <path fill-rule="evenodd" clip-rule="evenodd"
+                      d="M14.5 18C14.5 17.1716 15.1716 16.5 16 16.5H29C29.8284 16.5 30.5 17.1716 30.5 18C30.5 18.8284 29.8284 19.5 29 19.5H16C15.1716 19.5 14.5 18.8284 14.5 18ZM14.5 26C14.5 25.1716 15.1716 24.5 16 24.5H22C22.8284 24.5 23.5 25.1716 23.5 26C23.5 26.8284 22.8284 27.5 22 27.5H16C15.1716 27.5 14.5 26.8284 14.5 26ZM14.5 34C14.5 33.1716 15.1716 32.5 16 32.5H19C19.8284 32.5 20.5 33.1716 20.5 34C20.5 34.8284 19.8284 35.5 19 35.5H16C15.1716 35.5 14.5 34.8284 14.5 34Z"
+                      fill="#216BF4" />
+              </svg>
+              <div>Заключение договора</div>
+            </button>
+            <button id="deleteLeadButton" class="action-button delete-button" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                    <path d="M6 12.7719C6 11.803 6.69076 11.0176 7.54286 11.0176L12.8713 11.0166C13.93 10.9861 14.864 10.2207 15.2243 9.08824C15.2338 9.05846 15.2446 9.02174 15.2837 8.88848L15.5133 8.10512C15.6538 7.62482 15.7762 7.20636 15.9475 6.83234C16.6242 5.35472 17.8762 4.32864 19.3229 4.06594C19.6891 3.99944 20.077 3.99972 20.5222 4.00004H27.4782C27.9234 3.99972 28.3112 3.99944 28.6774 4.06594C30.1242 4.32864 31.3762 5.35472 32.0528 6.83234C32.2242 7.20636 32.3466 7.62482 32.487 8.10512L32.7166 8.88848C32.7556 9.02174 32.7666 9.05846 32.776 9.08824C33.1364 10.2207 34.2556 10.9871 35.3142 11.0176H40.4572C41.3092 11.0176 42 11.803 42 12.7719C42 13.7409 41.3092 14.5263 40.4572 14.5263H7.54286C6.69076 14.5263 6 13.7409 6 12.7719Z" fill="#FF0000"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M18.8509 22.963C19.6752 22.8762 20.4102 23.5094 20.4926 24.377L21.4926 34.9034C21.575 35.771 20.9736 36.5448 20.1494 36.6316C19.3251 36.7184 18.59 36.0852 18.5076 35.2176L17.5076 24.6912C17.4251 23.8236 18.0265 23.0498 18.8509 22.963Z" fill="#FF0000"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M29.1494 22.963C29.9736 23.0498 30.5749 23.8236 30.4925 24.6912L29.4925 35.2176C29.4101 36.0852 28.6751 36.7184 27.8507 36.6316C27.0265 36.5448 26.4252 35.771 26.5076 34.9034L27.5076 24.377C27.59 23.5094 28.325 22.8762 29.1494 22.963Z" fill="#FF0000"/>
+                    <path opacity="0.5" d="M23.1912 44.0002H24.8088C30.3742 44.0002 33.157 44.0002 34.9662 42.2284C36.7756 40.4566 36.9606 37.5502 37.3308 31.7372L37.8642 23.3614C38.0652 20.2074 38.1656 18.6305 37.2578 17.6312C36.3502 16.6318 34.8174 16.6318 31.752 16.6318H16.2481C13.1825 16.6318 11.6498 16.6318 10.7421 17.6312C9.83444 18.6305 9.93488 20.2074 10.1358 23.3614L10.6692 31.7372C11.0394 37.5502 11.2245 40.4566 13.0338 42.2284C14.8431 44.0002 17.6258 44.0002 23.1912 44.0002Z" fill="#FF0000"/>
+                  </svg>
+              <div>Удалить лида</div>
+            </button>
+            <button id="markInactiveButton" class="action-button inactive-button" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none">
+                    <!-- simple "archive" icon -->
+                    <path d="M3 3h18v2H3V3zm2 4h14v12H5V7zm2 2v8h10V9H7z" fill="#FFAA00"/>
+                </svg>
+                <div>Сделать неактуальным</div>
+            </button>
+            </div>
+        </div>
+        <div id="contractModal" class="modal">
+            <div class="modal-content">
+                <h2 class="client-header">Создание договора</h2>
+                <form id="contractForm">
+                    <input type="hidden" name="lead_id" id="lead_id">
+                    <label>Номер договора:</label>
+                    <input type="text" name="contract_number" required class="contract-input">
+                    <label>Дата договора:</label>
+                    <input type="date" name="contractDate" required class="contract-input">
+                    <label>Блок:</label>
+                    <input type="text" name="block" value="0" required class="contract-input">
+                    <label>Этаж:</label>
+                    <input type="number" name="floor" value="0" required class="contract-input">
+                    <label>Номер квартиры:</label>
+                    <input type="number" name="apartmentNumber" value="0" required class="contract-input">
+                    <label>Кол-во комнат:</label>
+                    <input type="number" name="rooms" value="0" required class="contract-input">
+                    <label>Площадь (м²):</label>
+                    <input type="number" name="size" value="0" required class="contract-input">
+                    <label>Общая стоимость:</label>
+                    <input type="text" name="totalPrice"
+                        value="" required class="contract-input">
+                    <label>Стоимость 1 м²:</label>
+                    <input type="text" name="pricePerM2"
+                        value="" required class="contract-input">
+                    <label>Выбор оплаты (%):</label>
+                    <input type="text" name="paymentChoice" value="" required class="contract-input">
+                    <label>Сумма первоначального взноса:</label>
+                    <input type="text" name="initialPayment" id="initialPayment"
+                        value="" required class="contract-input">
+                    <label>Ф/И/О:</label>
+                    <input type="text" name="fullName" required class="contract-input">
+                    <label>Серия паспорта:</label>
+                    <input type="text" name="passportSeries" required class="contract-input">
+                    <label>ПИНФЛ:</label>
+                    <input type="text" name="pinfl" required class="contract-input">
+                    <label>Кем выдан:</label>
+                    <input type="text" name="issuedBy" required class="contract-input">
+                    <label>Адрес прописки:</label>
+                    <input type="text" name="registrationAddress" required class="contract-input">
+                    <label>Номер телефона:</label>
+                    <input type="text" name="phone" required class="contract-input">
+                    <label>Отдел продаж:</label>
+                    <input type="text" name="salesDepartment" required class="contract-input">
+                    <div class="container-button">
+                        <button type="submit" class="btn active">Создать</button>
+                        <button class="btn" type="button" onclick="closeModal()">Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="callbackModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-sure">
+                    <h2 class="modal-title">Забронировать квартиру №{{ lead.number_apartments}} для лида?</h2>
+        
+                </div>
+                <div class="modal-actions">
+                    <button class="btn cancel" onclick="closeModalNot()">Отменить</button>
+                    <button class="btn confirm" id="confirmRoleButton">Да</button>
+                </div>
+            </div>
+        </div>
+        <div id="unbookingModal" class="modal" style="display: none;">
+          <div class="modal-content">
+            <h2 class="client-header">Снять бронь с квартиры №{{ lead.number_apartments }}?</h2>
+            <div class="modal-actions">
+              <button class="btn cancel" onclick="closeUnbookingModal()">Отменить</button>
+              <button class="btn confirm" id="confirmUnbookingButton">Снять бронь</button>
+            </div>
+          </div>
+        </div>
+        <div id="deleteModal" class="modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-sure">
+              <h2 class="modal-title">Удалить лида "{{ lead.full_name }}"?</h2>
+            </div>
+            <div class="modal-actions">
+              <button class="btn cancel" onclick="closeDeleteModal()">Отменить</button>
+              <button class="btn danger" id="confirmDeleteButton">Да</button>
+            </div>
+          </div>
+        </div>
+        <!-- Inactive Lead Modal -->
+        <div id="inactiveModal" class="modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-sure">
+              <h2 class="modal-title">Сделать лида неактуальным?</h2>
+            </div>
+            <div class="modal-actions" style="display: flex; gap: 8px; justify-content: flex-end;">
+              <button class="btn cancel" onclick="closeInactiveModal()">Отмена</button>
+              <button class="btn confirm" id="confirmInactiveButton">Да</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <!-- Attach Apartment Modal -->
+<div id="attachModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2 class="client-header">Закрепить квартиру к лиду</h2>
+      <input type="hidden" id="attach-lead-id" value="{{lead.id}}">
+  
+      <!-- Шаг 1: выбор ЖК -->
+      <div class="form-group">
+        <label for="attach-jk-select">Выберите ЖК:</label>
+        <select id="attach-jk-select" class="contract-input">
+          <option value="">Загрузка...</option>
+        </select>
+      </div>
+  
+      <!-- Шаг 2: выбор блока -->
+      <div id="attach-blocks" class="blocks-container" style="margin-top:1rem;"></div>
+  
+      <!-- Шаг 3: шахматка квартир -->
+      <div id="attach-apartments" class="apartment-grid" style="margin-top:1rem;"></div>
+  
+      <div class="container-button" style="margin-top:1.5rem; display:flex; gap:8px;">
+        <button type="button" class="btn" onclick="closeAttachModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+
+  
+    <script src="/static/exact-lead-scripts.js"></script>
+    {% if user.role.id == 1 %}
+    <script src="/static/search-lead-scripts.js"></script>
+    {% else %}
+    <script src="/static/mop-dashboard-main.js"></script>
+{% endif %}
+
+    <!-- Chat Modal Script -->
+    <script>
+      function openChatModal() {
+        var modalBody = document.querySelector('#chatModal .full-chat-content');
+        document.getElementById('chatModal').style.display = 'block';
+      }
+
+      function closeChatModal() {
+        document.getElementById('chatModal').style.display = 'none';
+      }
+
+      document.getElementById('viewChatButton').addEventListener('click', openChatModal);
+    </script>
+    <script>
+function openContractModal(prefilledData) {
+    document.getElementById('contractModal').style.display = 'block';
+    // Insert full styled form with prefill and today's date
+    const modalContent = document.querySelector('#contractModal .modal-content');
+    modalContent.innerHTML = `
+        <h1 style="margin-top: 0;">Оформление договора</h1>
+        <form id="contract-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; font-family: Inter, sans-serif;">
+            <input type="hidden" name="jkName" value="${prefilledData.jkName}">
+            
+            <div style="grid-column: 1/3; display: flex; gap: 16px;">
+                <div style="flex: 1;">
+                    <label for="contractDate" style="font-weight: 500;">Дата договора</label>
+                    <input type="date" id="contractDate" name="contractDate" class="contract-input" value="${new Date().toISOString().slice(0,10)}" required style="width: 100%; margin-bottom: 8px;">
+                </div>
+                <div style="flex: 1;">
+                    <label for="contractNumber" style="font-weight: 500;">Номер договора</label>
+                    <input type="text" id="contractNumber" name="contractNumber" class="contract-input" value="${prefilledData.contractNumber || '1'}" required style="width: 100%; margin-bottom: 8px;">
+                </div>
+            </div>
+            <div>
+                <label for="block" style="font-weight: 500;">Блок</label>
+                <input type="text" id="block" name="block" class="contract-input" value="${prefilledData.block || ''}" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="floor" style="font-weight: 500;">Этаж</label>
+                <input type="number" id="floor" name="floor" class="contract-input" value="${prefilledData.floor || ''}" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="apartmentNumber" style="font-weight: 500;">Номер квартиры</label>
+                <input type="number" id="apartmentNumber" name="apartmentNumber" class="contract-input" value="${prefilledData.apartmentNumber || ''}" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="rooms" style="font-weight: 500;">Количество комнат</label>
+                <input type="number" id="rooms" name="rooms" class="contract-input" value="${prefilledData.rooms || ''}" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="size" style="font-weight: 500;">Площадь (м²)</label>
+                <input type="number" id="size" name="size" class="contract-input" value="${prefilledData.size || ''}" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="paymentChoice" style="font-weight: 500;">Вид оплаты (%)</label>
+                <input type="text" id="paymentChoice" name="paymentChoice" class="contract-input" value="${prefilledData.paymentChoice || ''}" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="totalPrice" style="font-weight: 500;">Общая стоимость</label>
+                <input type="text" id="totalPrice" name="totalPrice" class="contract-input" value="${prefilledData.totalPrice || ''}" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="pricePerM2" style="font-weight: 500;">Стоимость 1 м²</label>
+                <input type="text" id="pricePerM2" name="pricePerM2" class="contract-input" value="${prefilledData.pricePerM2 || ''}" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="initialPayment" style="font-weight: 500;">Первоначальный взнос</label>
+                <input type="text" id="initialPayment" name="initialPayment" class="contract-input" value="${prefilledData.initialPayment || ''}" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div style="grid-column: 1/3; border-top: 1px solid #eee; margin-top: 8px; padding-top: 12px;"></div>
+            <div>
+                <label for="fullName" style="font-weight: 500;">ФИО</label>
+                <input type="text" id="fullName" name="fullName" class="contract-input" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="passportSeries" style="font-weight: 500;">Серия паспорта</label>
+                <input type="text" id="passportSeries" name="passportSeries" class="contract-input" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="pinfl" style="font-weight: 500;">ПИНФЛ</label>
+                <input type="text" id="pinfl" name="pinfl" class="contract-input" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="issuedBy" style="font-weight: 500;">Кем выдан</label>
+                <input type="text" id="issuedBy" name="issuedBy" class="contract-input" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div style="grid-column: 1/3;">
+                <label for="registrationAddress" style="font-weight: 500;">Адрес прописки</label>
+                <input type="text" id="registrationAddress" name="registrationAddress" class="contract-input" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="phone" style="font-weight: 500;">Телефон</label>
+                <input type="text" id="phone" name="phone" class="contract-input" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="salesDepartment" style="font-weight: 500;">Отдел продаж</label>
+                <input type="text" id="salesDepartment" name="salesDepartment" class="contract-input" value="${prefilledData.sellerName || ''}" required style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div style="grid-column: 1/3; display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px;">
+                <button type="submit" class="action-btn" style="background: #216BF4; color: #fff; border-radius: 6px; padding: 10px 24px; font-weight: 600;">Создать</button>
+                <button type="button" class="action-btn" style="background: #eee; color: #333; border-radius: 6px; padding: 10px 24px; font-weight: 600;" onclick="closeModal()">Отмена</button>
+            </div>
+        </form>
+    `;
+    // Prefill values for personal info fields if present in prefilledData
+    if (prefilledData) {
+        // The above template already fills contract fields; for personal fields, set if present
+        const keys = ['fullName', 'passportSeries', 'pinfl', 'issuedBy', 'registrationAddress', 'phone', 'salesDepartment'];
+        keys.forEach(key => {
+            if (prefilledData[key]) {
+                const input = modalContent.querySelector(`[name="${key}"]`);
+                if (input) input.value = prefilledData[key];
+            }
+        });
+    }
+    const form = document.getElementById('contract-form');
+    form.onsubmit = async function(e) {
+        e.preventDefault();
+        const formData = new FormData(form);
+        try {
+            const response = await fetch('/excel/generate-contract', {
+                method: 'POST',
+                body: JSON.stringify(Object.fromEntries(formData)),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail);
+            }
+            const blob = await response.blob();
+            const contentDisposition = response.headers.get("Content-Disposition");
+            const filename = contentDisposition
+                ? contentDisposition.split("filename=")[1].replace(/"/g, "")
+                : "contract_and_registry.zip";
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            document.getElementById('contractModal').style.display = 'none';
+            form.reset();
+            // Обновляем статус квартиры в Excel на "продана"
+            await updateApartmentStatusInExcel(
+              prefilledData.jkName,
+              prefilledData.block,
+              prefilledData.floor,
+              prefilledData.apartmentNumber,
+              "продана"
+            );
+            showNotification('Договор успешно создан и квартира отмечена как проданная!', 'success');
+            // После создания договора переводим лид в состояние PROCESSED
+            const leadId = document.getElementById('leadId').value;
+            await fetch(`/leads/${leadId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ state: 'PROCESSED' })
+            });
+        } catch (error) {
+            showNotification(error.message, 'error');
+        }
+    };
+}
+
+
+        async function updateApartmentStatusInExcel(jkName, blockName, floor, apartmentNumber, newStatus) {
+    try {
+        const response = await fetch("/excel/update-status", { // Новый эндпоинт
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                jkName: jkName,
+                blockName: blockName,
+                floor: parseInt(floor, 10),
+                // apartmentNumber может быть строкой или числом, бэкенд должен это учесть
+                apartmentNumber: isNaN(parseInt(apartmentNumber)) ? apartmentNumber : parseInt(apartmentNumber, 10),
+                newStatus: newStatus
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log("Результат обновления Excel:", result.message);
+            if (result.status === 'warning') {
+                console.warn("Предупреждение при обновлении Excel:", result.message);
+                // Можно показать некритичное уведомление админу/менеджеру
+            }
+        } else {
+            console.error(`Ошибка при обновлении статуса в Excel (${response.status}): ${response.statusText}`);
+            // Не блокируем пользователя, т.к. лид создан, но логируем ошибку
+            // Можно отправить лог ошибки на бэкенд
+        }
+    } catch (error) {
+        console.error("Сетевая ошибка при обновлении статуса в Excel:", error);
+        // Логируем ошибку
+    }
+}
+
+
+  document.getElementById('confirmRoleButton').addEventListener('click', async function() {
+    var jkName = "{{ lead.complex_name }}";
+    var blockName = "{{ lead.block }}";
+    var floor = parseInt("{{ lead.floor }}");
+    var apartmentNumber = parseInt("{{ lead.number_apartments }}");
+    var updates = [{
+      jkName: jkName,
+      blockName: blockName,
+      floor: floor,
+      apartmentNumber: apartmentNumber,
+      newStatus: "бронь"
+    }];
+
+           // Send booking request
+    const response = await fetch('/excel/complexes/chess', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ updates: updates })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      // If the apartment is already booked
+      if (response.status === 404 && data.detail && data.detail.not_updated) {
+        showNotification('Эта квартира уже забронирована и не может быть забронирована.', 'error');
+      } else {
+        // General error fallback
+        const message = typeof data.detail === 'string' ? data.detail : 'Ошибка бронирования';
+        showNotification(message, 'error');
+      }
+      return;
+    }
+        // Success case
+        showNotification('Квартира успешно забронирована!', 'success');
+        location.reload();
+    closeModalNot();
+  });
+    </script>
+    <script>
+    // --- Contract Button logic ---
+    async function fetchLastContractNumber(jkName) {
+      try {
+        const response = await fetch(`/excel/last-contract-number?jkName=${encodeURIComponent(jkName)}`);
+        if (!response.ok) {
+          if (response.status === 404) return null;
+          throw new Error(`Ошибка получения номера договора: ${response.statusText}`);
+        }
+        const data = await response.json();
+        return data.lastContractNumber;
+      } catch (error) {
+        console.error('Ошибка при получении номера договора:', error);
+        return null;
+      }
+    }
+
+    document.getElementById('contractButton').addEventListener('click', async function() {
+      const jkName = "{{ lead.complex_name }}";
+      const sellerName = "{{ user.first_name }} {{user.last_name }}";
+      const blockName = "{{ lead.block }}";
+      const floor = parseInt("{{ lead.floor }}", 10);
+      const apartmentNumber = parseInt("{{ lead.number_apartments }}", 10);
+      const rooms = {{ lead.rooms }};
+      const size = {{ lead.square_meters }};
+      const totalPrice = {{ (lead.total_price) | round(2)}};
+      const pricePerM2 = {{ lead.square_meters_price }};
+      const monthlyPayment = {{lead.monthly_payment}}
+      const paymentChoice = "{{ lead.down_payment_percent }}";
+      {% if lead.down_payment %}
+      const initialPayment = {{ (lead.down_payment | round(2)) }};
+      {% else %}
+      const initialPayment = {{ (lead.total_price | round(2)) }};
+      {% endif %}
+
+      const nextContractNumber = await fetchLastContractNumber(jkName) || '';
+      openContractModal({
+        jkName,
+        block: blockName,
+        floor,
+        apartmentNumber,
+        rooms,
+        size,
+        totalPrice,
+        pricePerM2,
+        paymentChoice,
+        initialPayment,
+        monthlyPayment,
+        sellerName,
+        contractNumber: nextContractNumber,
+        
+      });
+    });
+    </script>
+    <script>
+document.addEventListener('DOMContentLoaded', async function() {
+  const jkName = "{{ lead.complex_name }}";
+  const blockName = "{{ lead.block }}";
+  const floor = parseInt("{{ lead.floor }}");
+  const apartmentNumber = parseInt("{{ lead.number_apartments }}");
+  const bookingBtn = document.getElementById('bookingButton');
+  const contractBtn = document.getElementById('contractButton');
+  try {
+    const res = await fetch(`/excel/apartment-status?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(blockName)}&floor=${floor}&apartmentNumber=${apartmentNumber}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.apartmentStatus && data.apartmentStatus.toLowerCase() === 'бронь') {
+        bookingBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <path opacity="0.5"
+          d="M6.92894 41.071C9.85786 44 14.5719 44 24 44C33.428 44 38.1422 44 41.071 41.071C44 38.1422 44 33.428 44 24C44 14.5719 44 9.85786 41.071 6.92894C38.1422 4 33.428 4 24 4C14.5719 4 9.85786 4 6.92894 6.92894C4 9.85786 4 14.5719 4 24C4 33.428 4 38.1422 6.92894 41.071Z"
+          fill="#ffc107" />
+        <path fill-rule="evenodd" clip-rule="evenodd"
+          d="M24 14.5C24.8284 14.5 25.5 15.1716 25.5 16V23.3786L30.0606 27.9394C30.6464 28.5252 30.6464 29.4748 30.0606 30.0606C29.4748 30.6464 28.5252 30.6464 27.9394 30.0606L22.9394 25.0606C22.658 24.7794 22.5 24.3978 22.5 24V16C22.5 15.1716 23.1716 14.5 24 14.5Z"
+          fill="#ffc107" />
+      </svg>
+      <div>Забронировано</div>
+    `;
+        bookingBtn.classList.add('booked');
+      }
+      else if (data.apartmentStatus && data.apartmentStatus.toLowerCase() === 'продана') {
+        bookingBtn.disabled = true;
+        bookingBtn.classList.add('disabled');
+        contractBtn.disabled = true;
+        contractBtn.classList.add('disabled');
+        // Disable all other action buttons when apartment is sold
+        const attachBtn = document.querySelector('.attach-apartment-button button');
+        const fixClientBtn = document.querySelector('.action-button.fix-client');
+        [attachBtn, fixClientBtn].forEach(btn => {
+          if (btn) {
+            btn.disabled = true;
+            btn.classList.add('disabled');
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.error('Status fetch error', e);
+  }
+  bookingBtn.addEventListener('click', function() {
+    if (bookingBtn.disabled) return;
+    if (bookingBtn.classList.contains('booked')) {
+      document.getElementById('unbookingModal').style.display = 'block';
+    } else {
+      openModalNot({{ lead.id }});
+    }
+  });
+});
+    function closeModal(){
+        document.getElementById('contractModal').style.display = 'none'
+    }
+    function closeUnbookingModal() {
+      document.getElementById('unbookingModal').style.display = 'none';
+    }
+
+    document.getElementById('confirmUnbookingButton').addEventListener('click', async function() {
+      const jkName = "{{ lead.complex_name }}";
+      const blockName = "{{ lead.block }}";
+      const floor = parseInt("{{ lead.floor }}");
+      const apartmentNumber = parseInt("{{ lead.number_apartments }}");
+      const updates = [{
+        jkName,
+        blockName,
+        floor,
+        apartmentNumber,
+        newStatus: "свободна"  // или "доступно" по вашему стандарту
+      }];
+      const response = await fetch('/excel/complexes/chess', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        showNotification('Бронь снята!', 'success');
+        closeUnbookingModal();
+        const bookingBtn = document.getElementById('bookingButton');
+        bookingBtn.classList.remove('booked');
+        location.reload()
+      } else {
+        showNotification(data.detail || 'Ошибка при снятии брони', 'error');
+      }
+    });
+    </script>
+<script src="/static/sales_style/complex.js"></script>
+<script src="/static/notification-sales.js"></script>
+<script src="/static/notification_scripts.js"></script>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var sqm = parseFloat(document.getElementById('squareMeters').value) || 0;
+    var totalInput = document.getElementById('totalPriceInput');
+    var priceInput = document.getElementById('pricePerM2Input');
+    var monthlyInput = document.getElementById('monthlyPaymentInput');
+    var downPayment  = parseFloat(document.getElementById('downPayment').value.replace(/,/g, '')) || 0;
+    var period       = parseInt(document.getElementById('installmentPeriod').value, 10) || 1;
+  
+
+    function updateTotal() {
+      // Remove thousand separators before parsing
+      var price = parseFloat(priceInput.value.replace(/,/g, '')) || 0;
+      var totalValue = sqm * price;
+      // Format with commas as thousand separators
+      totalInput.value = totalValue.toLocaleString('en-US');
+      updateMonthly();
+    }
+    function updatePrice() {
+      var total = parseFloat(totalInput.value.replace(/,/g, '')) || 0;
+      var priceValue = sqm ? (total / sqm) : 0;
+      priceInput.value = priceValue.toLocaleString('en-US');
+      updateMonthly();
+    }
+
+    priceInput.addEventListener('input', updateTotal);
+    totalInput.addEventListener('input', updatePrice);
+  });
+  </script>
+</body>
+
+<script>
+function closeDeleteModal() {
+  document.getElementById('deleteModal').style.display = 'none';
+}
+
+document.getElementById('deleteLeadButton').addEventListener('click', function() {
+  document.getElementById('deleteModal').style.display = 'block';
+});
+
+document.getElementById('confirmDeleteButton').addEventListener('click', async function() {
+  const leadId = document.getElementById('leadId').value;
+  try {
+    const response = await fetch(`/api/leads/${leadId}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Ошибка удаления лида');
+    // Store notification for main page
+    sessionStorage.setItem('notificationMessage', 'Лид успешно удалён');
+    sessionStorage.setItem('notificationType', 'success');
+    window.location.href = '/dashboard/sales';
+  } catch (error) {
+    showNotification(error.message, 'error');
+  }
+});
+</script>
+<script>
+  // Open Inactive Modal
+  document.getElementById('markInactiveButton').addEventListener('click', function() { 
+    document.getElementById('inactiveModal').style.display = 'block';
+  });
+  // Close Inactive Modal
+  function closeInactiveModal() {
+    document.getElementById('inactiveModal').style.display = 'none';
+  }
+  // Confirm Inactivation
+  document.getElementById('confirmInactiveButton').addEventListener('click', async function() {
+    const leadId = document.getElementById('leadId').value;
+    try {
+      const response = await fetch(`/api/leads/${leadId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: 'INACTIVE' })
+      });
+      if (!response.ok) throw new Error('Не удалось обновить статус лида');
+      showNotification('Лид помечен неактуальным', 'success');
+      closeInactiveModal();
+      // Optionally, redirect or reload to refresh UI
+      location.reload();
+    } catch (error) {
+      showNotification(error.message, 'error');
+    }
+  });
+</script>
+</html>

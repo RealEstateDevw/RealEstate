@@ -1,0 +1,364 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.5;
+    background-color: #f8f9fa; /* Светло-серый фон как на картинке */
+    color: #212529; /* Основной цвет текста */
+    padding: 1.5rem; /* Отступы для всего контента */
+}
+
+img {
+    max-width: 100%;
+    height: auto; /* Позволяет сохранять пропорции */
+    display: block;
+}
+
+button {
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: inherit;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* --- Контейнер для двух колонок --- */
+.apartment-details-container {
+    display: flex;
+    flex-wrap: wrap; /* Позволяет переноситься на новую строку на мобильных */
+    gap: 2rem; /* Расстояние между колонками */
+    background-color: #ffffff; /* Белый фон основной области */
+    padding: 1.5rem;
+    border-radius: 16px; /* Скругление углов контейнера */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Левая колонка: План --- */
+.apartment-plan-section {
+    flex: 1 1 55%; /* Занимает больше места, позволяет сжиматься/растягиваться */
+    min-width: 300px; /* Минимальная ширина, чтобы не сжимался слишком сильно */
+    display: flex;
+    flex-direction: column;
+}
+
+.plan-section-title {
+    font-size: 1.5rem; /* Размер заголовка плана */
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.plan-image-wrapper {
+    background-color: #f1f3f5; /* Фон под изображением, если оно не на всю ширину */
+    border-radius: 8px;
+    overflow: hidden; /* Скрывать части изображения, выходящие за рамки */
+    margin-bottom: 1rem; /* Отступ под картинкой */
+}
+
+.plan-image {
+    width: 100%; /* Изображение на всю ширину блока */
+}
+
+/* Кнопки под планом */
+.plan-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Разнести стрелки и иконки действий */
+    margin-top: 0.5rem; /* Небольшой отступ сверху */
+}
+
+.plan-nav-btn,
+.plan-action-btn {
+    background-color: #f1f3f5; /* Фон кнопок */
+    border-radius: 50%; /* Круглые кнопки */
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: #555;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.plan-nav-btn:hover,
+.plan-action-btn:hover {
+    background-color: #e9ecef;
+    color: #007bff; /* Цвет иконки при наведении */
+}
+
+.plan-actions {
+    display: flex;
+    gap: 0.75rem; /* Расстояние между кнопками действий */
+}
+
+
+/* --- Правая колонка: Инфо-карточка --- */
+.info-card {
+    flex: 1 1 35%; /* Занимает меньше места, позволяет сжиматься/растягиваться */
+    min-width: 300px; /* Минимальная ширина */
+    background-color: #f8f9fa; /* Фон карточки чуть темнее основного фона */
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Расстояние между основными блоками внутри карточки */
+}
+
+.info-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem; /* Дополнительный отступ после заголовка */
+}
+
+.info-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-right: auto; /* Отодвигает бейдж и кнопку вправо */
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.status-available {
+    background-color: #28a745; /* Зеленый */
+    color: #ffffff;
+}
+
+
+.close-btn {
+    background-color: #e9ecef;
+    color: #6c757d;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.close-btn:hover {
+    background-color: #dee2e6;
+}
+
+/* Сетка информации */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Две колонки */
+    gap: 1rem; /* Расстояние между блоками */
+}
+
+.info-block {
+    background-color: #ffffff; /* Белый фон блоков */
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem; /* Небольшой отступ между label и value */
+}
+
+.info-label {
+    font-size: 0.8rem;
+    color: #6c757d; /* Серый цвет для подписей */
+}
+
+.info-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #212529; /* Черный цвет для значений */
+}
+
+.info-value.area {
+    font-size: 1.3rem; /* Чуть крупнее для площади */
+}
+
+/* Блок "Подробнее" */
+.details-link-block {
+    background-color: #e7f1ff; /* Светло-голубой фон */
+    border: 1px solid #007bff; /* Синяя рамка */
+    color: #007bff; /* Синий текст */
+    flex-direction: row; /* Иконка и текст в строку */
+    align-items: center;
+    justify-content: space-between; /* Разнести текст и стрелку */
+    transition: background-color 0.2s ease;
+}
+
+.details-link-block .info-label {
+    color: inherit; /* Наследовать синий цвет */
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.details-link-block i {
+    font-size: 1rem;
+}
+
+.details-link-block:hover {
+    background-color: #d0e3ff; /* Чуть темнее при наведении */
+}
+
+/* Блоки скидок/рассрочки */
+.offer-block {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.offer-block.discount {
+    background-color: #e6fcf0; /* Светло-зеленый фон */
+    border: 1px solid #28a745; /* Зеленая рамка */
+}
+
+.offer-block.installment {
+    background-color: #fff8e1; /* Светло-желтый фон */
+    border: 1px solid #ffc107; /* Желтая рамка */
+}
+
+.offer-title {
+    font-weight: 600;
+}
+
+.offer-condition {
+    font-size: 0.8rem;
+    color: #495057;
+}
+
+/* Секция цены */
+.price-section {
+    margin-top: auto; /* Прижимает этот блок и кнопку вниз, если есть место */
+    padding-top: 1rem; /* Отступ сверху перед ценой */
+    border-top: 1px solid #dee2e6; /* Линия-разделитель */
+}
+
+.total-price {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 0.25rem;
+}
+
+.price-per-meter {
+    font-size: 0.9rem;
+    color: #6c757d;
+    background-color: #e9ecef; /* Фон для цены за метр */
+    padding: 0.25rem 0.6rem;
+    border-radius: 16px;
+    display: inline-flex; /* Чтобы блок был по размеру контента */
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.currency-icon {
+    font-size: 0.8rem;
+     color: #495057;
+}
+
+/* Кнопка "Отправить заявку" */
+.submit-button {
+    background-color: #007bff; /* Синий цвет */
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    width: 100%; /* На всю ширину карточки */
+    text-align: center;
+    transition: background-color 0.2s ease;
+    margin-top: 1rem; /* Отступ от цены */
+}
+
+.submit-button:hover {
+    background-color: #0056b3; /* Темнее при наведении */
+}
+
+/* --- Адаптивность --- */
+@media (max-width: 992px) { /* Планшеты и меньше */
+    .apartment-details-container {
+        flex-direction: column; /* Колонки друг под другом */
+        padding: 1rem;
+    }
+
+    .apartment-plan-section,
+    .info-card {
+        flex-basis: 100%; /* Занимают всю ширину */
+        width: 100%;
+    }
+
+    .info-card {
+         padding: 1rem;
+    }
+
+    .plan-section-title {
+        font-size: 1.3rem;
+    }
+
+    .info-card-title {
+        font-size: 1.15rem;
+    }
+
+    .total-price {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 576px) { /* Маленькие мобильные */
+     body {
+        padding: 0.5rem; /* Уменьшаем отступы на совсем маленьких экранах */
+    }
+    .apartment-details-container {
+        border-radius: 8px; /* Меньше скругление */
+    }
+    .info-grid {
+        /* Можно оставить 2 колонки или сделать одну: */
+        /* grid-template-columns: 1fr; */
+        gap: 0.75rem;
+    }
+    .info-block {
+        padding: 0.6rem 0.8rem;
+    }
+    .info-label {
+        font-size: 0.75rem;
+    }
+    .info-value {
+        font-size: 1rem;
+    }
+    .info-value.area {
+        font-size: 1.1rem;
+    }
+    .total-price {
+        font-size: 1.4rem;
+    }
+    .submit-button {
+        padding: 0.7rem 1rem;
+        font-size: 0.9rem;
+    }
+    .plan-nav-btn,
+    .plan-action-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+}

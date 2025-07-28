@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller CRM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/static/exact-lead-stylr.css">
+    <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link rel="stylesheet" href="/static/finance-exact-style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    {% include 'partials/finance-header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+<input type="text" id="leadId" value="{{ lead.id }}" hidden="true">
+    <div class="main-content">
+        <div class="client-info">
+            <h1 class="client-header">{{ lead.full_name }} </h1>
+    <hr class="divider">
+
+            <div class="info-grid">
+                <div class="info-box-tag">
+                    <span class="tag"> {{ lead.contact_source}} Target</span>
+                </div>
+                <div class="info-box-tag">
+                    <span>{{ lead.region}}</span>
+                </div>
+                <div class="info-box-tag">
+                    <span>{{ lead.phone}}</span>
+                </div>
+                <div class="info-box-tag">
+                    <span>{{ lead.created_at.strftime('%d.%m.%Y') }}</span>
+                </div>
+            </div>
+            
+           
+            <hr class="divider">
+
+            
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <div class="info-label">Метров²</div>
+                    <div class="info-value">{{ lead.square_meters }}м²</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Количество комнат</div>
+                    <div class="info-value">{{ lead.rooms }} комнат</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Этаж</div>
+                    <div class="info-value">{{ lead.floor }} этаж</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Вид оплаты</div>
+                    <div class="info-value">{{ lead.payment_type}}</div>
+                </div>
+            </div>
+
+            <div class="price-card">
+                <div class="price-title">Предварительная сумма</div>
+                <div class="price-main">{{ "{:,.0f}".format(lead.total_price)}} сум</div>
+                
+                <hr class="divider">
+                
+                <div class="price-subtitle">Мес. оплата с учетом {{ lead.installment_markup }}% переплаты.</div>
+                <div class="price-monthly">{{ "{:,.0f}".format(lead.monthly_payment)}} сум {{ lead.installment_period }} мес</div>
+            </div>
+        </div>
+
+        <div class="chat-section">
+            <div class="chat-header">
+                <h1 class="client-header">Управление лидом</h1>
+                <h2 class="massenger-info">{{ lead.contact_source}}</h2>
+            </div>
+
+            <div class="message">
+                Добрый день! Я бы хотел узнать подробнее про здание и обсудить сроки въезда.
+                <div class="time">12:30</div>
+            </div>
+
+            <div class="message sent">
+                Здравствуйте!
+                <div class="time">12:32</div>
+            </div>
+
+            <div class="message sent">
+                Для уточнения данного вопроса вам необходимо связаться с нами по телефону
+                <div class="time">12:33</div>
+            </div>
+
+            <div id="comments-container" class="space-y-4  overflow-y-auto mb-4 mt-10">
+                <!-- Comments will be inserted here -->
+                 
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                    <label class="flex items-center gap-2 text-sm">
+                        <input type="checkbox" id="internal-comment" class="rounded border-gray-300">
+                        Внутренний комментарий
+                    </label>
+                </div>
+                
+                <div class="flex gap-2">
+                    <textarea 
+                        id="comment-input"
+                        placeholder="Введите комментарий..."
+                        class="flex-1 min-h-[80px] p-2 border rounded-lg resize-none"
+                    ></textarea>
+                    <button 
+                        id="send-comment"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 self-end"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="action-button-finance" type="button" >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <path opacity="0.5" d="M6.92894 41.071C9.85786 44 14.5719 44 24 44C33.428 44 38.1422 44 41.071 41.071C44 38.1422 44 33.428 44 24C44 14.5719 44 9.85786 41.071 6.92894C38.1422 4 33.428 4 24 4C14.5719 4 9.85786 4 6.92894 6.92894C4 9.85786 4 14.5719 4 24C4 33.428 4 38.1422 6.92894 41.071Z" fill="#216BF4"/>
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M24 14.5C24.8284 14.5 25.5 15.1716 25.5 16V23.3786L30.0606 27.9394C30.6464 28.5252 30.6464 29.4748 30.0606 30.0606C29.4748 30.6464 28.5252 30.6464 27.9394 30.0606L22.9394 25.0606C22.658 24.7794 22.5 24.3978 22.5 24V16C22.5 15.1716 23.1716 14.5 24 14.5Z" fill="#216BF4"/>
+</svg>
+                    <h3>История оплат клиентом</h3>
+                </button>
+                <button class="action-button-finance" type="button" >
+                    <p>Погашенная сумма (7 месяцев)</p>
+                    <h2 class="monthly-price">833 000 000 сум</h2>
+                </button>
+                <button class="action-button-finance" type="button" >
+                    <p>Дедлайн для погашения месяца</p>
+                    <h2 class="monthly-price">20.01.2025 (просрочена)</h2>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="lead-details-container"></div>
+
+    <script src="/static/finance-exact-lead.js"></script>
+    <script src="/static/finance-search.js"></script>
+
+
+</body>
+</html>

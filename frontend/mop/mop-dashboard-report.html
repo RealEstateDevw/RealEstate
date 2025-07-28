@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller CRM Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link rel="stylesheet" href="/static/mop-dashboard.css">
+    <link rel="stylesheet" href="/static/sales_style/header-sales.css">
+
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'partials/mop-header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <div class="columns">
+        <div class="column" data-status="SALES">
+            <div class="column-header" >
+                <div class="column-title">Продажники</div>
+            </div>
+<div class="lead-list">
+    <button class="all-report-button selected" type="button" >Все <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+        <path d="M9 5.5L15 12.5L9 19.5" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg></button>
+            
+        </div>
+        </div>
+
+        <div class="column" data-status="INCOMING">
+            <div class="column-header">
+                <div class="column-title">Поступления</div>
+                <div class="lead-count">0 лида</div>
+            </div>
+            <div class="lead-list">
+                <!-- Cards will be dynamically inserted here -->
+            </div>
+        </div>
+    
+        <div class="column" data-status="PROCESSED">
+            <div class="column-header">
+                <div class="column-title">Отработано</div>
+                <div class="lead-count">0 лидов</div>
+            </div>
+            <div class="lead-list">
+                <!-- Cards will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+   
+    <script src="/static/mop-dashboard-main.js"></script>
+    <script src="/static/mop-dashboard-report.js"></script>
+</body>
+
+</html>

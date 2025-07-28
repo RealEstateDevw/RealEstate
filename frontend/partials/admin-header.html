@@ -1,0 +1,43 @@
+<header class="header">
+   
+        <a href="/dashboard/admin" class="logo">Main Admin</a>
+
+        {% if request.path in[ '/dashboard/admin/', '/dashboard/admin/data-base', '/dashboard/admin/draws'] %}
+        <div class="actions-group">
+            
+            <button class="shahmatki">Реестр Договоров</button>
+            <a href="/dashboard/admin/marketing" class="shahmatki draw-button" aria-label="Страница маркетинга">
+                Маркетинг
+            </a>
+            <a class="shahmatki" href="/dashboard/admin/data-base/">База Данных</a>
+            <a href="/complexes" class="shahmatki">Шахматки</a>
+            <a href="/dashboard/admin/add_user" class="register-btn" aria-label="Зарегистрировать сотрудника">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M24 17H8C7.45333 17 7 16.5467 7 16C7 15.4533 7.45333 15 8 15H24C24.5467 15 25 15.4533 25 16C25 16.5467 24.5467 17 24 17Z" fill="white"></path>
+                    <path d="M16 25C15.4533 25 15 24.5467 15 24V8C15 7.45333 15.4533 7 16 7C16.5467 7 17 7.45333 17 8V24C17 24.5467 16.5467 25 16 25Z" fill="white"></path>
+                </svg>
+                <h2 class="register-btn-text">Добавить сотрудника или жк</h2>
+            </a>
+            <a class="user-icon" href="{{ url_for('user_profile') }}" aria-label="Профиль пользователя">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon-svg">
+                    <path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z"></path>
+                </svg>
+            </a>
+        </div>
+    {% else %}
+       
+        <div class="actions-group">
+            <a href="javascript:history.back()" class="back-button" aria-label="Назад"> <!-- Added aria-label -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M20 25.3333L12 16L20 6.66665" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="back-button-text">Назад</span> <!-- Wrapped text in span -->
+            </a>
+            <a class="user-icon" href="{{ url_for('user_profile') }}" aria-label="Профиль пользователя">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon-svg">
+                    <path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z"></path>
+                </svg>
+            </a>
+        </div>
+    {% endif %}
+</header>

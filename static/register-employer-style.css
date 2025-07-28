@@ -1,0 +1,631 @@
+
+
+
+
+
+
+body{
+    margin: 0;
+}
+
+body{
+    padding: 20px;
+}
+
+a {
+    text-decoration: none;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+}
+
+
+.actions-group {
+    display: flex;
+    /* justify-content: flex-end; */ /* Let flexbox handle spacing */
+    align-items: center;
+    gap: 15px;
+    /* width: 80%; */ /* Removed fixed width, let it be flexible */
+    flex-grow: 1; /* Allow this group to grow */
+    justify-content: flex-end; /* Push items to the right */
+    flex-wrap: wrap; /* Allow buttons to wrap if space runs out */
+}
+
+
+
+@media (max-width: 992px) {
+    .logo {
+        font-size: 1.8rem;
+    }
+    .actions-group {
+        gap: 10px;
+    }
+    .shahmatki {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+    .register-btn {
+        padding: 10px 15px;
+        gap: 8px;
+    }
+     .register-btn svg {
+         width: 20px;
+         height: 20px;
+    }
+    .register-btn-text {
+        font-size: 0.9rem;
+    }
+    .user-icon {
+        height: 44px;
+        width: 44px;
+    }
+    .user-icon-svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* Small Screens (Tablets portrait, large phones) */
+@media (max-width: 768px) {
+    .header {
+        padding: 10px 15px;
+        gap: 15px;
+        /* Could optionally stack here if needed */
+        /* flex-direction: column; */
+        /* align-items: flex-start; */
+    }
+     .logo {
+        font-size: 1.6rem;
+    }
+    .actions-group {
+        /* If header stacks, adjust this */
+        /* width: 100%; */
+        /* justify-content: flex-start; */
+        gap: 8px;
+    }
+
+    /* Hide text in Register button, show only icon */
+    .register-btn-text {
+        display: none;
+    }
+    .register-btn {
+        padding: 10px; /* Adjust padding for icon only */
+        gap: 0;
+    }
+     .register-btn svg {
+         width: 22px; /* Slightly larger icon when text is hidden */
+         height: 22px;
+    }
+
+    .shahmatki {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    .user-icon {
+        height: 40px;
+        width: 40px;
+    }
+    .user-icon-svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+/* Extra Small Screens (Phones) */
+@media (max-width: 576px) {
+    .header {
+        padding: 10px;
+    }
+     .logo {
+        font-size: 1.4rem;
+    }
+     /* Further reduce shahmatki padding/font if needed */
+     .shahmatki {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    .register-btn {
+        padding: 8px; /* Smallest padding */
+    }
+     .register-btn svg {
+         width: 20px;
+         height: 20px;
+    }
+     .user-icon {
+        height: 36px;
+        width: 36px;
+    }
+    .user-icon-svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+
+
+/* ============================ */
+/* Base Header Styles (Desktop) */
+/* ============================ */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    gap: 20px;
+    flex-wrap: wrap; /* Allow wrapping */
+}
+
+.logo {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1a73e8; /* Using blue from user icon */
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.search { /* Keeping class name, acting as actions group */
+    display: flex;
+    align-items: center;
+    gap: 15px;
+ /* Allow group to take space */
+    justify-content: flex-end; /* Push items to right */
+    
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px; /* Adjusted padding */
+    background-color: #1a73e8; /* Light background */
+    color: #333; /* Darker text */
+    border-radius: 50px; /* Pill shape */
+    text-decoration: none;
+    font-size: 1rem; /* Base font size */
+    font-weight: 500;
+    white-space: nowrap; /* Subtle border */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.back-button:hover {
+    background-color: #216BF4;
+}
+
+.back-button svg {
+    width: 24px; /* Adjusted icon size */
+    height: 24px;
+    flex-shrink: 0;
+    /* Stroke color is set inline in SVG, but can be overridden */
+    /* stroke: #216BF4; */
+    stroke: #000000;
+}
+
+.back-button-text {
+    /* Styles for the text if needed, inherits most from .back-button */
+    line-height: 1.2;
+}
+
+
+.user-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    width: 48px;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease;
+}
+.user-icon:hover {
+    background-color: #e0e0e0;
+}
+
+.user-icon-svg {
+    width: 28px;
+    height: 28px;
+    fill: #3b82f6; /* Blue color */
+}
+
+/* ============================ */
+/* Responsive Styles            */
+/* ============================ */
+
+/* Medium Screens */
+@media (max-width: 992px) {
+    .logo {
+        font-size: 1.8rem;
+    }
+    .search {
+        gap: 12px;
+    }
+    .back-button {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        gap: 6px;
+    }
+    .back-button svg {
+        width: 22px;
+        height: 22px;
+    }
+    .user-icon {
+        height: 44px;
+        width: 44px;
+    }
+    .user-icon-svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* Small Screens */
+@media (max-width: 768px) {
+    .header {
+        padding: 10px 15px;
+        gap: 15px;
+    }
+     .logo {
+        font-size: 1.6rem;
+    }
+    .search {
+        gap: 10px;
+    }
+
+    /* Hide text in Back button */
+    .back-button-text {
+        display: none;
+    }
+    .back-button {
+        padding: 8px; /* Adjust padding for icon only */
+        gap: 0;
+    }
+     .back-button svg {
+         width: 24px; /* Maintain or slightly increase icon size */
+         height: 24px;
+    }
+
+    .user-icon {
+        height: 40px;
+        width: 40px;
+    }
+    .user-icon-svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+/* Extra Small Screens */
+@media (max-width: 576px) {
+    .header {
+        padding: 10px;
+    }
+     .logo {
+        font-size: 1.4rem;
+    }
+    .search {
+        gap: 8px;
+    }
+    .back-button {
+        padding: 6px; /* Smallest padding */
+    }
+     .back-button svg {
+         width: 22px;
+         height: 22px;
+    }
+     .user-icon {
+        height: 36px;
+        width: 36px;
+    }
+    .user-icon-svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.main-form {
+    max-width: 1000px;
+    margin: 0 auto;
+margin-top: 50px;
+}
+
+.input-row {
+    display: flex;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    align-self: stretch;
+}
+
+.input-field {
+    font-size: 24px;
+    padding: 29px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1 0 0;
+
+    border-radius: 60px;
+    border: 1px solid #FFF;
+
+    background: rgba(245, 245, 245, 0.90);
+}
+
+
+.dropdown-list {
+    list-style: none;
+    padding: 10px 0;
+    margin: 0;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 275px;
+    width: 100%;
+    display: block;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    visibility: hidden;
+    z-index: 1;
+}
+
+ul#dropdownList {
+
+    display: flex;
+    max-width: 455px;
+    padding: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    background: rgba(245, 245, 245, 0.90);
+}
+
+
+
+.dropdown-list li {
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    /* font-size: 24px; */
+    cursor: pointer;
+    min-height: 45px;
+    color: #333;
+    background: #FFF;
+    border-radius: 20px;
+    min-width: 100%;
+    gap: 15px;
+}
+
+.dropdown-list li i {
+    color: #216BF4;
+    margin-right: 10px;
+}
+
+.dropdown-list li:hover {
+    background-color: #f0f8ff;
+}
+
+.dropdown-list.visible {
+    max-height: 200px;
+    visibility: visible;
+    overflow-y: scroll;
+}
+
+.hidden {
+    max-height: 0;
+}
+
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.info-item {
+    display: flex;
+
+    gap: 10px;
+
+
+
+    border-radius: 55px;
+    background: #FFF;
+
+    align-items: center;
+    flex-shrink: 0;
+    justify-content: space-between;
+    padding: 17px 20px;
+}
+
+.info-label {
+    color: #666;
+}
+
+.info-input {
+    background: transparent;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 16px;
+    min-width: 100px;
+    text-align: right;
+}
+
+.section-title {
+    font-size: 24px;
+    font-weight: 600;
+
+}
+
+.profile-form-info {
+    display: flex;
+    padding: 20px;
+    flex-direction: column;
+
+    gap: 20px;
+    align-self: stretch;
+
+
+    border-radius: 30px;
+    background: rgba(245, 245, 245, 0.90);
+
+    backdrop-filter: blur(25px);
+}
+
+.password-field{
+    display: flex;
+
+padding: 17px 20px;
+justify-content: space-between;
+align-items: center;
+flex: 1 0 0;
+
+border-radius: 57px;
+background: #FFF;
+border: none;
+}
+.wait-for-payment{
+    display: flex;
+    background: #FFF;
+
+padding: 17px 20px;
+justify-content: space-between;
+align-items: center;
+flex: 1 0 0;
+border-radius: 57px;
+}
+.button-group{
+    display: flex;
+    gap: 10px;
+
+    justify-content: space-between;
+    align-items: center;
+    flex: 1 0 0;
+    
+    border-radius: 57px;
+}
+
+.password-input{
+    background: transparent;
+    border: none;
+    padding: 15px;
+
+    font-size: 16px;
+    min-width: 100px;
+}
+input:focus{
+    outline: none;
+}
+
+.button-row, .button-row-lead{
+    display: flex;
+align-items: center;
+align-content: center;
+gap: 10px;
+align-self: stretch;
+flex-wrap: wrap;
+}
+
+.button-info{
+    display: flex;
+
+min-width: 220px;
+padding: 20px;
+flex-direction: column;
+justify-content: space-between;
+align-items: flex-start;
+flex: 1 0 0;
+
+color: #000000;
+font-family: "Vela Sans GX";
+font-size: 24px;
+border-radius: 20px;
+background: #FFF;
+
+backdrop-filter: blur(25px);
+}
+
+.register-button{
+    color: #216BF4;
+    
+}
+.register-button:hover{
+    border: 2px solid #216BF4
+}
+.import-button:hover{
+    border: 2px solid #000000
+}
+
+.highlight-error {
+    border: 2px solid red;
+    animation: blink 0.5s ease-in-out alternate 4;
+}
+
+@keyframes blink {
+    0% {
+        background-color: rgba(255, 0, 0, 0.1);
+    }
+    100% {
+        background-color: rgba(255, 0, 0, 0.3);
+    }
+}
+
+.check-for-payment-container{
+    display: flex;
+    width: 475px;
+min-width: 220px;
+padding: 20px;
+flex-direction: column;
+justify-content: space-between;
+align-items: flex-start;
+
+border-radius: 20px;
+background: #FFF;
+
+backdrop-filter: blur(25px);
+overflow: hidden;
+    transition: opacity 0.3s ease, height 0.3s ease;
+}
+
+.check-for-payment.visible {
+    opacity: 1;
+    max-height: 200px;
+    display: flex
+;
+    flex-direction: column;
+    gap: 10px; /* Укажи высоту блока в зависимости от содержимого */
+}
+
+.check-for-payment.hidden {
+    opacity: 0;
+    height: 0;
+}
+
+/* Сообщения об ошибке */
+.form-error {
+    color: #b71c1c;
+    background-color: #ffebee;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Сообщения об успешном действии */
+.form-success {
+    color: #1b5e20;
+    background-color: #e8f5e9;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Подсветка полей с ошибкой */
+.input-error {
+    border: 1px solid #b71c1c;
+}

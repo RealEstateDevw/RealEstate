@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller CRM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/static/exact-lead-stylr.css">
+    <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sales_style/complex.css">
+    <link rel="stylesheet" href="/static/sales_style/header-sales.css">
+
+   
+    <style>
+        .notification {
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            max-width: 500px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: white;
+            margin-left: 15px;
+            padding: 0;
+            line-height: 1;
+        }
+
+        body {
+        background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+        transition: background 0.5s ease;
+    }
+
+    .apt-card.available {
+  background-color: #e6ffed; /* light green */
+  border: 1px solid #28a745; /* green border */
+}
+.apt-card.sold {
+  background-color: #ffe6e6; /* light red */
+  border: 1px solid #dc3545; /* red border */
+}
+    .apt-card.booked {
+  background-color: #fff4e5; /* light orange */
+  border: 1px solid #ffc107; /* orange border */
+}
+    .action-button.booked {
+      background-color: #fff4e5; /* light orange */
+      border: 1px solid #ffc107; /* orange border */
+      color: #000;
+    }
+
+    .action-button.disabled {
+      background-color: #e0e0e0;
+      border: 1px solid #ccc;
+      color: #666;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+        .price-input {
+          width: auto;
+          display: inline-block;
+          box-sizing: content-box;
+        }
+
+        .status-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px;
+          background: #fff;
+          border-radius: 12px;
+        }
+
+        .status-label {
+          font-size: 18px;
+          font-weight: 500;
+        }
+
+        .status-value {
+          display: flex;
+          align-items: center;
+        }
+
+        .status-dot {
+          width: 12px;
+          height: 12px;
+          background-color: #00e063;
+          border-radius: 50%;
+          margin-right: 8px;
+        }
+
+        .status-text {
+          font-size: 18px;
+          margin-right: 8px;
+        }
+
+        .status-toggle-icon {
+          font-size: 16px;
+          cursor: pointer;
+        }
+
+    .status-wrapper {
+      position: relative;
+
+    }
+
+    .status-menu {
+      position: absolute;
+      bottom: 100%;
+      right: 0;
+      margin-bottom: 8px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      list-style: none;
+      padding: 4px 0;
+      width: 150px;
+      display: none;
+      z-index: 10;
+    }
+
+    .status-wrapper.open .status-menu {
+      display: block;
+    }
+
+    .status-menu li {
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .status-menu li:hover {
+      background-color: #f5f5f5;
+    }
+
+    .status-wrapper.open .status-toggle-icon {
+      transform: rotate(180deg);
+      transition: transform 0.2s ease;
+    }
+
+    .status-dot.active {
+      background-color: #00e063;
+    }
+    .status-dot.inactive {
+      background-color: #ffc107;
+    }
+    .status-dot.completed {
+      background-color: #dc3545;
+    }
+
+    /* Creatives Grid */
+.creatives-section {
+  margin: 24px 0;
+}
+.creatives-section .section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.creatives-grid {
+  display: flex;
+  gap: 12px;
+}
+.creative-item, .creative-upload {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.creative-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.creative-close-btn {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: rgba(255,255,255,0.8);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.creative-upload {
+  background: #fff;
+  border: 1px dashed #ccc;
+  flex-direction: column;
+}
+.creative-upload .upload-icon {
+  font-size: 24px;
+  color: #007bff;
+}
+.creative-upload .upload-text {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #007bff;
+}
+
+/* Description Box */
+.description-section {
+  margin: 24px 0;
+}
+.description-section .section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.description-box {
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+    </style>
+    <style>
+  /* Image Viewer Modal */
+  .image-viewer-modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    align-items: center;
+    justify-content: center;
+  }
+  .image-viewer-modal.active {
+    display: flex;
+  }
+  .image-viewer-img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+  }
+  .image-viewer-close {
+    position: absolute;
+    top: 16px;
+    right: 32px;
+    font-size: 32px;
+    color: #fff;
+    cursor: pointer;
+  }
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px; /* Adjusted padding */
+    background-color: #f0f0f0;
+    border: 1px solid #1a73e8;
+    color: #333; /* Darker text */
+    border-radius: 50px; /* Pill shape */
+    text-decoration: none;
+    font-size: 1rem; /* Base font size */
+    font-weight: 500;
+    white-space: nowrap; /* Subtle border */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.back-button-text{
+  color: #1a73e8;
+}
+  </style>
+</head>
+
+<body>
+    <div id="notification" class="notification" style="display: none;">
+        <span id="notification-message"></span>
+        <button id="close-notification" class="close-btn">&times;</button>
+    </div>
+    {% if user.role.id == 2%}
+    {% include 'partials/mop-header.html' %}
+    {% else %}
+    {% include 'partials/header.html' %}
+   
+{% endif %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+
+    <div class="main-content">
+        <div class="client-info">
+            <h1 class="client-header">Таргет Жк </h1>
+            <hr class="divider">
+
+            <div class="info-grid">
+                <div class="info-box-tag">
+                    <span class="tag input_info_lead"> Instagram</span>
+                </div>
+                <div class="info-box-tag">
+                    <span class="input_info_lead">Г Ташкент</span>
+                </div>
+                <div class="info-box-tag">
+                    <span class="input_info_lead">С 12ю2ю2</span>
+                </div>
+                <div class="info-box-tag">
+                    <span class="input_info_lead">По 12ю21ю2</span>
+                </div>
+            </div>
+
+
+            <hr class="divider">
+
+
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <div class="info-label">Планируемый бюджет</div>
+                    <div class="info-value">123</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Использовано</div>
+                    <div class="info-value">123 комнат</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Просмотры</div>
+                    <div class="info-value">123 этаж</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Переходы</div>
+                    <div class="info-value">123</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Получено лидов</div>
+                    <div class="info-value">123</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Активных лидов</div>
+                    <div class="info-value">№123</div>
+                </div>
+                
+            </div>
+            <hr class="divider">
+            
+          
+<div class="status-wrapper">
+  <div class="status-card">
+    <div class="status-label">Статус:</div>
+    <div class="status-value">
+      <span class="status-dot"></span>
+      <span class="status-text">Активна</span>
+      <span class="status-toggle-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill="none">
+  <path d="M6.66732 20L16.0007 12L25.334 20" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></span>
+    </div>
+  </div>
+  <ul class="status-menu">
+    <li>Активна</li>
+    <li>Неактивна</li>
+    <li>Завершена</li>
+  </ul>
+</div>
+
+  
+    <!-- Hidden fields for monthly calculation -->
+    
+          
+        </div>
+
+        <div class="chat-section">
+            <div class="chat-header">
+                <h1 class="client-header">Управление кампанией</h1>
+            </div>
+<!-- Creatives Section -->
+  <section class="creatives-section">
+    <h2 class="section-title">Креативы</h2>
+    <div class="creatives-grid">
+      <div class="creative-upload">
+        <span class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33" fill="none">
+  <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M4 19.5C4.55228 19.5 5 19.9477 5 20.5C5 22.4139 5.00212 23.7487 5.13753 24.7559C5.26907 25.7343 5.50967 26.2523 5.87868 26.6213C6.24769 26.9904 6.7658 27.2309 7.74416 27.3625C8.75129 27.4979 10.0861 27.5 12 27.5H20C21.9139 27.5 23.2487 27.4979 24.2559 27.3625C25.2343 27.2309 25.7523 26.9904 26.1213 26.6213C26.4904 26.2523 26.7309 25.7343 26.8625 24.7559C26.9979 23.7487 27 22.4139 27 20.5C27 19.9477 27.4477 19.5 28 19.5C28.5523 19.5 29 19.9477 29 20.5V20.5732C29 22.3967 29 23.8664 28.8447 25.0224C28.6833 26.2225 28.3381 27.2329 27.5356 28.0355C26.7329 28.8381 25.7225 29.1833 24.5224 29.3447C23.3664 29.5 21.8967 29.5 20.0732 29.5H11.9268C10.1034 29.5 8.63363 29.5 7.47767 29.3447C6.27752 29.1833 5.26703 28.8381 4.46447 28.0356C3.66191 27.2329 3.31672 26.2225 3.15536 25.0224C2.99995 23.8664 2.99997 22.3967 3 20.5732C3 20.5488 3 20.5244 3 20.5C3 19.9477 3.44772 19.5 4 19.5Z" fill="#216BF4"/>
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M15.9994 3.5C16.2802 3.5 16.5479 3.61803 16.7374 3.82523L22.0707 9.65856C22.4434 10.0662 22.4151 10.6987 22.0075 11.0714C21.5999 11.444 20.9674 11.4157 20.5947 11.0081L16.9994 7.07573V21.8333C16.9994 22.3856 16.5516 22.8333 15.9994 22.8333C15.4471 22.8333 14.9994 22.3856 14.9994 21.8333V7.07573L11.4041 11.0081C11.0314 11.4157 10.3989 11.444 9.99126 11.0714C9.58366 10.6987 9.55532 10.0662 9.92799 9.65856L15.2614 3.82523C15.4508 3.61803 15.7186 3.5 15.9994 3.5Z" fill="#216BF4"/>
+</svg></span>
+        <span class="upload-text">Загрузить</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Description Section -->
+  <section class="description-section">
+    <h2 class="section-title">Описание</h2>
+    <div class="description-box">
+      Высококлассный ЖК по самой доступной цене в центре города, скоро будет сдача. Спешите и урвите по самым выгодным ценам только этим летом!
+    </div>
+  </section>
+  <!-- Image Viewer Modal -->
+  <div id="image-viewer-modal" class="image-viewer-modal">
+    <span id="image-viewer-close" class="image-viewer-close">&times;</span>
+    <img id="image-viewer-img" class="image-viewer-img" src="" alt="Preview">
+  </div>
+          
+            <div class="actions2">
+                <button id="deleteLeadButton" class="action2-button analytics-button" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <path opacity="0.5" d="M4 24C4 14.5719 4 9.85786 6.92894 6.92894C9.85786 4 14.5719 4 24 4C33.428 4 38.1422 4 41.071 6.92894C44 9.85786 44 14.5719 44 24C44 33.428 44 38.1422 41.071 41.071C38.1422 44 33.428 44 24 44C14.5719 44 9.85786 44 6.92894 41.071C4 38.1422 4 33.428 4 24Z" fill="#216BF4"/>
+  <path d="M29 21.5C28.1716 21.5 27.5 20.8284 27.5 20C27.5 19.1716 28.1716 18.5 29 18.5H34C34.8284 18.5 35.5 19.1716 35.5 20V25C35.5 25.8284 34.8284 26.5 34 26.5C33.1716 26.5 32.5 25.8284 32.5 25V23.6214L28.4748 27.6464C27.108 29.0132 24.892 29.0132 23.5252 27.6464L20.3536 24.4748C20.1582 24.2796 19.8417 24.2796 19.6464 24.4748L15.0607 29.0606C14.4749 29.6464 13.5251 29.6464 12.9393 29.0606C12.3536 28.4748 12.3536 27.5252 12.9393 26.9394L17.5251 22.3536C18.892 20.9868 21.108 20.9868 22.4748 22.3536L25.6464 25.5252C25.8418 25.7204 26.1582 25.7204 26.3536 25.5252L30.3786 21.5H29Z" fill="#216BF4"/>
+</svg>
+              <div>Смотреть аналитику лидов</div>
+            </button>
+            <button id="deleteLeadButton" class="action2-button delete-button" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                    <path d="M6 12.7719C6 11.803 6.69076 11.0176 7.54286 11.0176L12.8713 11.0166C13.93 10.9861 14.864 10.2207 15.2243 9.08824C15.2338 9.05846 15.2446 9.02174 15.2837 8.88848L15.5133 8.10512C15.6538 7.62482 15.7762 7.20636 15.9475 6.83234C16.6242 5.35472 17.8762 4.32864 19.3229 4.06594C19.6891 3.99944 20.077 3.99972 20.5222 4.00004H27.4782C27.9234 3.99972 28.3112 3.99944 28.6774 4.06594C30.1242 4.32864 31.3762 5.35472 32.0528 6.83234C32.2242 7.20636 32.3466 7.62482 32.487 8.10512L32.7166 8.88848C32.7556 9.02174 32.7666 9.05846 32.776 9.08824C33.1364 10.2207 34.2556 10.9871 35.3142 11.0176H40.4572C41.3092 11.0176 42 11.803 42 12.7719C42 13.7409 41.3092 14.5263 40.4572 14.5263H7.54286C6.69076 14.5263 6 13.7409 6 12.7719Z" fill="#FF0000"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M18.8509 22.963C19.6752 22.8762 20.4102 23.5094 20.4926 24.377L21.4926 34.9034C21.575 35.771 20.9736 36.5448 20.1494 36.6316C19.3251 36.7184 18.59 36.0852 18.5076 35.2176L17.5076 24.6912C17.4251 23.8236 18.0265 23.0498 18.8509 22.963Z" fill="#FF0000"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M29.1494 22.963C29.9736 23.0498 30.5749 23.8236 30.4925 24.6912L29.4925 35.2176C29.4101 36.0852 28.6751 36.7184 27.8507 36.6316C27.0265 36.5448 26.4252 35.771 26.5076 34.9034L27.5076 24.377C27.59 23.5094 28.325 22.8762 29.1494 22.963Z" fill="#FF0000"/>
+                    <path opacity="0.5" d="M23.1912 44.0002H24.8088C30.3742 44.0002 33.157 44.0002 34.9662 42.2284C36.7756 40.4566 36.9606 37.5502 37.3308 31.7372L37.8642 23.3614C38.0652 20.2074 38.1656 18.6305 37.2578 17.6312C36.3502 16.6318 34.8174 16.6318 31.752 16.6318H16.2481C13.1825 16.6318 11.6498 16.6318 10.7421 17.6312C9.83444 18.6305 9.93488 20.2074 10.1358 23.3614L10.6692 31.7372C11.0394 37.5502 11.2245 40.4566 13.0338 42.2284C14.8431 44.0002 17.6258 44.0002 23.1912 44.0002Z" fill="#FF0000"/>
+                  </svg>
+              <div>Удалить лида</div>
+            </button>
+            <button id="markInactiveButton" class="action2-button inactive-button" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <path opacity="0.2" d="M6.92894 41.071C9.85786 44 14.5719 44 24 44C33.428 44 38.1422 44 41.071 41.071C44 38.1422 44 33.428 44 24C44 14.5719 44 9.85786 41.071 6.92894C38.1422 4 33.428 4 24 4C14.5719 4 9.85786 4 6.92894 6.92894C4 9.85786 4 14.5719 4 24C4 33.428 4 38.1422 6.92894 41.071Z" fill="#04E762"/>
+  <path d="M37.1621 18.9486C37.6861 18.3069 37.5905 17.362 36.9487 16.8381C36.3069 16.3142 35.3621 16.4097 34.8381 17.0515L24.5029 29.7118C24.0771 29.5606 23.5879 29.6028 23.1803 29.869C22.4865 30.3218 22.2913 31.2512 22.7441 31.9448L23.3151 32.8198C23.5767 33.2206 24.0137 33.4724 24.4915 33.498C24.9693 33.5234 25.4307 33.3194 25.7333 32.9486L37.1621 18.9486Z" fill="#04E762"/>
+  <path d="M29.162 18.9486C29.686 18.3069 29.5904 17.3619 28.9486 16.8381C28.3068 16.3142 27.362 16.4097 26.838 17.0515L16.5715 29.628L13.162 25.4514C12.6382 24.8098 11.6932 24.7142 11.0515 25.238C10.4097 25.762 10.3142 26.7068 10.8381 27.3486L15.4095 32.9486C15.6944 33.2976 16.121 33.5 16.5715 33.5C17.022 33.5 17.4486 33.2976 17.7335 32.9486L29.162 18.9486Z" fill="#04E762"/>
+</svg>
+                <div>Отметить завершённой</div>
+            </button>
+            </div>
+        </div>
+       
+
+
+  
+    <script src="/static/exact-lead-scripts.js"></script>
+    {% if user.role.id == 1 %}
+    <script src="/static/search-lead-scripts.js"></script>
+    {% else %}
+    <script src="/static/mop-dashboard-main.js"></script>
+{% endif %}
+
+    <!-- Chat Modal Script -->
+   
+<script src="/static/sales_style/complex.js"></script>
+<script src="/static/notification-sales.js"></script>
+<script src="/static/notification_scripts.js"></script>
+
+<script>
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const statusWrapper = document.querySelector('.status-wrapper');
+    const toggleIcon = statusWrapper.querySelector('.status-toggle-icon');
+    const statusDot = statusWrapper.querySelector('.status-dot');
+
+    toggleIcon.addEventListener('click', function () {
+      statusWrapper.classList.toggle('open');
+    });
+
+    const statusItems = statusWrapper.querySelectorAll('.status-menu li');
+    const statusText = statusWrapper.querySelector('.status-text');
+
+    statusItems.forEach(function (item) {
+      item.addEventListener('click', function () {
+        statusText.textContent = this.textContent;
+        statusWrapper.classList.remove('open');
+        // update dot color based on status
+        let cls = '';
+        switch (this.textContent) {
+          case 'Активна': cls = 'active'; break;
+          case 'Неактивна': cls = 'inactive'; break;
+          case 'Завершена': cls = 'completed'; break;
+        }
+        statusDot.classList.remove('active', 'inactive', 'completed');
+        if (cls) statusDot.classList.add(cls);
+        // You can add additional code here to handle status change, e.g., send to server
+      });
+    });
+
+    // Close the status menu if clicking outside
+    document.addEventListener('click', function(event) {
+      if (!statusWrapper.contains(event.target)) {
+        statusWrapper.classList.remove('open');
+      }
+    });
+
+    // Logic for dynamic creative items
+    const creativesGrid = document.querySelector('.creatives-grid');
+    const uploadCard = creativesGrid.querySelector('.creative-upload');
+
+    // Create hidden file input
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.multiple = true;
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+
+    // Trigger file dialog on click
+    uploadCard.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    // Handle file selection
+    fileInput.addEventListener('change', (event) => {
+      Array.from(event.target.files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          // Create creative item
+          const item = document.createElement('div');
+          item.className = 'creative-item';
+
+          // Close button
+          const btn = document.createElement('button');
+          btn.className = 'creative-close-btn';
+          btn.textContent = '×';
+          btn.addEventListener('click', () => item.remove());
+
+          // Image preview
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.alt = 'Креатив';
+
+          // Assemble and insert before upload card
+          item.appendChild(btn);
+          item.appendChild(img);
+          creativesGrid.insertBefore(item, uploadCard);
+        };
+        reader.readAsDataURL(file);
+      });
+      // Reset input
+      fileInput.value = '';
+    });
+
+    // Image viewer logic
+    const modal = document.getElementById('image-viewer-modal');
+    const modalImg = document.getElementById('image-viewer-img');
+    const modalClose = document.getElementById('image-viewer-close');
+
+    creativesGrid.addEventListener('click', function(e) {
+      if (e.target.tagName === 'IMG' && e.target.closest('.creative-item')) {
+        modalImg.src = e.target.src;
+        modal.classList.add('active');
+      }
+    });
+    modalClose.addEventListener('click', function() {
+      modal.classList.remove('active');
+    });
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.classList.remove('active');
+      }
+    });
+  });
+</script>
+  
+</html>

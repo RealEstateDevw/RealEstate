@@ -1,0 +1,96 @@
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller CRM Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link rel="stylesheet" href="/static/sales_style/header-sales.css">
+    <style>
+        .notification {
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            max-width: 500px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: white;
+            margin-left: 15px;
+            padding: 0;
+            line-height: 1;
+        }
+    body {
+        background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+        transition: background 0.5s ease;
+    }
+
+        </style>
+</head>
+
+<body>
+  
+ <div id="notification" class="notification" style="display: none;">
+        <span id="notification-message"></span>
+        <button id="close-notification" class="close-btn">&times;</button>
+    </div>
+    {% include 'partials/header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+
+    <div class="columns">
+        <div class="column" data-status="COLD">
+            <div class="column-header" >
+                <div class="column-title">Холодные</div>
+                <div class="lead-count">0 лида</div>
+            </div>
+<div class="lead-list">
+            
+        </div>
+        </div>
+
+        <div class="column" data-status="WARM">
+            <div class="column-header" >
+                <div class="column-title">Тёплые</div>
+                <div class="lead-count">0 лида</div>
+            </div>
+            <!-- Add cards for warm leads -->
+            <div class="lead-list">
+            
+            </div>
+
+        </div>
+
+        <div class="column" data-status="HOT">
+            <div class="column-header" >
+                <div class="column-title">Горячие</div>
+                <div class="lead-count">0 лидов</div>
+            </div>
+
+            <!-- Add cards for hot leads -->
+            <div class="lead-list">
+            
+            </div>
+        </div>
+    </div>
+    
+
+    <script src="/static/sales-dashboard-scripts.js">
+
+    </script>
+    <script src="/static/search-lead-scripts.js">
+        
+
+</script>
+
+</body>
+
+</html>

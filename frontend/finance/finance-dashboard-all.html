@@ -1,0 +1,77 @@
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller CRM Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link rel="stylesheet" href="/static/mop-dashboard.css">
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+
+        .card{
+            cursor: default;
+        }
+
+        .card.overdue {
+  border: 2px solid #ff0000; /* Красная рамка для карточки */
+}
+
+.name.overdue-name {
+  color: #ff0000; /* Красный цвет для имени */
+}
+    </style>
+</head>
+
+<body>
+    {% include 'partials/finance-header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    
+
+    <div class="columns">
+  <div class="column" data-status="SALES">
+    <div class="column-header">
+      <div class="column-title">Продажники</div>
+    </div>
+    <div class="lead-list">
+      <button class="all-report-button" type="button">
+        Все
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+          <path d="M9 5.5L15 12.5L9 19.5" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <!-- Список продавцов будет добавлен динамически -->
+    </div>
+  </div>
+
+  <div class="column" data-status="installment">
+    <div class="column-header">
+      <div class="column-title">Рассрочка</div>
+      <div class="lead-count">0</div>
+    </div>
+    <div class="lead-list"></div>
+  </div>
+
+  <div class="column" data-status="paid">
+    <div class="column-header">
+      <div class="column-title">Оплачено</div>
+      <div class="lead-count">0</div>
+    </div>
+    <div class="lead-list"></div>
+  </div>
+</div>
+    
+    <script src="/static/finance-search.js"></script>
+    <script src="/static/finance-scripts-all.js"></script>
+
+</body>
+
+</html>

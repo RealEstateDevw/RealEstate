@@ -1,0 +1,1099 @@
+/* --- Базовые стили и сброс --- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+html {
+    scroll-behavior: smooth; /* Включает плавную прокрутку для всей страницы */
+    /* Добавляем отступ сверху, равный высоте вашего "прилипшего" хедера + небольшой запас */
+    /* Подберите точное значение! Измерьте высоту хедера в инструментах разработчика (F12) */
+    scroll-padding-top: 80px; /* Примерное значение, ЗАМЕНИТЕ НА ВАШЕ! */
+  }
+  
+  /* Небольшой хак для лучшей совместимости (особенно если основной скролл не на html/body) */
+  body {
+      overflow-x: hidden; /* Предотвращает горизонтальный скролл, который иногда возникает */
+  }
+
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #fff; /* Белый фон по умолчанию */
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px; /* Максимальная ширина контейнера */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* --- Утилиты --- */
+.section {
+    padding: 40px 0; /* Вертикальные отступы для секций */
+}
+
+.section__title {
+    font-size: 2rem; /* Размер для мобильных */
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #222;
+}
+
+/* --- Стили кнопок (Пример) --- */
+.btn {
+    display: inline-flex; /* Используем inline-flex для иконки */
+    align-items: center;
+    gap: 8px; /* Расстояние между иконкой и текстом */
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    text-align: center;
+}
+
+.btn--primary {
+    background-color: #0d6efd; /* Пример синего цвета */
+    color: #fff;
+    text-decoration: none;
+}
+
+.btn--primary:hover {
+    background-color: #0b5ed7;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+/* --- Стили Hero --- */
+/* --- НОВЫЕ СТИЛИ HERO (Заменить старые) --- */
+.hero {
+    position: relative;
+    color: #fff;
+    overflow: hidden; /* Важно для обрезки углов и фонового текста *//* Фоновый цвет на случай, если изображение не загрузится */
+}
+
+/* Фон с изображением */
+.hero__background {
+    position: absolute;
+    inset: 0;
+    z-index: 0; /* Самый нижний слой */
+    /* !!! ЗАМЕНИТЕ URL НА ВАШЕ ИЗОБРАЖЕНИЕ !!! */
+    background-image: url('/static/images/рендер.png');
+    background-size: cover;
+    background-position: center bottom; /* Слегка смещаем вниз */
+}
+.hero__overlay {
+    position: absolute;
+    inset: 0;
+    /* Очень легкое затемнение, почти незаметное */
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Большой фоновый текст "ЖК РАССВЕТ" */
+.hero__bg-text {
+    position: absolute;
+    top: 0; /* Начинается сверху */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13vw; /* Еще крупнее */
+    font-weight: 800; /* Очень жирный */
+    color: rgba(255, 255, 255, 0.08);
+    background: linear-gradient(0deg, rgba(32, 37, 52, 0.40) 0%, rgba(175, 194, 221, 0.40) 100%);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent; /* Еще прозрачнее */
+    z-index: 1; /* Над фоном, под темным блоком контента */
+    text-align: center;
+    width: 100%;
+    line-height: 1; /* Плотно */
+    padding-top: 20px; /* Небольшой отступ от самого верха */
+    letter-spacing: -0.03em; /* Сжать буквы */
+    user-select: none;
+    pointer-events: none;
+    text-transform: uppercase; /* Все буквы заглавные */
+}
+
+/* Темная область контента с закругленными углами */
+.hero__main-content-area {
+    position: relative; /* Чтобы контент был над фоновым текстом */
+    z-index: 2; /* Над фоновым текстом */
+    background-color: rgba(10, 20, 35, 0.65); /* Полупрозрачный темно-синий/серый */
+
+
+    padding: 40px 0 60px 0; /* Внутренние отступы (верх/низ) */
+    backdrop-filter: blur(5px); /* Размытие фона под блоком */
+    /* Убедимся, что занимает всю ширину родителя .hero */
+    width: 100%;
+}
+
+.hero__content-container {
+    /* Контейнер внутри темной области */
+    position: relative; /* На всякий случай */
+    z-index: 1;
+}
+
+.hero__content {
+    display: flex;
+    flex-direction: column; /* Мобильные: друг под другом */
+    gap: 40px; /* Отступ между блоками */
+}
+
+.hero__main {
+   /* Левая часть (заголовок) */
+   text-align: left; /* Выравнивание по левому краю всегда */
+}
+
+.hero__jk-name {
+    display: block;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 15px; /* Отступ до заголовка */
+    opacity: 0.9;
+}
+
+.hero__title {
+    font-size: 3rem; /* Размер для мобильных */
+    font-weight: 700; /* Или 600? */
+    line-height: 1.2;
+    color: #fff; /* Яркий белый */
+}
+
+.hero__details {
+    /* Правая часть (список и срок сдачи) */
+    display: flex;
+    flex-direction: column; /* Друг под другом */
+    gap: 30px; /* Отступ между списком и сроком */
+    text-align: left; /* Выравнивание по левому краю всегда */
+}
+
+.hero__features {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.hero__features li {
+    margin-bottom: 12px;
+    font-size: 1.1rem; /* Размер фич */
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.9); /* Чуть менее яркий белый */
+}
+.hero__features li:last-child {
+    margin-bottom: 0;
+}
+
+/* Блок "Срок сдачи" */
+.hero__deadline {
+    background: rgba(198, 209, 227, 0.60);
+
+backdrop-filter: blur(50px); /* Серо-голубой полупрозрачный */
+    border-radius: 16px; /* Скругление */
+    padding: 25px 30px; /* Внутренние отступы */
+    backdrop-filter: blur(10px); /* Усилим размытие */
+    position: relative;
+    width: fit-content; /* Ширина по содержимому */
+    max-width: 300px; /* Ограничим макс ширину */
+}
+/* Линия */
+.hero__deadline::before {
+    content: "";
+    display: block;
+    width: 60px;
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 15px; /* Отступ от линии до текста */
+    /* Линия слева */
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.hero__deadline-label {
+    display: block;
+    font-size: 1rem; /* Крупнее подпись */
+    font-weight: 500;
+    margin-bottom: 8px; /* Больше отступ */
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.hero__deadline-value {
+    font-size: 2.5rem; /* Крупнее дата */
+    font-weight: 700; /* Или 600? */
+    line-height: 1.2;
+    color: #fff; /* Яркий белый */
+}
+
+/* --- АДАПТИВНОСТЬ ДЛЯ HERO --- */
+
+/* Планшеты */
+@media (max-width: 991px) {
+    .hero {
+        /* Убираем flex выравнивание на мобильных, если оно мешает */
+        /* display: block; */
+        padding-top: 0; /* Убираем верхний паддинг у .hero */
+        padding-bottom: 0; /* Убираем нижний паддинг у .hero */
+        min-height: unset; /* Убираем мин-высоту, она будет определяться контентом */
+    }
+
+    .hero__bg-text {
+        font-size: 18vw; /* Еще крупнее на мобильных */
+        top: 10px; /* Ближе к верху */
+        line-height: 0.9; /* Еще плотнее */
+        padding-top: 0;
+    }
+
+    /* Темная область контента */
+    .hero__main-content-area {
+        margin-top: 10vh; /* Поднимаем выше, перекрывая фоновый текст */
+        padding: 30px 0 40px 0; /* Паддинги внутри темной области */
+        border-top-left-radius: 15px; /* Уменьшаем радиус для мобильных */
+        border-top-right-radius: 15px;
+        /* Можно сделать фон менее прозрачным или сплошным */
+        background-color: rgba(10, 20, 35, 0.85);
+        min-height: 450px; /* Задаем минимальную высоту темной области */
+        display: flex; /* Используем flex для позиционирования заголовка */
+        flex-direction: column; /* Элементы идут друг под другом */
+    }
+
+    .hero__content-container {
+        /* Контейнер должен растянуться, чтобы заголовок мог уйти вниз */
+        flex-grow: 1;
+        display: flex; /* Тоже flex */
+        flex-direction: column;
+    }
+
+    .hero__content {
+        flex-grow: 1; /* Растягиваем блок контента */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; /* Разносим верхнюю и нижнюю части */
+        gap: 20px; /* Уменьшаем gap */
+    }
+
+    .hero__main {
+       /* Блок с ЖК и Заголовком */
+       /* Он растянется благодаря space-between у родителя */
+       display: flex;
+       flex-direction: column;
+       justify-content: space-between; /* Разносим ЖК и Заголовок */
+       flex-grow: 1; /* Занимает доступное пространство */
+    }
+
+    .hero__jk-name {
+        /* Остается сверху */
+        text-align: center; /* Центрируем */
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+    }
+
+    .hero__title {
+        /* Заголовок уходит вниз */
+        font-size: 2.5rem; /* Размер для мобильных */
+        text-align: center; /* Центрируем */
+        margin-top: auto; /* Прижимаем к низу блока .hero__main */
+        padding-bottom: 20px; /* Небольшой отступ от нижнего края темной области */
+    }
+
+    .hero__details {
+       /* Блок с фичами */
+       order: -1; /* Ставим список НАД блоком .hero__main в потоке flex */
+       text-align: center; /* Центрируем фичи */
+       gap: 20px;
+    }
+
+    .hero__features {
+        margin-bottom: 0;
+    }
+
+    .hero__features li {
+        font-size: 0.9rem; /* Уменьшаем фичи */
+        line-height: 1.4;
+        margin-bottom: 8px;
+    }
+
+    /* Обертка для блока срока сдачи */
+    .hero__deadline-wrapper {
+        background-color: #f1f3f5; /* Светлый фон как у секций ниже */
+        padding: 30px 0; /* Вертикальные отступы */
+        border-bottom-left-radius: 15px; /* Закругляем нижние углы */
+        border-bottom-right-radius: 15px;
+         margin-top: -15px; /* Небольшой нахлест на темную область */
+         position: relative; /* Чтобы был над темной областью, если нужно */
+         z-index: 3; /* Выше темной области */
+    }
+
+    /* Сам блок срока сдачи */
+    .hero__deadline {
+        /* Убираем старый фон и блюр */
+        background-color: transparent;
+        backdrop-filter: none;
+        padding: 0; /* Убираем внутренние отступы */
+        border-radius: 0;
+        color: #1a2b4d; /* Темный цвет текста */
+        text-align: center; /* Центрируем */
+        max-width: none; /* Снимаем ограничение ширины */
+        margin: 0 auto; /* Центрируем */
+    }
+
+    /* Линия в блоке срока сдачи */
+    .hero__deadline::before {
+        background-color: #aab1bb; /* Цвет линии темнее */
+        margin-left: auto; /* Центрируем */
+        margin-right: auto;
+        margin-bottom: 10px;
+    }
+
+    .hero__deadline-label {
+        color: #495057; /* Цвет подписи */
+        opacity: 1;
+        font-size: 0.9rem;
+    }
+
+    .hero__deadline-value {
+        color: #1a2b4d; /* Цвет даты */
+        font-size: 2rem; /* Размер даты на мобильных */
+    }
+}
+
+
+/* --- АДАПТИВНОСТЬ ДЛЯ HERO (Десктопные стили) --- */
+/* Эти стили должны ПЕРЕОПРЕДЕЛЯТЬ мобильные на больших экранах */
+
+/* Планшеты - здесь еще может быть актуален мобильный вид срока сдачи */
+@media (min-width: 768px) and (max-width: 991px) {
+    /* Можно немного увеличить шрифты, если нужно */
+    .hero__bg-text { font-size: 15vw; }
+    .hero__title { font-size: 3rem; }
+    .hero__features li { font-size: 1rem; }
+    .hero__deadline-value { font-size: 2.5rem; }
+     .hero__main-content-area { min-height: 500px; }
+}
+
+/* Десктопы - возвращаем исходный вид */
+@media (min-width: 992px) {
+     .hero {
+        min-height: 650px; /* Возвращаем мин-высоту */
+        align-items: flex-end; /* Выравниваем контент по низу */
+        padding-bottom: 80px; /* Основной отступ снизу */
+        padding-top: 80px; /* Отступ сверху */
+        display: flex; /* Убедимся что display: flex */
+    }
+     .hero__bg-text {
+        font-size: 10vw; /* Возвращаем размер */
+        padding-top: 40px;
+        top: 10px;
+    }
+    /* Темная область */
+    .hero__main-content-area {
+        margin-top: 18vh;
+        padding: 60px 0 80px 0;
+        border-top-left-radius: 30px;
+        border-top-right-radius: 30px;
+        background-color: rgba(10, 20, 35, 0.65); /* Возвращаем полупрозрачность */
+        min-height: unset; /* Убираем мин-высоту */
+        /* display: block; */ /* Можно вернуть block, если flex не нужен */
+    }
+     .hero__content-container {
+        flex-grow: unset; /* Сбрасываем */
+        display: block; /* Возвращаем block */
+     }
+    .hero__content {
+        flex-grow: unset; /* Сбрасываем */
+        flex-direction: row; /* В строку */
+        justify-content: space-between; /* Разнести */
+        align-items: flex-end; /* Выровнять по низу */
+        gap: 50px;
+    }
+     .hero__details {
+         order: 0; /* Возвращаем нормальный порядок */
+         text-align: left;
+         gap: 40px;
+     }
+      .hero__main {
+         /* Сбрасываем flex свойства */
+         display: block;
+         flex-grow: unset;
+         margin-top: unset;
+         padding-bottom: 0;
+         text-align: left;
+     }
+      .hero__title {
+         text-align: left;
+         margin-top: unset;
+         padding-bottom: 0;
+         font-size: 4.5rem; /* Возвращаем размер */
+     }
+     .hero__features {
+         text-align: left;
+         margin-bottom: 30px; /* Отступ от списка до блока срока */
+     }
+     .hero__features li {
+         text-align: left;
+         font-size: 1.1rem; /* Возвращаем размер */
+     }
+
+     /* Блок срока сдачи возвращаем внутрь .hero__details */
+     /* В HTML он уже снаружи, значит нужно его вернуть или стилизовать на месте */
+     /* Проще стилизовать на месте, т.к. он уже вынесен */
+      .hero__deadline-wrapper {
+          display: none; /* Скрываем внешнюю обертку */
+      }
+      /* Стилизуем .hero__deadline, который остался в .hero__details в HTML ИЗ ПРЕДЫДУЩЕЙ ВЕРСИИ (если он там есть) */
+      /* ЕСЛИ В HTML ЕГО ТАМ НЕТ, НУЖНО ВЕРНУТЬ ЕГО В HTML ВНУТРЬ .hero__details */
+      /* Предположим, мы вернули его в HTML: */
+      .hero__details .hero__deadline { /* Стилизуем блок внутри .hero__details */
+         display: block; /* Показываем его */
+         background-color: rgba(130, 145, 160, 0.6); /* Возвращаем фон */
+         border-radius: 16px;
+         padding: 25px 30px;
+         backdrop-filter: blur(10px);
+         color: #fff; /* Возвращаем белый цвет */
+         max-width: 300px;
+         width: fit-content;
+         margin: 0; /* Убираем центрирование */
+         text-align: left; /* Выравнивание влево */
+     }
+     .hero__details .hero__deadline::before {
+         background-color: rgba(255, 255, 255, 0.7); /* Возвращаем цвет линии */
+         margin-left: 0; /* Линия слева */
+         margin-right: auto;
+     }
+      .hero__details .hero__deadline-label {
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 1rem;
+      }
+      .hero__details .hero__deadline-value {
+          color: #fff;
+          font-size: 3.5rem; /* Возвращаем размер */
+      }
+}
+
+/* Очень большие десктопы */
+@media (min-width: 1200px) {
+    /* ... (Стили для очень больших экранов, в основном размеры шрифтов/отступов) ... */
+     .hero__bg-text { font-size: 9vw; }
+     .hero__main-content-area { margin-top: 20vh; }
+     .hero__title { font-size: 5rem; }
+     .hero__details .hero__deadline-value { font-size: 4rem; }
+}
+
+
+/* --- Стили Условия покупки --- */
+.conditions {
+    background-color: #f8f9fa; /* Светло-серый фон */
+}
+
+.conditions__grid {
+    display: grid;
+    grid-template-columns: 1fr; /* 1 колонка на мобильных */
+    gap: 20px;
+}
+
+.condition-item {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.condition-item__icon {
+    font-size: 2rem;
+    color: #0d6efd; /* Синий цвет иконки */
+    margin-bottom: 15px;
+}
+
+.condition-item__title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.condition-item__text {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* --- Стили Стоимость --- */
+/* Фон у секции по умолчанию белый */
+
+.pricing__grid {
+    display: grid;
+    grid-template-columns: 1fr; /* 1 колонка на мобильных */
+    gap: 20px;
+}
+
+.pricing-item {
+    background-color: #f8f9fa; /* Светло-серый фон для блоков цены */
+    padding: 25px;
+    border-radius: 12px;
+}
+
+.pricing-item__icon {
+    font-size: 1.5rem;
+    color: #0d6efd;
+    margin-bottom: 15px;
+}
+
+.pricing-item__range {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #222;
+}
+
+.pricing-item__condition {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* --- Стили Бронирование --- */
+.booking {
+     background-color: #f8f9fa; /* Светло-серый фон */
+}
+
+.booking__grid {
+    display: grid;
+    grid-template-columns: 1fr; /* 1 колонка на мобильных */
+    gap: 30px;
+    align-items: center; /* Выравнивание по центру по вертикали на десктопе */
+}
+
+.booking__jk-name {
+    display: block;
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.booking__title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #222;
+}
+
+.booking__text {
+    font-size: 1rem;
+    margin-bottom: 25px;
+    color: #555;
+    line-height: 1.7;
+}
+
+.booking__shahmatka {
+    /* Стили для контейнера шахматки, если нужно */
+    border-radius: 8px;
+    overflow: hidden; /* Скрыть вылезающее содержимое плейсхолдера */
+    border: 1px solid #e0e0e0; /* Небольшая рамка для плейсхолдера */
+}
+
+.shahmatka-placeholder img {
+    width: 100%;
+    height: auto;
+}
+
+
+/* --- АДАПТИВНОСТЬ --- */
+
+/* Планшеты и небольшие десктопы */
+@media (min-width: 768px) {
+    .section {
+        padding: 60px 0;
+    }
+    .section__title {
+        font-size: 2.2rem;
+        margin-bottom: 35px;
+    }
+    .hero__content-container {
+        padding-top: 80px;
+        padding-bottom: 80px;
+    }
+    .hero__title {
+        font-size: 3rem;
+    }
+    .hero__details {
+        background-color: transparent; /* Убираем фон на планшете */
+        padding: 0;
+    }
+    .hero__features li {
+         font-size: 1rem;
+     }
+     .hero__deadline-value {
+        font-size: 1.6rem;
+    }
+
+    /* 2 колонки для Условий и Стоимости */
+    .conditions__grid,
+    .pricing__grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+     .condition-item {
+        text-align: left; /* Выравнивание по левому краю на планшете */
+     }
+     .condition-item__title {
+        font-size: 1.3rem;
+    }
+     .pricing-item__range {
+        font-size: 1.4rem;
+    }
+
+    /* 2 колонки для Бронирования */
+    .booking__grid {
+        grid-template-columns: 1fr 1fr; /* Две равные колонки */
+        gap: 40px;
+    }
+    .booking__title {
+        font-size: 2rem;
+    }
+}
+
+/* Большие десктопы */
+@media (min-width: 992px) {
+    .section {
+        padding: 80px 0;
+    }
+     .section__title {
+        font-size: 2.5rem;
+        margin-bottom: 40px;
+    }
+     .hero__content-container {
+        padding-top: 100px;
+        padding-bottom: 100px;
+    }
+     .hero__content {
+        flex-direction: row; /* В строку на десктопе */
+        justify-content: space-between; /* Разнести левую и правую части */
+        align-items: flex-end; /* Выровнять по низу */
+     }
+     .hero__title {
+        font-size: 3.5rem;
+     }
+     .hero__details {
+        /* Стили для правого блока с деталями на десктопе */
+        background-color: rgba(20, 30, 40, 0.6); /* Темный полупрозрачный фон */
+        padding: 30px;
+        border-radius: 12px;
+        min-width: 300px; /* Минимальная ширина */
+        backdrop-filter: blur(5px); /* Эффект размытия фона (опционально) */
+     }
+      .hero__features {
+         margin-bottom: 25px;
+     }
+      .hero__features li {
+         font-size: 1rem;
+     }
+     .hero__deadline-value {
+         font-size: 1.8rem;
+     }
+
+     .booking__grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Адаптивные колонки */
+        gap: 50px;
+     }
+     .booking__title {
+        font-size: 2.2rem;
+    }
+}
+
+/* Очень большие десктопы */
+@media (min-width: 1200px) {
+    .section {
+        padding: 100px 0;
+    }
+     .hero__content-container {
+        padding-top: 120px;
+        padding-bottom: 120px;
+    }
+    .hero__title {
+        font-size: 4rem;
+    }
+}
+
+/* --- НОВЫЕ СТИЛИ HEADER (Заменить старые) --- */
+.site-header {
+    padding: 10px 0; /* Уменьшим вертикальный паддинг */
+    background-color: #fff; /* Фон остается белым или прозрачным, если нужно */
+    /* border-bottom: 1px solid #e9ecef; */ /* Убираем нижнюю границу */
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px; /* Отступ между "таблетками" */
+    flex-wrap: wrap; /* Разрешаем перенос на мобильных */
+}
+
+/* Общий стиль для "таблеток" */
+.header-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px; /* Отступ между иконкой и текстом внутри таблетки */
+    padding: 10px 20px; /* Внутренние отступы таблетки */
+    border-radius: 50px; /* Делаем овальную форму (пилюлю) */
+    background-color:  #F6F8F9; /* Светло-серый фон таблеток */
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1a2b4d; /* Темно-синий цвет текста */
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+.header-pill:hover {
+     background-color: #e9ecef; /* Чуть темнее фон при наведении */
+}
+
+/* Стилизация иконки внутри таблетки */
+.header-pill i {
+    color: #0d6efd; /* Синий цвет иконки */
+    font-size: 1.1rem; /* Размер иконки */
+    line-height: 1; /* Убираем лишнюю высоту строки для иконки */
+}
+
+/* Конкретно для телефона - он уже ссылка */
+.header-phone {
+    /* Применяем стили таблетки к ссылке телефона */
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 50px;
+    background-color: #F6F8F9;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1a2b4d;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+.header-phone:hover {
+     background-color: #F6F8F9;
+}
+/* Иконка телефона */
+.header-phone i {
+    color: #0d6efd;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+/* Контейнер для навигационных ссылок */
+.header-nav {
+    display: none; /* Скрываем на мобильных */
+    gap: 10px; /* Отступ между ссылками-таблетками */
+    background-color: #F6F8F9;
+    border-radius: 50px;
+}
+
+/* Сами навигационные ссылки - делаем их таблетками */
+.header-nav__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 50px;
+    background-color: #F6F8F9;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1a2b4d;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+.header-nav__link:hover {
+     background-color: #F6F8F9;
+}
+/* Иконки в навигации */
+.header-nav__link i {
+    color: #0d6efd;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+/* Кнопка "Купить квартиру" */
+.header-button {
+    /* Уже имеет стили .btn и .btn--primary */
+    border-radius: 50px !important; /* Переопределяем радиус на пилюлю */
+    padding: 10px 20px; /* Убедимся, что паддинги как у других таблеток */
+    font-size: 0.8rem; /* Убедимся, что шрифт как у других */
+    font-weight: 600; /* Убедимся, что жирность как у других */
+    white-space: nowrap;
+}
+
+/* Отображение иконки/текста в кнопке */
+.header-button span {
+    display: inline; /* Показываем текст всегда */
+}
+.header-button i {
+    display: inline; /* Показываем иконку всегда */
+    font-size: 1.1rem; /* Можно настроить размер */
+    margin-right: 8px; /* Отступ иконки от текста */
+}
+
+
+/* --- Адаптивность для НОВОГО Header --- */
+
+/* Планшеты - Показываем навигацию */
+@media (min-width: 768px) {
+    .header-nav {
+        display: flex; /* Показываем блок навигации */
+    }
+    /* Можно увеличить размеры шрифтов/паддингов, если нужно */
+    .header-pill,
+    .header-phone,
+    .header-nav__link,
+    .header-button {
+        font-size: 1rem;
+        padding: 12px 24px;
+    }
+}
+
+/* Десктопы - можно увеличить отступы */
+@media (min-width: 992px) {
+    .header-container {
+        gap: 15px; /* Увеличиваем отступы между таблетками */
+    }
+}
+
+/* Уберем прилипание на очень маленьких экранах, если мешает */
+@media (max-width: 400px) {
+   /* .site-header {
+        position: static; // Отключаем sticky
+   } */
+   /* Можно еще уменьшить паддинги/шрифты */
+
+   .header-pill,
+    .header-phone,
+    .header-nav__link,
+    .header-button {
+        font-size: 0.7rem;
+        padding: 8px 15px;
+        gap: 8px;
+    }
+     .header-pill i,
+     .header-phone i,
+     .header-nav__link i,
+     .header-button i {
+         font-size: 1rem;
+     }
+     
+}
+
+
+@media (max-width: 991px) { /* Adjust this value as needed */
+    .header-item--desktop {
+        display: none !important; /* Hide original phone and nav */
+    }
+    .header-item--mobile {
+        display: inline-flex !important; /* Show burger button */
+        align-items: center;
+        justify-content: center;
+    }
+    .header-container {
+        justify-content: space-between; /* Ensure buttons spread out */
+    }
+    .header-spacer {
+        display: none; /* Hide spacer on mobile */
+    }
+}
+
+@media (min-width: 992px) { /* Adjust this value to match the max-width + 1 */
+    .header-item--mobile {
+        display: none !important; /* Hide burger button on desktop */
+    }
+    /* Ensure desktop items are displayed correctly if hidden by default */
+     .header-item--desktop {
+        display: inline-flex; /* Or flex, depending on original style */
+    }
+     .header-nav {
+         display: flex; /* Ensure nav displays as flex on desktop */
+     }
+    /* Keep the spacer for desktop */
+     .header-spacer {
+         flex-grow: 1;
+     }
+}
+
+
+/* Burger Button Styling */
+.burger-menu {
+    display: none; /* Hidden by default, shown via media query */
+    background: none;
+    border: none;
+    padding: 10px; /* Adjust padding for tap area */
+    cursor: pointer;
+    z-index: 1051; /* Above overlay */
+    order: 3; /* Place it after the login button visually if needed, or adjust flex order */
+    /* Match pill height if desired */
+    height: 44px; /* Example height, match your pills */
+    width: 44px; /* Example width */
+    border-radius: 50%;
+    background-color: #F6F8F9; /* Match pill background */
+    margin-left: 10px; /* Space from login button */
+}
+
+.burger-menu svg {
+    display: block;
+    width: 24px;
+    height: 24px;
+}
+.burger-menu svg path {
+     stroke: #1a2b4d; /* Match text color or use brand color */
+}
+
+/* Spacer to push items right on desktop */
+.header-spacer {
+    flex-grow: 1; /* Takes up available space */
+}
+
+.header-item--desktop {
+    display: none !important;
+}
+.header-item--mobile {
+    display: inline-flex !important; /* Или block, flex - как нужно для бургера */
+    align-items: center;
+    justify-content: center;
+}
+.header-spacer { /* Спейсер тоже не нужен на мобильных */
+     display: none;
+}
+
+
+.mobile-nav {
+    position: fixed;
+    top: 0;
+    right: -100%; /* Start off-screen */
+    width: 300px; /* Adjust width as needed */
+    max-width: 85%;
+    height: 100%;
+    background-color: #fff; /* Or your desired menu background */
+    z-index: 1050; /* High z-index */
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out;
+    padding-top: 60px; /* Space for close button */
+    overflow-y: auto; /* Allow scrolling if content is long */
+}
+
+.mobile-nav.is-active {
+    right: 0; /* Slide in */
+}
+
+/* Close Button inside Mobile Nav */
+.mobile-nav__close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2.5rem;
+    line-height: 1;
+    color: #888;
+    cursor: pointer;
+    padding: 5px;
+}
+.mobile-nav__close:hover {
+    color: #333;
+}
+
+
+/* Styling Links inside Mobile Nav */
+.mobile-nav__menu {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.mobile-nav__link {
+    /* Inherit pill styles but display as block */
+    display: flex; /* Use flex to align icon and text */
+    align-items: center;
+    gap: 15px; /* Space between icon and text */
+    padding: 15px 20px; /* Adjust padding */
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1a2b4d;
+    text-decoration: none;
+    border-radius: 0; /* Remove pill radius inside menu */
+    background-color: transparent; /* Remove pill background inside menu */
+    border-bottom: 1px solid #eee; /* Optional separator */
+    white-space: normal; /* Allow wrapping if needed */
+}
+.mobile-nav__link:hover {
+    background-color: #f8f9fa; /* Slight hover effect */
+}
+
+.mobile-nav__link svg {
+    width: 20px; /* Slightly smaller icons */
+    height: 20px;
+    flex-shrink: 0; /* Prevent icon shrinking */
+}
+.mobile-nav__link svg path {
+     fill: #216BF4; /* Keep icon color */
+}
+.mobile-nav__link span {
+    flex-grow: 1;
+}
+
+
+/* Точка переключения - НАЧИНАЯ С ЭТОЙ ШИРИНЫ, показываем десктоп */
+/* Используйте ту же ширину, что и раньше (992px или 768px и т.д.) */
+@media (min-width: 992px) { /* <<-- УБЕДИТЕСЬ, что ширина ПРАВИЛЬНАЯ */
+    .header-item--desktop {
+        display: inline-flex !important; /* Или flex, block - как было */
+    }
+    .header-item--mobile {
+        display: none !important; /* Скрываем бургер на десктопе */
+    }
+    .header-nav { /* Убедимся, что основная навигация видима на десктопе */
+         display: flex !important;
+    }
+     .header-spacer { /* Показываем спейсер на десктопе */
+         display: block; /* или flex-grow: 1; если он был flex item */
+         flex-grow: 1;
+     }
+}
+
+/* --- Стили для Бургера, Меню, Оверлея --- */
+/* (Остальные стили из предыдущего ответа: .burger-menu, .mobile-nav, .mobile-nav.is-active { right: 0; }, .overlay, .overlay.is-active и т.д.) */
+/* Убедитесь, что стиль для .mobile-nav по умолчанию содержит right: -100%; или transform: translateX(100%); */
+.mobile-nav {
+    /* ... другие стили ... */
+    position: fixed;
+    top: 0;
+    right: -100%; /* ИЛИ transform: translateX(100%); */
+    width: 300px;
+    max-width: 85%;
+    height: 100%;
+    background-color: #fff;
+    z-index: 1050;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out; /* ИЛИ transition: transform 0.3s ease-in-out; */
+    padding-top: 60px;
+    overflow-y: auto;
+}
+
+.mobile-nav.is-active {
+    right: 0; /* ИЛИ transform: translateX(0); */
+}

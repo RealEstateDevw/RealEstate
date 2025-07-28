@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+ <html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+{% if user.role_id == 2 %}
+<link rel="stylesheet" href="/static/mop-dashboard.css">
+{% elif user.role_id == 4 %}
+<link rel="stylesheet" href="/static/finance-dashboard.css">
+{% elif user.role_id == 5 %}
+<link rel="stylesheet" href="/static/register-employer-style.css">
+
+{% endif %}
+    <link rel="stylesheet" href="/static/style.css">
+   
+    
+
+    <style>
+    body {
+        background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+        transition: background 0.5s ease;
+    }
+    
+</style>
+</head>
+<body>
+    {% if user.role_id == 1 %}
+    {% include 'partials/header.html' %}
+{% elif user.role_id == 2 %}
+    {% include 'partials/mop-header.html' %}
+{% elif user.role_id == 3 %}
+    {% include 'partials/rop-header.html' %}
+{% elif user.role_id == 4 %}
+    {% include 'partials/finance-header.html' %}
+{% elif user.role_id == 5 %}
+    {% include 'partials/admin-header.html' %}
+{% endif %}
+
+<main>
+    {% block content %}
+    {% endblock %}
+</main>
+    <main class="main-content">
+        <div class="profile-header">
+            <div class="profile-info">
+                <div>
+                    <h1 class="name">{{ user.last_name }} {{ user.first_name }}</h1>
+                    <p class="date">{{ user.birth_date }}</p>
+                </div>
+            </div>
+            <div class="badge">
+                <button class="badge-item">
+                    <a href="/logout">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M21.5003 16C21.5003 15.4477 21.0526 15 20.5003 15H5.87025L8.48445 12.7592C8.90378 12.3998 8.95234 11.7685 8.59291 11.3492C8.2335 10.9299 7.60219 10.8813 7.18287 11.2407L2.51621 15.2408C2.29455 15.4307 2.16699 15.7081 2.16699 16C2.16699 16.2919 2.29455 16.5693 2.51621 16.7592L7.18287 20.7592C7.60219 21.1187 8.2335 21.0701 8.59291 20.6508C8.95234 20.2315 8.90378 19.6001 8.48445 19.2408L5.87025 17H20.5003C21.0526 17 21.5003 16.5523 21.5003 16Z" fill="#FB3748"/>
+  <path d="M12.5 10.6667C12.5 11.6029 12.5 12.071 12.7247 12.4073C12.822 12.5529 12.947 12.678 13.0926 12.7753C13.4289 12.9999 13.8971 12.9999 14.8333 12.9999H20.5C22.1568 12.9999 23.5 14.3431 23.5 16C23.5 17.6568 22.1568 19 20.5 19H14.8333C13.8971 19 13.4288 19 13.0925 19.2247C12.947 19.322 12.822 19.4469 12.7247 19.5925C12.5 19.9288 12.5 20.3969 12.5 21.3333C12.5 25.1045 12.5 26.9901 13.6716 28.1617C14.8432 29.3333 16.7285 29.3333 20.4997 29.3333H21.8331C25.6043 29.3333 27.4899 29.3333 28.6615 28.1617C29.8331 26.9901 29.8331 25.1045 29.8331 21.3333V10.6667C29.8331 6.89543 29.8331 5.0098 28.6615 3.83823C27.4899 2.66666 25.6043 2.66666 21.8331 2.66666H20.4997C16.7285 2.66666 14.8432 2.66666 13.6716 3.83823C12.5 5.0098 12.5 6.89542 12.5 10.6667Z" fill="#FB3748"/>
+</svg></a>
+                </button>
+                <div class="badge-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+<path d="M16.0003 13.3333C18.9458 13.3333 21.3337 10.9455 21.3337 7.99999C21.3337 5.05447 18.9458 2.66666 16.0003 2.66666C13.0548 2.66666 10.667 5.05447 10.667 7.99999C10.667 10.9455 13.0548 13.3333 16.0003 13.3333Z" fill="black"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M21.9997 29.3333C19.7998 29.3333 18.6998 29.3333 18.0165 28.6499C17.333 27.9665 17.333 26.8665 17.333 24.6667C17.333 22.4668 17.333 21.3668 18.0165 20.6835C18.6998 20 19.7998 20 21.9997 20C24.1995 20 25.2995 20 25.9829 20.6835C26.6663 21.3668 26.6663 22.4668 26.6663 24.6667C26.6663 26.8665 26.6663 27.9665 25.9829 28.6499C25.2995 29.3333 24.1995 29.3333 21.9997 29.3333ZM24.6237 23.6611C24.9274 23.3573 24.9274 22.8649 24.6237 22.5612C24.3199 22.2573 23.8275 22.2573 23.5238 22.5612L20.9626 25.1223L20.4755 24.6352C20.1718 24.3315 19.6794 24.3315 19.3757 24.6352C19.0719 24.9389 19.0719 25.4315 19.3757 25.7352L20.4126 26.7721C20.7163 27.076 21.2089 27.076 21.5126 26.7721L24.6237 23.6611Z" fill="black"/>
+<path opacity="0.5" d="M24.1266 20.0416C23.5602 20 22.8653 20 22.0003 20C19.8005 20 18.7005 20 18.0171 20.6835C17.3337 21.3668 17.3337 22.4668 17.3337 24.6667C17.3337 26.2217 17.3337 27.2272 17.5751 27.9244C17.0631 27.9741 16.537 28 16.0003 28C10.8457 28 6.66699 25.6121 6.66699 22.6667C6.66699 19.7212 10.8457 17.3333 16.0003 17.3333C19.4849 17.3333 22.5235 18.4245 24.1266 20.0416Z" fill="black"/>
+</svg>
+                    <span>{{ user.role.name }}</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="personal-info">
+            <h2 class="section-title">Личная информация</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Логин</span>
+                    <span>{{user.login}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Почта</span>
+                    <span>{{user.email}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Телефон</span>
+                    <span>{{user.phone}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Компания</span>
+                    <span>{{user.company}}</span>
+                </div>
+            </div>
+
+            <h2 class="section-title" style="margin-top: 24px;">Темы</h2>
+            <div class="container-theme">
+        <!-- Текст и чекбокс для "Без фона" -->
+        <div class="text-checkbox">
+            <span>Без фона</span>
+            <input type="checkbox" id="noBackground" {% if not user.background_theme %}checked{% endif %}>
+        </div>
+
+        <!-- Контейнер изображений -->
+        <div class="images-container">
+            <div class="image-box">
+                <img src="/static/media/unsplash_2mKYEVGA4jE.png" alt="Nature 1" data-theme="/static/media/unsplash_2mKYEVGA4jE.png">
+            </div>
+            <div class="image-box">
+                <img src="/static/media/unsplash_BGXhuJIbx78.png" alt="Nature 2" data-theme="/static/media/unsplash_BGXhuJIbx78.png"> <!-- Укажи реальный путь -->
+            </div>
+            <div class="image-box">
+                <img src="/static/media/unsplash_XHEWVJVHr6g.png" alt="Nature 3" data-theme="/static/media/unsplash_XHEWVJVHr6g.png"> <!-- Укажи реальный путь -->
+            </div>
+        </div>
+    </div>
+
+            <h2 class="section-title" style="margin-top: 24px;">Рабочие часы и дни</h2>
+            <div class="work-schedule">
+                <div class="info-item-schedule">
+                    <span class="info-label">График работы</span>
+                   <span>
+  {{ user.work_start_time.strftime("%H:%M") if user.work_start_time else "" }} -
+  {{ user.work_end_time.strftime("%H:%M") if user.work_end_time else "" }}
+</span>
+                </div>
+                <div class="days">
+                    {% for day in user.work_days %}
+          <div class="day {% if day.active %}active{% endif %}">{{ day.name }}</div>
+          {% endfor %}
+                </div>
+            </div>
+
+             <h2 class="section-title" style="margin-top: 24px;">Личная статистика</h2>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Отработано лидов за всё время</span>
+                    <h3>125</h3>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Отработано лидов за последний месяц</span>
+                    <h3>24</h3>
+                </div>
+            </div> 
+        </section>
+    </main>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const noBackgroundCheckbox = document.getElementById("noBackground");
+        const imageBoxes = document.querySelectorAll(".image-box img");
+
+        // Устанавливаем текущую тему при загрузке
+        const currentTheme = "{% if user.background_theme %}{{ user.background_theme }}{% else %}none{% endif %}";
+        if (currentTheme === "none") {
+            noBackgroundCheckbox.checked = true;
+            imageBoxes.forEach(img => img.classList.remove("selected"));
+        } else {
+            imageBoxes.forEach(img => {
+                if (img.getAttribute("data-theme") === currentTheme) {
+                    img.classList.add("selected");
+                } else {
+                    img.classList.remove("selected");
+                }
+            });
+        }
+
+        // Обработчик для чекбокса "Без фона"
+        noBackgroundCheckbox.addEventListener("change", async (e) => {
+            const newTheme = e.target.checked ? null : ""; // null для "без фона", пустая строка для дефолтного фона
+            await updateBackgroundTheme(newTheme);
+        });
+
+        // Обработчик для выбора изображения
+        imageBoxes.forEach(img => {
+            img.addEventListener("click", async () => {
+                const newTheme = img.getAttribute("data-theme");
+                noBackgroundCheckbox.checked = false; // Снимаем галочку "Без фона"
+                await updateBackgroundTheme(newTheme);
+                // Обновляем стили выбранного изображения
+                imageBoxes.forEach(i => i.classList.remove("selected"));
+                img.classList.add("selected");
+            });
+        });
+
+
+        // Функция для отправки запроса на обновление темы
+        async function updateBackgroundTheme(theme) {
+
+            try {
+                const response = await fetch("/api/users/update_user?user_id={{ user.id }}", {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ background_theme: theme })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    // Перезагружаем страницу или обновляем фон динамически (опционально)
+                    window.location.reload(); // Или используй JavaScript для динамического изменения фона
+                } else {
+                    showNotification("Ошибка: " + (result.detail || "Не удалось обновить тему"), "error");
+                }
+            } catch (error) {
+                console.error("Ошибка сети:", error);
+                showNotification("Ошибка сети! Проверьте подключение к серверу.", "error");
+            }
+        }
+
+        // Функция уведомления (предполагается, что она уже существует)
+        
+    });
+</script>
+<script src="/static/search-lead-scripts.js">
+
+</script>
+</body>
+</html>

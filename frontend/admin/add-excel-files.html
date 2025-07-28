@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="/static/admin_style/style.css">
+
+        <link rel="stylesheet" href="/static/register-employer-style.css">
+        <title>CRM</title>
+    
+        <style>
+            body {
+                background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+                transition: background 0.5s ease;
+            }
+
+          </style>
+    </head>
+<body>
+  <div id="notification" class="notification" style="display: none;">
+    <span id="notification-message"></span>
+    <button id="close-notification" class="close-btn">&times;</button>
+</div>
+{% include 'partials/admin-header.html' %}
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+
+<form id="upload-form" class="container">
+  <div class="input-with-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 20.25c4.694 0 8.5-3.806 8.5-8.5S16.694 3.25 12 3.25 3.5 7.056 3.5 11.75s3.806 8.5 8.5 8.5z" /></svg>
+      <input type="text" placeholder="Название ЖК">
+    </div>
+      <!-- ЖК -->
+      <div class="upload-section">
+        <div class="upload-header">
+          <span>Данные о ЖК</span>
+          <span class="upload-subtitle">Загрузите Excel-файлы. Форматы: xlsx, xls, csv</span>
+        </div>
+        <label class="dropzone" for="file-1">Перетащите файл или нажмите</label>
+        <input type="file" id="file-1" name="file" multiple>
+        <div class="file-list" id="list-1"></div>
+      </div>
+
+      <!-- Прайсы -->
+      <div class="upload-section">
+        <div class="upload-header">
+          <span>Прайсы</span>
+          <span class="upload-subtitle">Загрузите Excel-файлы. Форматы: xlsx, xls, csv</span>
+        </div>
+        <label class="dropzone" for="file-2">Перетащите файл или нажмите</label>
+        <input type="file" id="file-2" name="file" multiple>
+        <div class="file-list" id="list-2"></div>
+      </div>
+
+      <!-- Шаблоны договоров -->
+      <div class="upload-section">
+        <div class="upload-header">
+          <span>Шаблоны договоров</span>
+          <span class="upload-subtitle">Загрузите Docx-файлы. Форматы: docx, doc</span>
+        </div>
+        <label class="dropzone" for="file-3">Перетащите файл или нажмите</label>
+        <input type="file" id="file-3" name="file" multiple>
+        <div class="file-list" id="list-3"></div>
+      </div>
+
+      <button type="submit" class="submit-button">
+        Загрузить данные <span>→</span>
+      </button>
+    </form>
+
+  <script>
+
+    document.getElementById('upload-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // 1. Проверка названия ЖК
+    const nameInput = document.querySelector('.input-with-icon input');
+    const nameValue = nameInput.value.trim();
+    if (!/^ЖК_.+/.test(nameValue)) {
+      showNotification('Название ЖК должно быть в формате "ЖК_Название"', 'error');
+      return;
+    }
+
+    const jkInput   = document.getElementById('file-1');
+    const priceInput= document.getElementById('file-2');
+    const tplInput  = document.getElementById('file-3');
+
+    // Проверяем, что во всех трёх есть файл
+    if (!jkInput.files.length || !priceInput.files.length || !tplInput.files.length) {
+      showNotification('Пожалуйста, загрузите файлы во всех трёх секциях', 'error');
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('name', nameValue);
+    fd.append('jk_file',    jkInput.files[0]);
+    fd.append('price_file', priceInput.files[0]);
+    fd.append('template_file', tplInput.files[0]);
+    console.log(fd);
+    try {
+      const res = await fetch('/api/complexes/add-complex', {
+        method: 'POST',
+        body: fd
+      });
+      const json = await res.json();
+      if (res.ok) {
+        showNotification(json.message, 'success');
+        location.reload();
+      } else {
+        showNotification(json.detail || json.message, 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showNotification('Ошибка соединения', 'error');
+    }
+  });
+
+
+
+    function setupUpload(inputId, listId) {
+      const input = document.getElementById(inputId);
+      const list = document.getElementById(listId);
+
+      input.addEventListener('change', () => {
+        Array.from(input.files).forEach(file => {
+          const pill = document.createElement('div');
+          pill.className = 'file-pill';
+
+          const name = document.createElement('span');
+          name.textContent = file.name;
+
+          const actions = document.createElement('div');
+          actions.className = 'actions';
+
+         
+
+          const remove = document.createElement('button');
+          remove.className = 'delete';
+          remove.innerHTML = '🗑️';
+          remove.onclick = () => pill.remove();
+
+          actions.appendChild(remove);
+
+          pill.appendChild(name);
+          pill.appendChild(actions);
+
+          list.appendChild(pill);
+        });
+
+      });
+    }
+
+
+    setupUpload('file-1', 'list-1');
+    setupUpload('file-2', 'list-2');
+    setupUpload('file-3', 'list-3');
+
+    
+  </script>
+
+
+    <script src="/static/notification_scripts.js"></script>
+
+
+</body>
+</html>

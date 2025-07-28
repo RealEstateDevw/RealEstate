@@ -1,0 +1,720 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px; /* Add some padding */
+    gap: 20px; /* Add gap between logo and actions */
+    flex-wrap: wrap; /* Allow wrapping on very small screens if needed */
+}
+
+.logo {
+    font-size: 2rem; /* Adjust as needed */
+    font-weight: bold;
+    color: #3b82f6; /* Example blue */
+    text-decoration: none;
+    white-space: nowrap; /* Prevent logo text wrapping */
+    flex-shrink: 0; /* Don't let logo shrink */
+}
+
+.actions-group {
+    display: flex;
+    /* justify-content: flex-end; */ /* Let flexbox handle spacing */
+    align-items: center;
+    gap: 15px;
+    /* width: 80%; */ /* Removed fixed width, let it be flexible */
+    flex-grow: 1; /* Allow this group to grow */
+    justify-content: flex-end; /* Push items to the right */
+    flex-wrap: wrap; /* Allow buttons to wrap if space runs out */
+}
+
+.shahmatki {
+    background-color: #f0f0f0; /* Lighter background for differentiation */
+    color: #333; /* Darker text */
+    padding: 12px 20px; /* Adjusted padding */
+    border-radius: 50px;
+    font-size: 1rem; /* Adjusted font size */
+    text-decoration: none;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+.shahmatki:hover {
+    background-color: #e0e0e0;
+}
+
+
+.register-btn {
+    background-color: #1a73e8;
+    color: white;
+    display: inline-flex; /* Use inline-flex for better alignment */
+    align-items: center;
+    gap: 10px; /* Adjusted gap */
+    cursor: pointer;
+    border-radius: 50px;
+    border: none;
+    padding: 12px 20px; /* Adjusted padding */
+    text-decoration: none; /* Remove underline from link */
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+
+.register-btn:hover {
+    background-color: #1567d1; /* Slightly darker blue */
+}
+
+.register-btn svg {
+     width: 24px; /* Adjusted icon size */
+     height: 24px;
+     flex-shrink: 0; /* Prevent icon shrinking */
+}
+
+.register-btn-text { /* Target the H2 using the class */
+    font-size: 1rem; /* Adjusted font size */
+    font-weight: 600;
+    margin: 0; /* Remove default H2 margin */
+    line-height: 1.2; /* Adjust line height */
+}
+
+
+.user-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px; /* Adjusted size */
+    width: 48px;  /* Adjusted size */
+    background-color: #f0f0f0;
+    border-radius: 50%;
+    flex-shrink: 0; /* Prevent icon shrinking */
+    transition: background-color 0.2s ease;
+}
+.user-icon:hover {
+    background-color: #e0e0e0;
+}
+
+.user-icon-svg { /* Target the SVG using the class */
+    width: 28px; /* Adjusted icon size */
+    height: 28px; /* Adjusted icon size */
+    fill: #3b82f6;
+}
+
+
+/* ============================ */
+/* Responsive Styles            */
+/* ============================ */
+
+/* Medium Screens (Tablets, smaller laptops) */
+@media (max-width: 992px) {
+    .logo {
+        font-size: 1.8rem;
+    }
+    .actions-group {
+        gap: 10px;
+    }
+    .shahmatki {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+    .register-btn {
+        padding: 10px 15px;
+        gap: 8px;
+    }
+     .register-btn svg {
+         width: 20px;
+         height: 20px;
+    }
+    .register-btn-text {
+        font-size: 0.9rem;
+    }
+    .user-icon {
+        height: 44px;
+        width: 44px;
+    }
+    .user-icon-svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* Small Screens (Tablets portrait, large phones) */
+@media (max-width: 768px) {
+    .header {
+        padding: 10px 15px;
+        gap: 15px;
+        /* Could optionally stack here if needed */
+        /* flex-direction: column; */
+        /* align-items: flex-start; */
+    }
+     .logo {
+        font-size: 1.6rem;
+    }
+    .actions-group {
+        /* If header stacks, adjust this */
+        /* width: 100%; */
+        /* justify-content: flex-start; */
+        gap: 8px;
+    }
+
+    /* Hide text in Register button, show only icon */
+    .register-btn-text {
+        display: none;
+    }
+    .register-btn {
+        padding: 10px; /* Adjust padding for icon only */
+        gap: 0;
+    }
+     .register-btn svg {
+         width: 22px; /* Slightly larger icon when text is hidden */
+         height: 22px;
+    }
+
+    .shahmatki {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    .user-icon {
+        height: 40px;
+        width: 40px;
+    }
+    .user-icon-svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+/* Extra Small Screens (Phones) */
+@media (max-width: 576px) {
+    .header {
+        padding: 10px;
+    }
+     .logo {
+        font-size: 1.4rem;
+    }
+     /* Further reduce shahmatki padding/font if needed */
+     .shahmatki {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    .register-btn {
+        padding: 8px; /* Smallest padding */
+    }
+     .register-btn svg {
+         width: 20px;
+         height: 20px;
+    }
+     .user-icon {
+        height: 36px;
+        width: 36px;
+    }
+    .user-icon-svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+
+
+
+
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+
+            padding: 20px;
+        }
+        a {
+            text-decoration: none;
+            color: #ffffff;
+         }
+
+        
+        
+        
+        .search{
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 15px;
+        }
+        *, *:before, *:after {
+            box-sizing: border-box;
+        }
+        
+        .search-container {
+            position: relative; /* Needed for absolute positioning of icon and results */
+            width: 100%; /* Take full width of its parent, or set a max-width */
+            max-width: 500px; /* Example: Limit maximum width */
+            margin: 0 auto; /* Example: Center the search bar if parent allows */
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px; /* Adjust left padding based on desired icon position */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px; /* Adjust icon size */
+            height: 20px;
+            color: #9ca3af; /* Icon color (using currentColor from SVG) */
+            pointer-events: none; /* Prevent icon from blocking input clicks */
+            opacity: 0.7; /* Match opacity from SVG attribute */
+        }
+        
+        .searchInput {
+            width: 100%; /* Input takes full width of container */
+            padding: 12px 12px 12px 40px; /* Top, Right, Bottom, Left (make space for icon) */
+            border: 1px solid #d1d5db; /* Border color */
+            border-radius: 25px; /* Rounded corners */
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #1f2937; /* Input text color */
+            background-color: #fff;
+            outline: none; /* Remove default focus outline */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .searchInput::placeholder {
+            color: #9ca3af; /* Placeholder text color */
+            opacity: 1;
+        }
+        
+        .searchInput:focus {
+            border-color: #3b82f6; /* Highlight border on focus */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* Subtle focus ring */
+        }
+        
+        /* ============================ */
+        /* Search Results Dropdown      */
+        /* ============================ */
+        .search-results {
+            position: absolute;
+            top: calc(100% + 6px); /* Position below input with a gap */
+            left: 0;
+            right: 0;
+            background-color: #fff; /* White background for the dropdown */
+            border: 1px solid #e5e7eb; /* Softer border */
+            border-radius: 16px; /* More rounded corners for the dropdown */
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+            z-index: 10;
+            max-height: 350px; /* Adjust max height if needed */
+            overflow-y: auto;
+            padding: 8px; /* Add padding around the list of items */
+            display: none; /* Hide by default - controlled by JS */
+        
+            /* Use flex to enable gap between items */
+            display: flex;
+            flex-direction: column;
+            gap: 8px; /* Space between result items */
+        }
+        
+        /* --- Styles to show results (ensure JS adds this class) --- */
+        .search-container.results-visible .search-results {
+            display: flex; /* Use flex when visible */
+        }
+        /* ------------------------------------------------------ */
+        
+        
+        /* ================================= */
+        /* Individual Search Result Item     */
+        /* ================================= */
+        .result-item {
+            display: flex;
+            justify-content: space-between; /* Pushes name and role apart */
+            align-items: center; /* Vertically aligns items */
+            padding: 12px 16px; /* Inner padding within the item */
+            background-color: #F9FAFB; /* Very light grey background for the item */
+            border-radius: 12px; /* Rounded corners for the item */
+            cursor: pointer;
+            border: 1px solid transparent; /* Add transparent border for smooth hover */
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            border-bottom: none; /* Remove default border if previously added */
+        }
+        
+        .result-item:hover {
+            background-color: #F3F4F6; /* Slightly darker grey on hover */
+            border-color: #e5e7eb; /* Show a subtle border on hover */
+        }
+        
+        /* ================================= */
+        /* Result Name Styling               */
+        /* ================================= */
+        .result-name {
+            font-size: 0.95rem; /* Adjust size as needed */
+            color: #1f2937; /* Dark text color */
+            font-weight: 500; /* Medium weight */
+            margin-right: 10px; /* Space between name and role */
+            /* Optional: Prevent text wrapping and add ellipsis for long names */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* ================================= */
+        /* Result Role/Tag Styling ("Лид")   */
+        /* ================================= */
+        .result-role {
+            display: inline-flex; /* Use inline-flex for badge layout */
+            align-items: center; /* Vertically center icon and text */
+            gap: 6px; /* Space between icon and text */
+            background-color: #EEF2FF; /* Very light blue/indigo background (adjust as needed) */
+            color: #4338CA; /* Darker blue/indigo text color (adjust as needed) */
+            padding: 5px 10px; /* Padding inside the badge */
+            border-radius: 8px; /* Rounded corners for the badge */
+            font-size: 0.8rem; /* Smaller font size for the badge */
+            font-weight: 500;
+            white-space: nowrap; /* Prevent text wrap inside badge */
+            flex-shrink: 0; /* Prevent the badge from shrinking */
+        }
+        
+        .result-role svg {
+            width: 16px; /* Icon size */
+            height: 16px;
+            flex-shrink: 0;
+            fill: #216BF4; /* Match SVG fill color */
+        }
+        
+        /* ================================= */
+        /* "No Results" Message Styling      */
+        /* ================================= */
+        .no-results {
+            padding: 15px;
+            text-align: center;
+            color: #6b7280; /* Grey text */
+            font-size: 0.9rem;
+        }
+        
+        /* ================================= */
+        /* Responsive Adjustments (Optional) */
+        /* ================================= */
+        @media (max-width: 576px) {
+            .search-results {
+                border-radius: 12px; /* Slightly less rounded on mobile */
+                padding: 6px;
+                gap: 6px;
+            }
+            .result-item {
+                padding: 10px 12px;
+                border-radius: 10px;
+                /* Keep horizontal layout if possible, or uncomment below to stack */
+                /* flex-direction: column; */
+                /* align-items: flex-start; */
+                /* gap: 4px; */
+            }
+            .result-name {
+                font-size: 0.9rem;
+                /* margin-right: 0; */ /* Remove margin if stacking */
+            }
+            .result-role {
+                padding: 4px 8px;
+                font-size: 0.75rem;
+                gap: 4px;
+            }
+            .result-role svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
+        
+        
+        /* ============================ */
+        /* Responsive Styles            */
+        /* ============================ */
+        
+        /* Medium Screens */
+        @media (max-width: 992px) {
+            .searchInput {
+                padding: 10px 10px 10px 36px; /* Adjust padding */
+                font-size: 0.95rem;
+            }
+            .search-icon {
+                left: 10px;
+                width: 18px;
+                height: 18px;
+            }
+        }
+        
+        /* Small Screens */
+        @media (max-width: 768px) {
+            /* Container max-width might be less relevant here if inside a constrained parent */
+            .searchInput {
+                padding: 9px 10px 9px 34px; /* Slightly smaller padding */
+                font-size: 0.9rem;
+                border-radius: 20px; /* Can reduce radius slightly */
+            }
+            .search-icon {
+                left: 10px;
+                width: 16px;
+                height: 16px;
+            }
+            /* Dropdown styles should still work fine as they adapt to container width */
+        }
+        
+        /* Extra Small Screens */
+        @media (max-width: 576px) {
+            .searchInput {
+                padding: 8px 8px 8px 32px;
+                font-size: 0.85rem;
+            }
+            .search-icon {
+                left: 8px;
+                width: 16px; /* Keep icon size reasonable */
+                height: 16px;
+            }
+
+        }
+        
+        .profile-icon {
+            width: 32px;
+            height: 32px;
+            background: #0066FF;
+            border-radius: 50%;
+        }
+        
+        
+
+        .main-content {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+
+        }
+
+        .name {
+            font-size: 36px;
+            font-weight: 600;
+        }
+
+        .date {
+            color: #666;
+            font-size: 36px;
+        }
+
+        .badge {
+            display: flex;
+            gap: 10px;
+
+        }
+
+        .badge-item {
+            padding: 29px 30px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 60px;
+border: 1px solid #FFF;
+
+background: rgba(245, 245, 245, 0.90);
+
+backdrop-filter: blur(25px);
+        }
+
+        .personal-info {
+            padding: 24px;
+            margin-bottom: 24px;
+            border-radius: 30px;
+background: rgba(245, 245, 245, 0.90);
+
+backdrop-filter: blur(25px);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .info-item {
+                display: flex;
+    grid-template-columns: 120px 1fr;
+    gap: 10px;
+
+
+
+    border-radius: 55px;
+    background: #FFF;
+    height: 50px;
+    align-items: center;
+    flex-shrink: 0;
+    justify-content: space-between;
+    padding: 17px 20px;
+        }
+
+        .info-label {
+            color: #666;
+        }
+
+        .themes {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .theme-item {
+            border-radius: 8px;
+            width: 200px;
+            height: 80px;
+            overflow: hidden;
+        }
+
+        .work-schedule {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+
+
+        .info-label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .info-item-schedule {
+                display: flex;
+    grid-template-columns: 120px 1fr;
+    gap: 10px;
+
+
+
+    border-radius: 55px;
+    background: #FFF;
+    height: 50px;
+    align-items: center;
+    flex-shrink: 0;
+    justify-content: space-between;
+    padding: 17px 20px;
+    width:50%;
+        }
+
+        .days {
+            display: flex;
+            gap: 9px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .day {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .day.active {
+            background-color: #e74c3c;
+            color: #ffffff;
+        }
+
+        @media (max-width: 600px) {
+            .work-schedule {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .days {
+                justify-content: flex-start;
+            }
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-item h3 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .stat-item {
+        border-radius: 20px;
+    background: rgba(255, 255, 255, 0.90);
+    backdrop-filter: blur(25px);
+    padding: 20px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .container-theme {
+            display: flex;
+            gap: 16px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .text-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .text-checkbox span {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .text-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #6c63ff;
+            border-radius: 4px;
+            background-color: #e0e7ff;
+            cursor: pointer;
+        }
+
+        .text-checkbox input[type="checkbox"]:checked {
+            background-color: #6c63ff;
+        }
+
+        .images-container {
+            display: flex;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .image-box {
+            flex: 1 0 0;
+            max-height: 55px;
+            border-radius: 57px;
+            overflow: hidden;
+        }
+
+        .image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+

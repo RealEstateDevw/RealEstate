@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Seller CRM Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+     <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link rel="stylesheet" href="/static/mop-dashboard.css">
+    <link rel="stylesheet" href="/static/add-payment.css">
+    <link rel="stylesheet" href="/static/register-employer-style.css">
+
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <a href="{% if user and user.role.name == 'Продажник' %}/dashboard/sales{% elif user and user.role.name == 'Финансист' %}/dashboard/finance {% elif user and user.role.name == 'Админ' %}/dashboard/admin {% elif user and user.role.name == 'МОП' %}/dashboard/mop {% elif user and user.role.name == 'РОП' %}/dashboard/rop{% else %}/{% endif %}" class="logo">CRM</a>
+
+        <div class="search">
+            <a href="/dashboard/finance" class="back-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M20 25.3333L12 16L20 6.66665" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                Назад
+            </a>
+            <a class="user-icon" href="{{ url_for('user_profile') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon">
+                <path
+                    d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z" />
+            </svg>
+
+        </a>
+        </div>
+
+    </header>
+
+
+    <form class="main-form" id="expense-form">
+        <div class="input-row">
+            <input type="text" class="input-field" placeholder="Название" id="Name" required name="title">
+        </div>
+        <div class="profile-form-info">
+
+        <h2 class="section-title">Описание</h2>
+
+        <input type="text" class="password-field" placeholder="Описание выплаты" required name="description">
+
+        
+                <label  class="section-title" for="amount">Сумма</label>
+                <input type="number"  class="password-field" id="amount" name="amount" step="0.01" min="0.01" placeholder="Сумма расхода (В UZS)" required>
+                <label  class="section-title" for="payment_date">Дата платежа</label>
+                <input type="datetime-local" class="password-field" id="payment_date" name="payment_date" required>
+        <h2 class="section-title">Статус</h2>
+        <div class="button-group">
+            <button class="wait-for-payment visible" type="button">Ожидает оплаты</button>
+                <button class="wait-for-payment" type="button">Выплачено</button>
+                </div>
+                <div class="check-for-payment">
+                <h2 class="section-title">Чек об облате</h2>
+            <div class="check-for-payment-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M17.7712 6.72524C23.6566 1.09159 33.1728 1.09159 39.0582 6.72524C39.6566 7.29808 39.6774 8.2476 39.1046 8.84604C38.5316 9.4445 37.5822 9.46524 36.9838 8.8924C32.2584 4.3692 24.571 4.3692 19.8456 8.8924L7.03722 21.1528C6.43878 21.7256 5.48926 21.7048 4.91642 21.1064C4.34358 20.508 4.36432 19.5585 4.96278 18.9856L17.7712 6.72524ZM30.5332 12.9018C31.106 12.3033 32.0556 12.2826 32.654 12.8554C35.1658 15.2598 35.1658 19.1863 32.654 21.5906L16.8722 36.6972C16.2738 37.27 15.3243 37.2494 14.7514 36.6508C14.1786 36.0524 14.1993 35.103 14.7978 34.53L30.5796 19.4235C31.8572 18.2004 31.8572 16.2457 30.5796 15.0226C29.981 14.4498 29.9604 13.5002 30.5332 12.9018Z" fill="black"/>
+  <path opacity="0.5" d="M36.9828 8.89197C41.6712 13.3797 41.6712 20.6276 36.9828 25.1154L21.0866 40.3314C18.0666 43.2222 13.1441 43.2222 10.124 40.3314C7.14096 37.476 7.14096 32.8746 10.124 30.0192L25.7914 15.0222C27.1062 13.7637 29.2638 13.7637 30.5786 15.0222C29.9808 14.4493 29.9606 13.4998 30.5332 12.9016C31.0958 12.3138 32.0216 12.2833 32.6214 12.825C30.1444 10.4861 26.1812 10.4961 23.717 12.855L8.04956 27.852C3.83244 31.8888 3.83244 38.4618 8.04956 42.4986C12.2297 46.4998 18.981 46.4998 23.1612 42.4986L39.0572 27.2826C44.9696 21.6232 44.9796 12.4254 39.0876 6.75391C39.6572 7.32935 39.6678 8.25733 39.1046 8.84583C38.5316 9.44427 37.5812 9.46481 36.9828 8.89197Z" fill="black"/>
+</svg>
+<input type="file" name="receipt" id="photo" style="display: none;">
+            <span onclick="document.getElementById('photo').click()">Прикрепите файл</span>
+                </div>
+            </div>
+        <div class="button-row">
+            <button class="register-button button-info" id="upload-check-button" type="submit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M6.5 24C6.5 23.1716 7.17158 22.5 8 22.5H26.5V25.5H8C7.17158 25.5 6.5 24.8284 6.5 24Z" fill="#216BF4"/>
+  <path d="M26.5 25.5V36C26.5 36.6068 26.8654 37.1536 27.426 37.3858C27.9864 37.618 28.6316 37.4898 29.0606 37.0608L41.0606 25.0608C41.342 24.7794 41.5 24.3978 41.5 24C41.5 23.6022 41.342 23.2206 41.0606 22.9394L29.0606 10.9394C28.6316 10.5104 27.9864 10.3821 27.426 10.6142C26.8654 10.8464 26.5 11.3934 26.5 12V22.5V25.5Z" fill="#216BF4"/>
+</svg>
+                <span>Добавить выплату</span>
+                
+            </button>
+        </div>
+    </div>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+  const expenseForm = document.getElementById('expense-form');
+  
+  // Проверяем, существует ли форма на странице
+  if (!expenseForm) {
+    console.log('Форма expenseForm не найдена на странице.');
+    return;
+  }
+
+  const statusButtons = document.querySelectorAll('.wait-for-payment');
+  const checkForPaymentBlock = document.querySelector('.check-for-payment');
+  let selectedStatus = 'pending'; // По умолчанию "Ожидает оплаты"
+
+  // Скрываем блок чека по умолчанию
+  checkForPaymentBlock.classList.add('hidden');
+
+  // Добавляем скрытое поле для статуса
+  const statusInput = document.createElement('input');
+  statusInput.type = 'hidden';
+  statusInput.name = 'status';
+  statusInput.value = selectedStatus;
+  expenseForm.appendChild(statusInput);
+
+  // Добавляем обработчики для кнопок статуса
+  statusButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Удаляем выделение со всех кнопок
+      statusButtons.forEach(btn => {
+        btn.classList.remove('selected');
+        btn.style.backgroundColor = ''; // Сбрасываем цвет
+        btn.style.color = ''; // Сбрасываем цвет текста
+      });
+
+      // Выделяем выбранную кнопку
+      button.classList.add('selected');
+      button.style.backgroundColor = '#216BF4'; // Синий цвет для выбранной кнопки
+      button.style.color = 'white';
+
+      // Устанавливаем статус
+      selectedStatus = button.textContent === 'Ожидает оплаты' ? 'pending' : 'paid';
+      statusInput.value = selectedStatus;
+
+      // Плавно показываем или скрываем блок чека
+      if (selectedStatus === 'paid') {
+        checkForPaymentBlock.classList.remove('hidden');
+        checkForPaymentBlock.classList.add('visible');
+      } else {
+        checkForPaymentBlock.classList.remove('visible');
+        checkForPaymentBlock.classList.add('hidden');
+      }
+    });
+  });
+
+  // Предпросмотр файла чека
+  const photoInput = document.getElementById('photo');
+  photoInput.addEventListener('change', () => {
+    const file = photoInput.files[0];
+    if (file) {
+      document.querySelector('.check-for-payment span').textContent = file.name;
+    }
+  });
+  console.log(selectedStatus);
+  // Обработка отправки формы расхода
+  expenseForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    console.log(selectedStatus);
+
+    const formData = new FormData(expenseForm);
+    const expenseData = {
+      title: formData.get('title'),
+      amount: parseFloat(formData.get('amount')),
+      description: formData.get('description'),
+      payment_date: new Date(formData.get('payment_date')).toISOString(),
+      status: formData.get('status'),// Добавляем статус,
+      created_by: {{user.id}},
+    };
+    console.log(expenseData);
+
+    // Проверяем обязательные поля
+    if (!expenseData.title || !expenseData.amount || !expenseData.payment_date) {
+      alert('Пожалуйста, заполните все обязательные поля.');
+      return;
+    }
+
+    // Если статус "paid", добавляем файл чека
+    if (selectedStatus === 'paid') {
+      const photo = formData.get('receipt');
+      if (!photo || photo.size === 0) {
+        alert('Пожалуйста, прикрепите чек об оплате.');
+        return;
+      }
+    }
+
+    try {
+      // Отправляем данные расхода
+      const response = await fetch('/api/finance/expenses/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(expenseData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.body}`);
+      }
+
+      const result = await response.json();
+      const expenseId = result.id;
+      alert('Расход успешно добавлен!');
+
+      // Если статус "paid", отправляем чек
+      if (selectedStatus === 'paid') {
+        const checkFormData = new FormData();
+        /* const photoData = {
+            expense_id: expenseId,
+            photo: formData.get()
+            
+        } */
+        console.log(FormData);
+        checkFormData.append('photo', formData.get('receipt'));
+        console.log(FormData);
+
+
+        const checkResponse = await fetch(`/api/finance/expenses/${expenseId}/check-photo`, {
+          method: 'POST',
+          body: checkFormData
+        });
+
+        if (!checkResponse.ok) {
+          throw new Error(`HTTP error! status: ${checkResponse.status}`);
+        }
+
+        const checkResult = await checkResponse.json();
+        alert('Чек успешно добавлен!');
+      }
+
+      // Перенаправляем на страницу расходов
+      window.location.href = '/dashboard/finance';
+    } catch (error) {
+      console.error('Ошибка при добавлении расхода:', error);
+      alert('Произошла ошибка при добавлении расхода или чека. Попробуйте снова.');
+    }
+  });
+});
+  </script>
+</body>
+</html>

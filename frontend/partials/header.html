@@ -1,0 +1,50 @@
+<header class="header">
+    <a href="{% if user and user.role.name == 'Продажник' %}/dashboard/sales{% elif user and user.role.name == 'Финансист' %}/dashboard/finance {% elif user and user.role.name == 'Админ' %}/dashboard/admin {% elif user and user.role.name == 'МОП' %}/dashboard/mop {% elif user and user.role.name == 'РОП' %}/dashboard/rop{% else %}/{% endif %}" class="logo">CRM</a>
+    <div class="search">
+        {% if request.path in[ '/dashboard/admin/marketing/add-campaigns', '/dashboard/admin/marketing/campaigns'] %}
+        <a href="javascript:history.back()" class="back-button" aria-label="Назад"> <!-- Added aria-label -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill="none">
+  <path d="M20 25.3334L12 16L20 6.66671" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+                <span class="back-button-text">Назад</span> <!-- Wrapped text in span -->
+            </a>
+        <a class="user-icon" href="{{ url_for('user_profile') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon-svg">
+                <path
+                    d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z" />
+            </svg>
+
+        </a>
+       {%else%}
+        <div class="search-container">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"
+                class="search-icon">
+                <circle opacity="0.5" cx="15.3337" cy="15.3333" r="12.6667" stroke="black" stroke-width="1.5" />
+                <path opacity="0.5" d="M26.667 26.6667L29.3337 29.3333" stroke="black" stroke-width="1.5"
+                    stroke-linecap="round" />
+            </svg>
+            <input type="text" class="searchInput" id="searchInput" placeholder="Поиск по лиду">
+            <div id="searchResults" class="search-results" style="display: none;"></div>
+        </div>
+        <button class="register-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path
+                    d="M24 17H8C7.45333 17 7 16.5467 7 16C7 15.4533 7.45333 15 8 15H24C24.5467 15 25 15.4533 25 16C25 16.5467 24.5467 17 24 17Z"
+                    fill="white" />
+                <path
+                    d="M16 25C15.4533 25 15 24.5467 15 24V8C15 7.45333 15.4533 7 16 7C16.5467 7 17 7.45333 17 8V24C17 24.5467 16.5467 25 16 25Z"
+                    fill="white" />
+            </svg>
+            <a href="{% if user and user.role.name == 'Продажник' %}/dashboard/sales/add-lead{% elif user and user.role.name == 'Финансист' %}/dashboard/finance/add-payment{% else %}/dashboard/sales/add-lead{% endif %}">Добавить сделку</a>
+        </button>
+        <a class="user-icon" href="{{ url_for('user_profile') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon-svg">
+                <path
+                    d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z" />
+            </svg>
+
+        </a>
+        {%endif%}
+    </div>
+</header>
+

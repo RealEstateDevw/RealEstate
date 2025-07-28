@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/main_admin_style.css">
+    <link rel="stylesheet" href="/static/modal-content.css">
+    <link rel="stylesheet" href="/static/admin_style/style.css">
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    {% include 'partials/admin-header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <div id="notification" class="notification hidden"></div>
+    <div class="main-content">
+        <div class="employees-section">
+            <h2 class="section-title">Сотрудники</h2>
+            <div class="filter-bar">
+                <i class="fas fa-user"></i>
+                <span class="filter-label">По должности:</span>
+                <select id="roleFilter" onchange="filterEmployees()" class="filter-select">
+                    <option value="">Все</option>
+
+                </select>
+            </div>
+            <div class="employee-list">
+
+
+            </div>
+
+        </div>
+
+
+        <div class="admin-section" id="rightPanel">
+            <form id="userEditForm">
+                <input type="hidden" id="userId" name="user_id">
+                <h1 class="section-title-main">Администрирование</h1>
+                <div class="admin-header">
+                    <!-- Карточка 1 -->
+                    <div class="info-card-profile"> 
+                        <div class="icon-profile" data-field="full_name">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"
+                                fill="none">
+                                <path opacity="0.5"
+                                    d="M16.0003 29.3333C23.3641 29.3333 29.3337 23.3638 29.3337 16C29.3337 8.63619 23.3641 2.66666 16.0003 2.66666C8.63653 2.66666 2.66699 8.63619 2.66699 16C2.66699 23.3638 8.63653 29.3333 16.0003 29.3333Z"
+                                    fill="#216BF4" />
+                                <path
+                                    d="M18.5681 19.0691C18.8948 18.8143 19.1911 18.518 19.7836 17.9255L27.1707 10.5383C27.3493 10.3597 27.2676 10.0521 27.0289 9.96933C26.1571 9.66681 25.0227 9.09885 23.9617 8.03779C22.9007 6.97675 22.3327 5.84247 22.0301 4.9705C21.9473 4.73189 21.6397 4.65014 21.4612 4.82874L14.074 12.2159C13.4815 12.8084 13.1852 13.1047 12.9304 13.4315C12.6298 13.8168 12.3721 14.2337 12.1619 14.6749C11.9836 15.0489 11.8511 15.4464 11.5861 16.2413L11.2437 17.2687L10.6992 18.902L10.1887 20.4336C10.0583 20.8248 10.1601 21.2561 10.4517 21.5477C10.7433 21.8393 11.1747 21.9412 11.5659 21.8108L13.0974 21.3003L14.7308 20.7557L15.7581 20.4133C16.5531 20.1484 16.9505 20.0159 17.3245 19.8376C17.7657 19.6273 18.1827 19.3697 18.5681 19.0691Z"
+                                    fill="#216BF4" />
+                                <path
+                                    d="M29.4834 8.22541C31.06 6.64876 31.06 4.09249 29.4834 2.51584C27.9067 0.939179 25.3504 0.939179 23.7739 2.51584L23.5363 2.75333C23.3072 2.9825 23.2034 3.30261 23.2606 3.62161C23.2966 3.82228 23.3634 4.11566 23.4848 4.46574C23.7278 5.16586 24.1864 6.08492 25.0504 6.94888C25.9143 7.81282 26.8334 8.27153 27.5335 8.51442C27.8836 8.63588 28.177 8.70264 28.3776 8.73866C28.6967 8.79592 29.0167 8.69208 29.2459 8.4629L29.4834 8.22541Z"
+                                    fill="#216BF4" />
+                            </svg>
+                        </div>
+                        <input class="text-profile" type="text" value="" readonly name="full_name">
+                    </div>
+
+                    <!-- Карточка 2 -->
+                    <div class="form-info-data">
+                        <div class="info-card-profile">
+                            <div class="icon-profile">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"
+                                    fill="none">
+                                    <path opacity="0.5"
+                                        d="M16.0003 29.3333C23.3641 29.3333 29.3337 23.3637 29.3337 16C29.3337 8.63619 23.3641 2.66666 16.0003 2.66666C8.63653 2.66666 2.66699 8.63619 2.66699 16C2.66699 23.3637 8.63653 29.3333 16.0003 29.3333Z"
+                                        fill="black" />
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M16 9.66666C16.5523 9.66666 17 10.1144 17 10.6667V15.5857L20.0404 18.6263C20.4309 19.0168 20.4309 19.6499 20.0404 20.0404C19.6499 20.4309 19.0168 20.4309 18.6263 20.0404L15.2929 16.7071C15.1053 16.5196 15 16.2652 15 16V10.6667C15 10.1144 15.4477 9.66666 16 9.66666Z"
+                                        fill="black" />
+                                </svg>
+                            </div>
+                            <div class="text-profile gray"> </div>
+                        </div>
+
+                        <!-- Карточка 3 -->
+                        <div class="info-card-profile">
+                            <div class="icon-profile">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"
+                                    fill="none">
+                                    <path
+                                        d="M16.0003 13.3333C18.9458 13.3333 21.3337 10.9455 21.3337 7.99999C21.3337 5.05447 18.9458 2.66666 16.0003 2.66666C13.0548 2.66666 10.667 5.05447 10.667 7.99999C10.667 10.9455 13.0548 13.3333 16.0003 13.3333Z"
+                                        fill="#216BF4" />
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M21.9997 29.3333C19.7998 29.3333 18.6998 29.3333 18.0165 28.6499C17.333 27.9665 17.333 26.8665 17.333 24.6667C17.333 22.4668 17.333 21.3668 18.0165 20.6835C18.6998 20 19.7998 20 21.9997 20C24.1995 20 25.2995 20 25.9829 20.6835C26.6663 21.3668 26.6663 22.4668 26.6663 24.6667C26.6663 26.8665 26.6663 27.9665 25.9829 28.6499C25.2995 29.3333 24.1995 29.3333 21.9997 29.3333ZM24.6237 23.6611C24.9274 23.3573 24.9274 22.8649 24.6237 22.5612C24.3199 22.2573 23.8275 22.2573 23.5238 22.5612L20.9626 25.1223L20.4755 24.6352C20.1718 24.3315 19.6794 24.3315 19.3757 24.6352C19.0719 24.9389 19.0719 25.4315 19.3757 25.7352L20.4126 26.7721C20.7163 27.076 21.2089 27.076 21.5126 26.7721L24.6237 23.6611Z"
+                                        fill="#216BF4" />
+                                    <path opacity="0.5"
+                                        d="M24.1266 20.0416C23.5602 20 22.8653 20 22.0003 20C19.8005 20 18.7005 20 18.0171 20.6835C17.3337 21.3668 17.3337 22.4668 17.3337 24.6667C17.3337 26.2217 17.3337 27.2272 17.5751 27.9244C17.0631 27.9741 16.537 28 16.0003 28C10.8457 28 6.66699 25.6121 6.66699 22.6667C6.66699 19.7212 10.8457 17.3333 16.0003 17.3333C19.4849 17.3333 22.5235 18.4245 24.1266 20.0416Z"
+                                        fill="#216BF4" />
+                                </svg>
+                            </div>
+                            <div class="text-profile blue"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="personal-info">
+                    <h2 class="section-title">Личная информация</h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Логин</span>
+                            <div class="form-update" data-field="login">
+                                <input type="text" value="" readonly class="dynamicInput" style="width: auto;"
+                                    oninput="adjustWidth(this)" name="login">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" class="icon-edit">
+                                    <path opacity="0.5"
+                                        d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                        fill="#216BF4" />
+                                    <path
+                                        d="M13.9261 14.3018C14.1711 14.1107 14.3933 13.8885 14.8377 13.4441L20.378 7.90374C20.512 7.7698 20.4507 7.53909 20.2717 7.477C19.6178 7.25011 18.767 6.82414 17.9713 6.02835C17.1755 5.23257 16.7495 4.38186 16.5226 3.72788C16.4605 3.54892 16.2298 3.48761 16.0959 3.62156L10.5555 9.16192C10.1111 9.60634 9.88888 9.82854 9.69778 10.0736C9.47235 10.3626 9.27908 10.6753 9.12139 11.0062C8.98771 11.2867 8.88834 11.5848 8.68959 12.181L8.43278 12.9515L8.02443 14.1765L7.64153 15.3252C7.54373 15.6186 7.6201 15.9421 7.8388 16.1608C8.0575 16.3795 8.38099 16.4559 8.67441 16.3581L9.82308 15.9752L11.0481 15.5668L11.8186 15.31C12.4148 15.1113 12.7129 15.0119 12.9934 14.8782C13.3243 14.7205 13.637 14.5273 13.9261 14.3018Z"
+                                        fill="#216BF4" />
+                                    <path
+                                        d="M22.1123 6.16905C23.2948 4.98656 23.2948 3.06936 22.1123 1.88687C20.9298 0.704377 19.0126 0.704377 17.8302 1.88687L17.652 2.06499C17.4802 2.23687 17.4023 2.47695 17.4452 2.7162C17.4722 2.8667 17.5223 3.08674 17.6134 3.3493C17.7956 3.87439 18.1396 4.56368 18.7876 5.21165C19.4355 5.85961 20.1248 6.20364 20.6499 6.38581C20.9125 6.4769 21.1325 6.52697 21.283 6.55399C21.5223 6.59693 21.7623 6.51905 21.9342 6.34717L22.1123 6.16905Z"
+                                        fill="#216BF4" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Почта</span>
+                            <div class="form-update" data-field="email">
+                                <input type="text" value="" readonly class="dynamicInput" style="width: auto;"
+                                    oninput="adjustWidth(this)" name="email">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" class="icon-edit">
+                                    <path opacity="0.5"
+                                        d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                        fill="#216BF4" />
+                                    <path
+                                        d="M13.9261 14.3018C14.1711 14.1107 14.3933 13.8885 14.8377 13.4441L20.378 7.90374C20.512 7.7698 20.4507 7.53909 20.2717 7.477C19.6178 7.25011 18.767 6.82414 17.9713 6.02835C17.1755 5.23257 16.7495 4.38186 16.5226 3.72788C16.4605 3.54892 16.2298 3.48761 16.0959 3.62156L10.5555 9.16192C10.1111 9.60634 9.88888 9.82854 9.69778 10.0736C9.47235 10.3626 9.27908 10.6753 9.12139 11.0062C8.98771 11.2867 8.88834 11.5848 8.68959 12.181L8.43278 12.9515L8.02443 14.1765L7.64153 15.3252C7.54373 15.6186 7.6201 15.9421 7.8388 16.1608C8.0575 16.3795 8.38099 16.4559 8.67441 16.3581L9.82308 15.9752L11.0481 15.5668L11.8186 15.31C12.4148 15.1113 12.7129 15.0119 12.9934 14.8782C13.3243 14.7205 13.637 14.5273 13.9261 14.3018Z"
+                                        fill="#216BF4" />
+                                    <path
+                                        d="M22.1123 6.16905C23.2948 4.98656 23.2948 3.06936 22.1123 1.88687C20.9298 0.704377 19.0126 0.704377 17.8302 1.88687L17.652 2.06499C17.4802 2.23687 17.4023 2.47695 17.4452 2.7162C17.4722 2.8667 17.5223 3.08674 17.6134 3.3493C17.7956 3.87439 18.1396 4.56368 18.7876 5.21165C19.4355 5.85961 20.1248 6.20364 20.6499 6.38581C20.9125 6.4769 21.1325 6.52697 21.283 6.55399C21.5223 6.59693 21.7623 6.51905 21.9342 6.34717L22.1123 6.16905Z"
+                                        fill="#216BF4" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Телефон</span>
+                            <div class="form-update" data-field="phone">
+                                <input type="text" value="" readonly class="dynamicInput" style="width: auto;"
+                                    oninput="adjustWidth(this)" name="phone">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" class="icon-edit">
+                                    <path opacity="0.5"
+                                        d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                        fill="#216BF4" />
+                                    <path
+                                        d="M13.9261 14.3018C14.1711 14.1107 14.3933 13.8885 14.8377 13.4441L20.378 7.90374C20.512 7.7698 20.4507 7.53909 20.2717 7.477C19.6178 7.25011 18.767 6.82414 17.9713 6.02835C17.1755 5.23257 16.7495 4.38186 16.5226 3.72788C16.4605 3.54892 16.2298 3.48761 16.0959 3.62156L10.5555 9.16192C10.1111 9.60634 9.88888 9.82854 9.69778 10.0736C9.47235 10.3626 9.27908 10.6753 9.12139 11.0062C8.98771 11.2867 8.88834 11.5848 8.68959 12.181L8.43278 12.9515L8.02443 14.1765L7.64153 15.3252C7.54373 15.6186 7.6201 15.9421 7.8388 16.1608C8.0575 16.3795 8.38099 16.4559 8.67441 16.3581L9.82308 15.9752L11.0481 15.5668L11.8186 15.31C12.4148 15.1113 12.7129 15.0119 12.9934 14.8782C13.3243 14.7205 13.637 14.5273 13.9261 14.3018Z"
+                                        fill="#216BF4" />
+                                    <path
+                                        d="M22.1123 6.16905C23.2948 4.98656 23.2948 3.06936 22.1123 1.88687C20.9298 0.704377 19.0126 0.704377 17.8302 1.88687L17.652 2.06499C17.4802 2.23687 17.4023 2.47695 17.4452 2.7162C17.4722 2.8667 17.5223 3.08674 17.6134 3.3493C17.7956 3.87439 18.1396 4.56368 18.7876 5.21165C19.4355 5.85961 20.1248 6.20364 20.6499 6.38581C20.9125 6.4769 21.1325 6.52697 21.283 6.55399C21.5223 6.59693 21.7623 6.51905 21.9342 6.34717L22.1123 6.16905Z"
+                                        fill="#216BF4" />
+                                </svg>
+                            </div>
+
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Компания</span>
+                            <div class="form-update" data-field="company">
+
+                                <input type="text" value="" readonly oninput="adjustWidth(this)" class="dynamicInput"
+                                    style="width: auto;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="unite-section">
+                    <div class="password-section">
+                        <!-- Блок ввода пароля -->
+                        <div class="input-group-password">
+                            <label class="section-title">Пароль</label>
+                            <div class="password-input-container">
+                                <input type="password" class="password-input" placeholder="Введите пароль"
+                                    value="qwerty123" readonly>
+                                <img src="https://cdn-icons-png.flaticon.com/512/565/565655.png" alt="Показать пароль"
+                                    class="eye-icon">
+                            </div>
+                        </div>
+
+                        <!-- Блок сброса пароля -->
+                        <div class="reset-group-password">
+                            <label class="section-title">Сбросить пароль</label>
+                            <button class="reset-button-password" type="button" onclick="resetPassword()">Сбросить</button>
+                        </div>
+                    </div>
+                    <h2 class="section-title" style="margin-top: 24px;">Рабочие часы и дни</h2>
+                    <div class="work-schedule">
+                        <div class="info-item-schedule" data-field="work-schedule">
+                            <span>График работы</span>
+                            <input type="text" value="" readonly class="dynamicInput" style="width: auto;"
+                                oninput="adjustWidth(this)">
+                        </div>
+                        <div class="days" data-field="days">
+
+                            <div class="day">ПН</div>
+                            <div class="day">ВТ</div>
+                            <div class="day">СР</div>
+                            <div class="day">ЧТ</div>
+                            <div class="day">ПТ</div>
+                            <div class="day active">СБ</div>
+                            <div class="day active">ВС</div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-buttons">
+                    <button type="button" class="action-button" onclick="reassign()">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Переназначить</span>
+                    </button>
+                    <button type="button" class="action-button">
+                        <i class="fas fa-arrow-right"></i>
+                        <span>Передать аккаунт</span>
+                    </button>
+                    <button class="action-button" type="submit">
+                        <i class="fas fa-save"></i>
+                        <span>Сохранить изменения</span>
+                    </button>
+                    <button type="button" class="action-button delete-button" onclick="deleteUser()">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>Удалить сотрудника</span>
+                    </button>
+                </div>
+        </div>
+        </form>
+    </div>
+    <span id="textMeasurer" style="visibility: hidden; white-space: pre; position: absolute;"></span>
+
+    <!-- Первое модальное окно -->
+    <div id="reassignModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-sure">
+                <div class="modal-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <path opacity="0.5"
+                            d="M44 24C44 12.9543 35.0456 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0456 12.9543 44 24 44C35.0456 44 44 35.0456 44 24Z"
+                            fill="#216BF4" />
+                        <path
+                            d="M24 12.5C24.8284 12.5 25.5 13.1716 25.5 14V26C25.5 26.8284 24.8284 27.5 24 27.5C23.1716 27.5 22.5 26.8284 22.5 26V14C22.5 13.1716 23.1716 12.5 24 12.5Z"
+                            fill="#216BF4" />
+                        <path
+                            d="M24 34C25.1046 34 26 33.1046 26 32C26 30.8954 25.1046 30 24 30C22.8954 30 22 30.8954 22 32C22 33.1046 22.8954 34 24 34Z"
+                            fill="#216BF4" />
+                    </svg>
+                </div>
+                <h2 class="modal-title">Вы уверены что хотите переназначить сотрудника?</h2>
+                <p class="modal-description">Вы переназначаете сотрудника на другую должность. После вам нужно будет
+                    выбрать новую должность.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn cancel" onclick="closeModal()">Отменить</button>
+                <button class="btn confirm" onclick="confirmReassign()">Да, уверен</button>
+            </div>
+        </div>
+    </div>
+<!-- Модальное окно для сброса пароля -->
+<div id="resetPasswordModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-sure">
+            <div class="modal-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                    <path opacity="0.5"
+                        d="M44 24C44 12.9543 35.0456 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0456 12.9543 44 24 44C35.0456 44 44 35.0456 44 24Z"
+                        fill="#FB3748" />
+                    <path
+                        d="M24 12.5C24.8284 12.5 25.5 13.1716 25.5 14V26C25.5 26.8284 24.8284 27.5 24 27.5C23.1716 27.5 22.5 26.8284 22.5 26V14C22.5 13.1716 23.1716 12.5 24 12.5Z"
+                        fill="#FB3748" />
+                    <path
+                        d="M24 34C25.1046 34 26 33.1046 26 32C26 30.8954 25.1046 30 24 30C22.8954 30 22 30.8954 22 32C22 33.1046 22.8954 34 24 34Z"
+                        fill="#FB3748" />
+                </svg>
+            </div>
+            <h2 class="modal-title">Вы уверены что хотите сбросить пароль?</h2>
+            <p class="modal-description">После вы получите временный пароль, который нужно будет сменить после входа в аккаунт..</p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn cancel" onclick="closeModal()">Отменить</button>
+            <button class="btn danger" id="confirmResetPasswordButton">Да, уверен</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Модальное окно для удаления сотрудника -->
+
+    <div id="deleteUserModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-sure">
+                <div class="modal-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <path opacity="0.5"
+                            d="M44 24C44 12.9543 35.0456 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0456 12.9543 44 24 44C35.0456 44 44 35.0456 44 24Z"
+                            fill="#FB3748" />
+                        <path
+                            d="M24 12.5C24.8284 12.5 25.5 13.1716 25.5 14V26C25.5 26.8284 24.8284 27.5 24 27.5C23.1716 27.5 22.5 26.8284 22.5 26V14C22.5 13.1716 23.1716 12.5 24 12.5Z"
+                            fill="#FB3748" />
+                        <path
+                            d="M24 34C25.1046 34 26 33.1046 26 32C26 30.8954 25.1046 30 24 30C22.8954 30 22 30.8954 22 32C22 33.1046 22.8954 34 24 34Z"
+                            fill="#FB3748" />
+                    </svg>
+                </div>
+                <h2 class="modal-title">Вы уверены что хотите удалить аккаунт?</h2>
+                <p class="modal-description">Вы удаляете аккаунт сотрудника, это значит что доступ к этому аккаунту
+                    будет потерян, а лиды будут переданы.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn cancel" onclick="closeModal()">Отменить</button>
+                <button class="btn danger" id="confirmDeleteButton">Да, уверен</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Второе модальное окно -->
+    <div id="selectRoleModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-sure">
+                <h2 class="modal-title">Выберите новую должность</h2>
+
+                <div class="role-options">
+                    <button class="role-button" onclick="selectRole('Продажник')" data-role-id="1">Продажник</button>
+                    <button class="role-button" onclick="selectRole('МОП')" data-role-id="2">МОП</button>
+                    <button class="role-button" onclick="selectRole('Финансист')" data-role-id="4">Финансист</button>
+                    <button class="role-button" onclick="selectRole('РОП')" data-role-id="3">РОП</button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn cancel" onclick="closeModal()">Отменить</button>
+                <button class="btn confirm" id="confirmRoleButton" disabled>Далее →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Финальное модальное окно -->
+    <div id="successModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-sure">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                    <g opacity="0.5" filter="url(#filter0_b_125_459)">
+                        <path
+                            d="M41.071 41.071C44 38.1422 44 33.428 44 24C44 14.5719 44 9.85786 41.071 6.92894C38.1422 4 33.428 4 24 4C14.5719 4 9.85786 4 6.92894 6.92894C4 9.85786 4 14.5719 4 24C4 33.428 4 38.1422 6.92894 41.071C9.85786 44 14.5719 44 24 44C33.428 44 38.1422 44 41.071 41.071Z"
+                            fill="#003AFF" />
+                    </g>
+                    <path
+                        d="M34.909 13.8069C35.568 14.309 35.6952 15.2502 35.1932 15.9091L21.4788 33.9092C21.2058 34.2676 20.786 34.4842 20.3356 34.4992C19.8853 34.5142 19.4521 34.326 19.1558 33.9866L12.87 26.7866C12.3252 26.1624 12.3895 25.215 13.0135 24.6702C13.6376 24.1252 14.5852 24.1896 15.13 24.8136L20.2068 30.6288L32.8068 14.091C33.309 13.4321 34.2502 13.3049 34.909 13.8069Z"
+                        fill="#003AFF" />
+                    <defs>
+                        <filter id="filter0_b_125_459" x="-50" y="-50" width="148" height="148"
+                            filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                            <feGaussianBlur in="BackgroundImageFix" stdDeviation="27" />
+                            <feComposite in2="SourceAlpha" operator="in" result="effect1_backgroundBlur_125_459" />
+                            <feBlend mode="normal" in="SourceGraphic" in2="effect1_backgroundBlur_125_459"
+                                result="shape" />
+                        </filter>
+                    </defs>
+                </svg>
+                <h2 class="modal-title" id="modalTitle">Новая должность успешно применена!</h2>
+                <p class="modal-description" id="modalDescription">Вы получили временный пароль, который сотрудник может
+                    сменить на свой при
+                    следующем входе в аккаунт.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn confirm" onclick="closeAllModal()">Готово →</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="successModalPassword" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-sure">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                    <g opacity="0.5" filter="url(#filter0_b_125_459)">
+                        <path
+                            d="M41.071 41.071C44 38.1422 44 33.428 44 24C44 14.5719 44 9.85786 41.071 6.92894C38.1422 4 33.428 4 24 4C14.5719 4 9.85786 4 6.92894 6.92894C4 9.85786 4 14.5719 4 24C4 33.428 4 38.1422 6.92894 41.071C9.85786 44 14.5719 44 24 44C33.428 44 38.1422 44 41.071 41.071Z"
+                            fill="#003AFF" />
+                    </g>
+                    <path
+                        d="M34.909 13.8069C35.568 14.309 35.6952 15.2502 35.1932 15.9091L21.4788 33.9092C21.2058 34.2676 20.786 34.4842 20.3356 34.4992C19.8853 34.5142 19.4521 34.326 19.1558 33.9866L12.87 26.7866C12.3252 26.1624 12.3895 25.215 13.0135 24.6702C13.6376 24.1252 14.5852 24.1896 15.13 24.8136L20.2068 30.6288L32.8068 14.091C33.309 13.4321 34.2502 13.3049 34.909 13.8069Z"
+                        fill="#003AFF" />
+                    <defs>
+                        <filter id="filter0_b_125_459" x="-50" y="-50" width="148" height="148"
+                            filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                            <feGaussianBlur in="BackgroundImageFix" stdDeviation="27" />
+                            <feComposite in2="SourceAlpha" operator="in" result="effect1_backgroundBlur_125_459" />
+                            <feBlend mode="normal" in="SourceGraphic" in2="effect1_backgroundBlur_125_459"
+                                result="shape" />
+                        </filter>
+                    </defs>
+                </svg>
+                <h2 class="modal-title" id="modalTitle">Пароль успешно сброшен!</h2>
+                <p class="modal-description" id="modalDescription">Вы получили временный пароль, который сотрудник может сменить на свой при следующем входе в аккаунт.</p>
+            </div>
+            <div class="modal-actions">
+                <div class="btn password-container">
+                    <span class="password-label">Временный пароль</span>
+                    
+                    <div class="copy-button" onclick="copyToClipboard()">
+                        <span class="password-text" id="temporaryPassword">qwerty123</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M6.59961 11.3974C6.59961 8.67119 6.59961 7.3081 7.44314 6.46118C8.28667 5.61426 9.64432 5.61426 12.3596 5.61426H15.2396C17.9549 5.61426 19.3125 5.61426 20.1561 6.46118C20.9996 7.3081 20.9996 8.6712 20.9996 11.3974V16.2167C20.9996 18.9429 20.9996 20.306 20.1561 21.1529C19.3125 21.9998 17.9549 21.9998 15.2396 21.9998H12.3596C9.64432 21.9998 8.28667 21.9998 7.44314 21.1529C6.59961 20.306 6.59961 18.9429 6.59961 16.2167V11.3974Z" fill="#216BF4"/>
+                            <path opacity="0.5" d="M4.17157 3.17157C3 4.34315 3 6.22876 3 10V12C3 15.7712 3 17.6569 4.17157 18.8284C4.78913 19.446 5.6051 19.738 6.79105 19.8761C6.59961 19.0353 6.59961 17.8796 6.59961 16.2167V11.3974C6.59961 8.6712 6.59961 7.3081 7.44314 6.46118C8.28667 5.61426 9.64432 5.61426 12.3596 5.61426H15.2396C16.8915 5.61426 18.0409 5.61426 18.8777 5.80494C18.7403 4.61146 18.4484 3.79154 17.8284 3.17157C16.6569 2 14.7712 2 11 2C7.22876 2 5.34315 2 4.17157 3.17157Z" fill="#216BF4"/>
+                          </svg>
+                    </div>
+                </div>
+                <button class="btn confirm" onclick="closeAllModal()">Готово →</button>
+                <div id="notification" class="notification">Пароль успешно скопирован!</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showNotification(message, isSuccess = true) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+
+            // Меняем цвет в зависимости от результата
+            notification.style.backgroundColor = isSuccess ? '#4CAF50' : '#f44336'; // Зеленый или красный
+
+            // Показываем уведомление
+            notification.classList.remove('hidden');
+            notification.classList.add('visible');
+
+            // Скрываем уведомление через 3 секунды
+            setTimeout(() => {
+                notification.classList.remove('visible');
+                notification.classList.add('hidden');
+                window.location.reload();
+            }, 3000);
+
+        }
+
+
+        const userData = {{ all_users| tojson }};
+        let currentUserId = null;
+        function showUserDetails(userId) {
+            // Находим пользователя по ID вместо индекса
+            const user = userData.find(user => user.id === userId);
+            if (!user) return;
+
+            // Убираем активный класс у всех элементов
+            document.querySelectorAll('.employee-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Добавляем активный класс выбранному элементу
+            const selectedElement = document.querySelector(`[data-user-id="${userId}"]`);
+            if (selectedElement) {
+                selectedElement.classList.add('active');
+            }
+
+            // Показываем правую панель
+            const rightPanel = document.getElementById('rightPanel');
+            rightPanel.classList.add('active');
+
+            // Устанавливаем ID текущего пользователя
+            document.getElementById('userId').value = userId 
+            // Обновляем информацию о пользователе
+            const nameField = document.querySelector('.text-profile');
+            if (nameField) {
+                nameField.value = `${user.last_name || ''} ${user.first_name || ''}`.trim();
+                nameField.setAttribute('data-original', nameField.value);
+            }
+
+            // Обновляем дополнительную информацию профиля
+            const registrationDate = document.querySelector('.text-profile.gray');
+            if (registrationDate) {
+                registrationDate.textContent = `Дата регистрации ${user.registration_date || 'Не указана'}`;
+            }
+
+            const roleElement = document.querySelector('.text-profile.blue');
+            if (roleElement) {
+                roleElement.textContent = user.role.name || '';
+            }
+
+            // Функция для обновления полей
+            const updateField = (fieldName, value) => {
+                const element = document.querySelector(`[data-field="${fieldName}"] input`);
+                if (element) {
+                    const newValue = value || 'Не указано';
+                    element.value = newValue;
+                    element.setAttribute('data-original', newValue);
+                }
+            };
+
+            // Обновляем личную информацию
+            updateField('login', user.login);
+            updateField('email', user.email);
+            updateField('phone', user.phone);
+            updateField('company', user.company);
+            updateField('work-schedule', `${user.work_start_time || 'Не указано'} - ${user.work_end_time || 'Не указано'}`);
+
+            // Обработка рабочих дней
+            if (Array.isArray(user.work_days)) {
+                // Если work_days это простой массив строк
+                updateField('days', user.work_days.join(', '));
+
+                // Обновляем рабочие дни в календаре
+                const workDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+                const daysElements = document.querySelectorAll('.day');
+
+                daysElements.forEach((element, index) => {
+                    const dayName = workDays[index];
+                    if (Array.isArray(user.work_days)) {
+                        // Проверяем оба возможных формата данных
+                        const isDayActive = typeof user.work_days[0] === 'object'
+                            ? user.work_days.some(day => day.name === dayName && day.active)
+                            : user.work_days.includes(dayName);
+
+                        element.classList.toggle('active', isDayActive);
+                    }
+                });
+            }
+        }
+
+        // Добавляем обработчики событий для всех элементов списка
+        document.querySelectorAll('.employee-item').forEach(item => {
+            item.addEventListener('click', function () {
+                const userId = this.getAttribute('data-user-id');
+                
+                showUserDetails(userId);
+            });
+        });
+        if (userData && userData.length > 0) {
+            const firstUser = userData[0];
+            showUserDetails(firstUser.id || firstUser.user_id);
+        }
+
+        document.getElementById('userEditForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const submitButton = document.querySelector('button[type="submit"]');
+            submitButton.disabled = false;  // Отключаем кнопку отправки
+
+            // Добавляем индикатор загрузки (если нужно)
+            document.querySelectorAll('.employee-item').forEach(item => {
+            item.addEventListener('click', function () {
+                if (this.classList.contains('active')) {
+                    const userId_main = this.getAttribute('data-user-id');
+                }
+            });
+        });
+            // Собираем данные формы
+            const formData = new FormData(this);
+            console.log(formData.get('user_id'));
+            const userId = formData.get('user_id'); 
+            console.log(userId); // Убедитесь, что userId правильно определяется
+
+            let full_name = formData.get('full_name');
+            let [last_name, ...rest] = full_name.split(' ');
+            let first_name = rest.join(' ');
+
+            // Функция для проверки изменений
+            const isFieldChanged = (fieldName, newValue) => {
+                const element = document.querySelector(`[name="${fieldName}"]`);
+                if (!element) {
+
+                    return false;
+                }
+                const originalValue = element.getAttribute('data-original');
+
+                return newValue !== originalValue;
+            };
+
+            // Создаем объект с изменёнными данными для отправки
+            const updateData = {};
+
+            if (isFieldChanged('full_name', full_name)) {
+                updateData.first_name = first_name || null;
+                updateData.last_name = last_name || null;
+            }
+            if (isFieldChanged('login', formData.get('login'))) {
+                updateData.login = formData.get('login') || null;
+            }
+            if (isFieldChanged('email', formData.get('email'))) {
+                updateData.email = formData.get('email') || null;
+            }
+            if (isFieldChanged('phone', formData.get('phone'))) {
+                updateData.phone = formData.get('phone') || null;
+            }
+
+            // Если нет изменений, прерываем отправку запроса
+            if (Object.keys(updateData).length === 0) {
+                alert('Нет изменений для обновления');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/users/update_user?user_id=${userId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка при обновлении данных');
+                }
+
+                const updatedUser = await response.json();
+
+
+
+                // Показываем сообщение об успехе
+                // Логика обновления локальных данных и отображения
+                showNotification('Изменения успешно сохранены!', true);
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Произошла ошибка при обновлении данных.', false);
+            }
+        });
+        document.getElementById('confirmRoleButton').addEventListener('click', () => {
+            
+            document.querySelectorAll('.role-button').forEach(button => {
+                if (button.classList.contains('active')) {
+                    selectRoleId = button.getAttribute('data-role-id');
+                }
+
+            });
+            let currentUserId = document.getElementById('userId').value 
+            if (selectedRole) {
+                
+                fetch(`/api/users/update_user?user_id=${currentUserId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ role_id: selectRoleId })
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            // Открываем финальное модальное окно
+                            openSuccessModal('Новая должность успешно применена!', 'Должность успешно изменена.');
+                        } else {
+                            alert('Произошла ошибка при применении новой должности.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка:', error);
+                        alert('Произошла ошибка при подключении к серверу.');
+                    });
+            }
+        });
+        document.getElementById('confirmDeleteButton').addEventListener('click', () => {
+            currentUserId =document.getElementById('userId').value 
+            fetch(`/api/users/delete_user?user_id=${currentUserId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // Открываем финальное модальное окно
+                        openSuccessModal('Аккаунт успешно удалён!', 'Аккаунт безвозвратно удалён.');
+                    } else {
+                        alert('Произошла ошибка при удалении пользователя.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Произошла ошибка при подключении к серверу.');
+                });
+        });
+        document.getElementById('confirmResetPasswordButton').addEventListener('click', () => {
+            currentUserId = document.getElementById('userId').value 
+            fetch(`/api/users/reset_password?user_id=${currentUserId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // Открываем финальное модальное окно
+                        openSuccessPasswordModal();
+                    } else {
+                        alert('Произошла ошибка при сбросе пароля.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+            })
+        });
+    </script>
+    <script src="/static/scripts.js"></script>
+    <script src="/static/modal-scripts.js"></script>
+    <script src="/static/modal-scripts-excel.js"></script>
+
+</body>
+
+</html>

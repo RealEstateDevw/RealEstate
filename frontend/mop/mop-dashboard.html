@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller CRM Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/static/sales-dashboard-style.css">
+    <link rel="stylesheet" href="/static/sales_style/header-sales.css">
+    <link rel="stylesheet" href="/static/mop-dashboard.css">
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+        .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+
+    border-radius: 30px;
+            height: fit-content;
+backdrop-filter: blur(25px);
+    min-width: 400px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    gap: 10px;
+    display: flex
+;
+    flex-direction: column;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group select,
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: space-between;
+}
+.form-buttons button{
+    padding: 17px 20px;
+    border: none;
+    border-radius: 57px;
+    cursor: pointer;
+    flex: 1 0 0;
+
+}
+.active{
+    background-color: #216BF4;
+    color: #FFF;
+}
+    </style>
+</head>
+
+<body>
+    <div id="notification" class="notification" style="display: none;">
+        <span id="notification-message"></span>
+        <button id="close-notification" class="close-btn">&times;</button>
+    </div>
+    {% include 'partials/mop-header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+
+    <div class="dashboard">
+        <div class="card-mop">
+            <h3>Посмотреть общий отчет за сегодня</h3>
+            <a href="{{ url_for('mop_dashboard_report') }}" class="button">Перейти 
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+                    <path d="M6 3.83332L10 8.49999L6 13.1667" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+        </div>
+
+        <div class="card-mop">
+            <h3>Поступило лидов за сегодня</h3>
+            <div class="stats">
+                <span id="new-leads-count" class="number">0</span>
+                <svg id="new-leads-trend" xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33" fill="none">
+                    <path d="M29.3334 9.83334L19.4938 19.6129C18.1637 20.9351 17.4985 21.596 16.6735 21.596C15.8486 21.5959 15.1835 20.9347 13.8537 19.6123L13.5346 19.2949C12.2035 17.9713 11.5379 17.3095 10.7124 17.3099C9.88683 17.3101 9.22176 17.9724 7.89164 19.2969L2.66675 24.5M29.3334 9.83334V17.2277M29.3334 9.83334H21.8906" stroke="#00CC22" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                <div id="new-leads-yesterday" class="previous">0 за предыдущий день</div>
+            </div>
+        </div>
+
+        <div class="card-mop">
+            <h3>Отработано лидов за сегодня</h3>
+            <div class="stats">
+                <span id="processed-leads-count" class="number">0</span>
+                <svg id="processed-leads-trend" xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33" fill="none">
+                    <path d="M29.3332 24.5L19.4936 14.7204C18.1634 13.3983 17.4982 12.7373 16.6733 12.7374C15.8484 12.7375 15.1833 13.3987 13.8534 14.7211L13.5344 15.0384C12.2032 16.362 11.5377 17.0239 10.7121 17.0235C9.88658 17.0232 9.22152 16.3609 7.8914 15.0364L2.6665 9.83334M29.3332 24.5V17.1056M29.3332 24.5H21.8904" stroke="#FF0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                <div id="processed-leads-yesterday" class="previous">0 за предыдущий день</div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <div class="columns">
+        <div class="column" data-status="COLD">
+            <div class="column-header" >
+                <div class="column-title">Холодные</div>
+                <div class="lead-count">0 лида</div>
+            </div>
+<div class="lead-list">
+            
+        </div>
+        </div>
+
+        <div class="column" data-status="WARM">
+            <div class="column-header" >
+                <div class="column-title">Тёплые</div>
+                <div class="lead-count">0 лида</div>
+            </div>
+            <!-- Add cards for warm leads -->
+            <div class="lead-list">
+            
+            </div>
+
+        </div>
+
+        <div class="column" data-status="HOT">
+            <div class="column-header" >
+                <div class="column-title">Горячие</div>
+                <div class="lead-count">0 лидов</div>
+            </div>
+
+            <!-- Add cards for hot leads -->
+            <div class="lead-list">
+            
+            </div>
+        </div>
+    </div>
+    <div class="lead-section inactive">
+        <div class="lead-section-header">
+          <!-- заголовок теперь имеет общую id -->
+          <h2 id="lead-section-title">
+            Неактуальные <span id="leads-count">0</span>
+          </h2>
+        </div>
+        <!-- общий контейнер для обоих типов лидов -->
+        <div class="lead-card" id="leads-container"></div>
+      </div>
+    <div id="importLeadsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h2>Импортировать лиды</h2>
+        <form id="importLeadsForm">
+            <div class="form-group">
+                <label for="salespersonSelect">Выберите продажника:</label>
+                <select id="salespersonSelect" name="salesperson" required>
+                    <option value="">-- Выберите продажника --</option>
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="leadFile">Выберите файл (Google Sheets URL или Excel):</label>
+                <input type="file" id="leadFile" name="lead_file" accept=".xlsx,.xls" required>
+                <input type="url" id="googleSheetUrl" name="google_sheet_url" placeholder="Или вставьте URL Google Sheets">
+            </div>
+            <div class="form-buttons">
+                <button type="button" class="active" onclick="importLeads()">Импортировать</button>
+                <button type="button" onclick="closeImportModal()">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+    <script src="/static/mop-dashboard.js"></script>
+    <script src="/static/mop-dashboard-main.js"></script>
+
+</body>
+
+</html>
