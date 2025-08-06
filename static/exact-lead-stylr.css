@@ -700,7 +700,7 @@ border-radius: 57px;
     .modal-content {
         width: 90%;
     }
-    .actions{
+    .actions, .actions2{
         position: relative;
     }
 }
@@ -713,9 +713,12 @@ border-radius: 57px;
     .info-grid {
         grid-template-columns: 1fr;
     }
-    .actions, .actions2{
+    .actions{
         
         grid-template-columns: 1fr 1fr;
+    }
+    .actions2{
+        grid-template-columns: 1fr;
     }
     .action-button,
     .action-button-finance, .action2-button{

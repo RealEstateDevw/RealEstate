@@ -295,7 +295,7 @@ body {
 
 .filter-label {
     color: #212529;
-    font-size: 14px;
+    font-size: 20px;
 }
 
 .filter-select {
@@ -303,6 +303,7 @@ body {
     outline: none;
     font-size: 14px;
     color: #777;
+    max-width:50px ;
 }
 
 .employee-list {
@@ -326,7 +327,7 @@ body {
 }
 
 .employee-name {
-    font-size: 16px;
+    font-size: 20px;
     color: #212529;
     display: flex;
     justify-content: space-between;
@@ -335,7 +336,17 @@ body {
 
 .employee-position {
     font-size: 14px;
-    color: #777;
+    color: #000000;
+    display: flex;
+    /* height: 60px; */
+    min-width: 220px;
+    padding: 15px;
+    align-items: center;
+    gap: 10px;
+    flex: 1 0 0;
+    border-radius: 10px;
+    background: rgba(245, 245, 245, 0.80);
+    backdrop-filter: blur(25px);
 }
 
 .status {
@@ -798,7 +809,7 @@ body {
     color: #212529;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 5px;
     width: 35%;
 }
