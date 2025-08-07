@@ -27,25 +27,148 @@
   width: 100%;      /* если нужно, чтобы изображение было адаптивным */
   height: auto;
 }
+  .demo-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .demo-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0 0 10px 0;
+        }
+
+        .demo-subtitle {
+            font-size: 16px;
+            color: #64748b;
+            margin: 0;
+        }
 
 /* Класс для кнопок-блоков, которые накладываем на изображение */
 .overlay-block-btn {
-  position: absolute;
-  padding: 5px 10px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #216BF4;
+            border: 2px solid #216BF4;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(33, 107, 244, 0.2);
+            z-index: 10;
+        }
 
-.overlay-block-btn:hover {
-  background-color: #0056b3;
-  transform: translateY(-2px);
-  /* можно добавить тень, подсветку и т. д. */
-}
+        .overlay-block-btn:hover {
+            background: #216BF4;
+            color: white;
+            transform: scale(1.15);
+            box-shadow: 
+                0 6px 20px rgba(33, 107, 244, 0.4),
+                0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .overlay-block-btn:active {
+            transform: scale(1.05);
+            transition: all 0.1s ease;
+        }
+
+        /* Анимация появления кнопок */
+        .overlay-block-btn {
+            animation: blockButtonAppear 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+        }
+
+        .overlay-block-btn:nth-child(2) { animation-delay: 0.1s; }
+        .overlay-block-btn:nth-child(3) { animation-delay: 0.2s; }
+        .overlay-block-btn:nth-child(4) { animation-delay: 0.3s; }
+        .overlay-block-btn:nth-child(5) { animation-delay: 0.4s; }
+        .overlay-block-btn:nth-child(6) { animation-delay: 0.5s; }
+        .overlay-block-btn:nth-child(7) { animation-delay: 0.6s; }
+
+        @keyframes blockButtonAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.5) translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Пульсация для привлечения внимания */
+        .overlay-block-btn::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 50%;
+            border: 2px solid #216BF4;
+            opacity: 0;
+            transform: scale(1);
+            animation: buttonPulse 2s infinite ease-out;
+        }
+
+        @keyframes buttonPulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
+
+        
+
+        /* Подсказки для кнопок */
+        .overlay-block-btn[data-tooltip] {
+            position: relative;
+        }
+
+        .overlay-block-btn[data-tooltip]:hover::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 400;
+            white-space: nowrap;
+            z-index: 1000;
+            opacity: 1;
+            animation: tooltipFadeIn 0.2s ease;
+        }
+
+        @keyframes tooltipFadeIn {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-5px); }
+            100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* Мобильная адаптивность */
+        @media (max-width: 768px) {
+            .overlay-block-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+        }
         body {
             background-color: #f8f9fa;
         }
@@ -95,33 +218,249 @@
         .dropdown-icon {
             margin-left: 5px;
         }
-
+#complexes-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            padding: 40px 20px;
+            background: transparent;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
        
-        
-        #complexes-container {
-    display: none; /* Скрыт по умолчанию */
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    padding: 20px;
-    background-color: #fff; /* Белый фон */
-}
+        .complex-card {
+            position: relative;
+            width: 350px;
+            height: 420px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.08),
+                0 1px 3px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
 
-.complex-card, .complex-card-info {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 10px;
-    text-align: center;
-    width: 200px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
+        .complex-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(33, 107, 244, 0.03);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .complex-card:hover::before {
+            opacity: 1;
+        }
+
+        .complex-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 8px 30px rgba(0, 0, 0, 0.12),
+                0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Контейнер изображения */
+        .complex-image-container {
+            position: relative;
+            width: 100%;
+            height: 260px;
+            overflow: hidden;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .complex-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .complex-card:hover .complex-image {
+            transform: scale(1.08);
+        }
+
+        /* Градиентный оверлей на изображение */
+        .complex-image-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: linear-gradient(to top, 
+                rgba(0, 0, 0, 0.7) 0%, 
+                rgba(0, 0, 0, 0.3) 50%, 
+                transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .complex-card:hover .complex-image-container::after {
+            opacity: 1;
+        }
+
+        /* Современный статус бейдж */
+        .complex-status-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+      
+
+        /* Контент карточки */
+        .complex-content {
+            padding: 24px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .complex-title {
+            margin: 0 0 12px 0;
+            font-size: 22px;
+            font-weight: 600;
+            color: #1f2937;
+            line-height: 1.3;
+        }
+
+        .complex-description {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        /* Информационные теги */
+        .complex-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .complex-tag {
+            padding: 4px 10px;
+            background: #f3f4f6;
+            color: #4b5563;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Анимация при загрузке */
+        .complex-card {
+            animation: cardSlideIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+        }
+
+        .complex-card:nth-child(1) { animation-delay: 0.1s; }
+        .complex-card:nth-child(2) { animation-delay: 0.2s; }
+        .complex-card:nth-child(3) { animation-delay: 0.3s; }
+        .complex-card:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes cardSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Эффект подсветки при клике */
+        .complex-card:active {
+            transform: translateY(-10px) scale(1.01);
+            transition: all 0.1s ease;
+        }
+
+        /* Мобильная адаптивность */
+        @media (max-width: 768px) {
+            #complexes-container {
+                padding: 20px 10px;
+                gap: 20px;
+            }
+
+            .complex-card {
+                width: 100%;
+                max-width: 320px;
+                height: 380px;
+            }
+
+            .complex-image-container {
+                height: 220px;
+            }
+
+            .complex-content {
+                padding: 20px;
+            }
+
+            .complex-title {
+                font-size: 20px;
+            }
+        }
+
+        /* Дополнительные эффекты для премиум вида */
+        .complex-card::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: #216BF4;
+            border-radius: 18px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .complex-card:hover::after {
+            opacity: 0.15;
+        }
 
 
-.complex-card-info {
-    position: relative;
-  display: inline-block;
-}
 
+        /* Заголовок страницы */
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            font-size: 42px;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            font-size: 18px;
+            color: #64748b;
+            margin: 10px 0 0 0;
+            font-weight: 400;
+        }
+      
 .status-reserved{
     background-color:#F5B700;
     color: #ffffff;
@@ -131,11 +470,7 @@
     background-color: #CCD0D2;
     }
 
-.complex-card img, .complex-card-info img {
-    display: block;
-    width: 100%;
-    border-radius: 5px;
-}
+
 .hover-area {
   position: absolute;
   /* Задайте координаты и размеры нужной области */
@@ -209,7 +544,9 @@
     display: block; /* Make it take its own line */
     width: 100%;   /* Make it fill container width */
     height: auto;  /* Maintain aspect ratio */
-    max-width: 100%; /* Prevent overflow if container is smaller */
+    max-width: 100%;
+    border-radius: 30px;
+border: 5px solid rgba(255, 255, 255, 0.60); /* Prevent overflow if container is smaller */
 }
 
 .back-button.top-left {/* Adjust as needed */
@@ -281,6 +618,7 @@
   border-radius: 20px;
   padding: 0.5rem;
   min-height: 100px;
+  min-width: 170px;
   display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -473,8 +811,19 @@ async function showComplexes() {
                 card.setAttribute("data-jk-name", complex.name); // Указываем имя ЖК
 
                 card.innerHTML = `
+                <div class="complex-image-container">
                     <img src="${complex.render}" alt="Рендер ${complex.name}" class="complex-image">
-                    <h3 class="complex-title">${complex.name}</h3>
+                       </div>
+                        <div class="complex-content">
+                <h3 class="complex-title">${complex.name}</h3>
+                <p class="complex-description">Элегантный жилой комплекс в престижном районе с панорамными видами</p>
+                <div class="complex-tags">
+                    <span class="complex-tag">Консьерж</span>
+                    <span class="complex-tag">Фитнес-зал</span>
+                    <span class="complex-tag">Терраса</span>
+                </div>
+            </div>
+
                      
                 `;
 
@@ -614,7 +963,10 @@ function showJKDetails(shaxmatkaData, renderImage, jkName) {
     jkDetailsContainer.style.display = "inline-block";
     jkDetailsContainer.style.position = "relative";
     jkDetailsContainer.style.maxWidth = ""; // Reset max-width if it was changed
-
+    jkDetailsContainer.innerHTML = ` <div class="demo-header">
+            <h1 class="demo-title">${jkName} - Выбор блока</h1>
+            <p class="demo-subtitle">Кликните на блок для просмотра доступных квартир</p>
+        </div>`
     const wrapper = document.createElement("div");
         wrapper.className = "jk-image-wrapper";
 
@@ -636,7 +988,16 @@ function showJKDetails(shaxmatkaData, renderImage, jkName) {
             "Блок 1,3": { top: 10, left: 13 },
             "Блок 3":   { top: 50, left: 61 },
             "Блок 3,1": { top: 33, left: 28 },
-            "Блок 3,2": { top: 22, left: 7 }
+            "Блок 3,2": { top: 22, left: 7 },
+            "А": {top: 15, left: 8 },
+            "Б": {top: 15, left: 25 },
+            "В": {top: 15, left: 42 },
+            "Г": {top: 15, left: 59 },
+            "Д": {top: 15, left: 76 },
+            "Е": {top: 15, left: 92 },
+
+
+
             // Добавьте остальные блоки и скорректируйте координаты
         };
 
@@ -648,9 +1009,13 @@ function showJKDetails(shaxmatkaData, renderImage, jkName) {
             btn.textContent = blockName;
 
             // Если блока нет в coordsMap, ставим ему (0,0)
-            const pos = coordsMap[blockName] || { top: 0, left: 0 };
+            const pos = coordsMap[blockName] || "";
             btn.style.top  = pos.top + "%";
             btn.style.left = pos.left + "%";
+            // уменьшенный шрифт для блоков с цифрами
+            if (/\d/.test(blockName)) {
+                btn.style.fontSize = '10px';
+            }
 
             btn.addEventListener("click", () => {
                 filterBlockData(globalShaxmatkaData, blockName, globalRenderImage, jkName);

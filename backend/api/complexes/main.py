@@ -13,6 +13,7 @@ from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, HTTPException, Body, Query, UploadFile, File, Form
 from starlette.responses import FileResponse
 
+from math import isfinite
 from backend.core.google_sheets import get_price_data_for_sheet, get_shaxmatka_data, get_price_data_for_sheet_all
 
 router = APIRouter(prefix='/api/complexes')
@@ -69,38 +70,46 @@ async def get_jk_data(jk_name: str):
             if img.lower().endswith(('.png', '.jpg', '.jpeg'))
         ]
         render_image = images[1] if images else images[0]
-
     # Пример обработки данных, аналогичный исходному коду
-    for row in shaxmatka_data:
-        # print(row[2])
-        if row[2].strip().lower() in "свободна ":
-            try:
-                floor = int(row[6])
-                area = float(row[5])
-                # Предположим, что цена также кэшируется отдельной функцией (пример ниже)
-                price_data = await get_price_data_for_sheet_all(jk_name)
-                # Здесь производится поиск цены для этажа и расчёт
-                # Например:
-                price_30 = None
-                if price_data:
-                    for item in price_data:
-                        try:
-                            if int(item[0]) == floor:
-                                price_30 = float(item[4])
-                                break
-                        except (ValueError, IndexError):
-                            continue
-                if price_30:
-                    total_price_30 = round(price_30 * area)
-                    row.append(total_price_30)
-                else:
-                    row.append(None)
-            except (ValueError, TypeError) as e:
-                print(f"Ошибка обработки строки {row}: {e}")
-                row.append(None)
+    # for row in shaxmatka_data:
+    #     # print(row[2])
+    #     if row[2].strip().lower() in "свободна ":
+    #         try:
+    #             floor = int(row[6])
+    #             area = float(row[5])
+    #             price_data = await get_price_data_for_sheet_all(jk_name)
+    #             price_30 = None
+    #             if price_data:
+    #                 for item in price_data:
+    #                     try:
+    #                         if int(item[0]) == floor:
+    #                             price_30 = float(item[4])
+    #                             break
+    #                     except (ValueError, IndexError):
+    #                         continue
+    #             if price_30:
+    #                 print(round(price_30*area))
+    #                 total_price_30 = round(price_30 * area)
+    #                 row.append(total_price_30)
+    #             else:
+    #                 row.append(None)
+    #         except (ValueError, TypeError) as e:
+    #             print(f"Ошибка обработки строки {row}: {e}")
+    #             row.append(None)
         # else:
         #     row.append(None)
 
+    # Sanitize non-finite floats to avoid JSON errors
+    sanitized_shaxmatka = []
+    for row in shaxmatka_data:
+        sanitized_row = []
+        for item in row:
+            if isinstance(item, float) and not isfinite(item):
+                sanitized_row.append(None)
+            else:
+                sanitized_row.append(item)
+        sanitized_shaxmatka.append(sanitized_row)
+    shaxmatka_data = sanitized_shaxmatka
     return {"status": "success", "shaxmatka": shaxmatka_data, "render": render_image}
 
 

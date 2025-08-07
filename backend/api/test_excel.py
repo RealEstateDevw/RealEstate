@@ -40,7 +40,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXCEL_FILE_PATHS = {
     # !!! ЗАМЕНИТЕ НА ВАШИ РЕАЛЬНЫЕ ИМЕНА ЖК И ПУТИ !!!
     "ЖК_Бахор": os.path.join("static", "Жилые_Комплексы", "ЖК_Бахор", "jk_data.xlsx"),
-    "Другой ЖК": os.path.join(BASE_DIR, "data", "shahmatka_drugoy.xlsx"),
+    "ЖК_Рассвет": os.path.join("static", "Жилые_Комплексы", "ЖК_Рассвет", "jk_data.xlsx"),
 }
 
 # === НОВАЯ КОНФИГУРАЦИЯ СТОЛБЦОВ ===
@@ -93,7 +93,6 @@ def _number_to_words(number: str) -> str:
     return num2words(int(clean_number), lang='ru') + " сум"
 
 
-# --- Роутер (остается без изменений) ---
 router = APIRouter(prefix="/excel", tags=["Excel Operations"])  # Пример префикса
 
 

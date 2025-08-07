@@ -40,7 +40,7 @@ function openRegistryModal() {
     modalContent.style.width = '90%';
     modalContent.style.maxWidth = '1100px'; // Немного увеличим ширину для кнопки
 
-    const jkList = ["ЖК_Бахор", "ЖК_Другой"]; // Замените или получите список с API
+    const jkList = ["ЖК_Бахор", "ЖК_Рассвет"]; // Замените или получите список с API
 
     modalContent.innerHTML = `
         <h3 style="margin-top: 0;">Реестр договоров</h3>
