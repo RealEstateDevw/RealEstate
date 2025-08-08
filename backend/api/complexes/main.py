@@ -96,8 +96,8 @@ async def get_jk_data(jk_name: str):
     #         except (ValueError, TypeError) as e:
     #             print(f"Ошибка обработки строки {row}: {e}")
     #             row.append(None)
-        # else:
-        #     row.append(None)
+    # else:
+    #     row.append(None)
 
     # Sanitize non-finite floats to avoid JSON errors
     sanitized_shaxmatka = []
@@ -286,8 +286,13 @@ async def get_apartment_info(
         print(f"price_30={prices['30']}, calculated total_price={total_price}")
 
         # Вычисляем оставшиеся месяцы (например, до 30 июня 2027)
-        start_date = datetime(2025, 7, 1)
-        end_date = start_date + relativedelta(months=22)
+        if jkName == "ЖК_Бахор":
+            start_date = datetime(2025, 7, 1)
+            end_date = start_date + relativedelta(months=22)
+
+        else:
+            start_date = datetime(2025, 8, 1)
+            end_date = start_date + relativedelta(months=23)
 
         # Текущая дата (сегодня)
         today = datetime.today()
@@ -321,7 +326,6 @@ async def get_apartment_info(
     except Exception as e:
         print(f"Ошибка при обработке запроса: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
 
 
 STATIC_DIR = "static"
@@ -405,8 +409,6 @@ BASE_DIR = Path(__file__).parent.parent.parent.parent / "static" / "Жилые_�
 print(BASE_DIR)
 
 
-
-
 @router.post("/add-complex")
 async def add_complex(
         name: str = Form(...),
@@ -456,8 +458,3 @@ async def add_complex(
         "complex_name": name,
         "saved_files": saved
     }
-
-
-
-
-

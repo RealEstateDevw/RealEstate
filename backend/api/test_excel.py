@@ -66,7 +66,7 @@ class ApartmentStatusUpdate(BaseModel):
 
 class ContractData(BaseModel):
     jkName: str
-    contractNumber: Union[str, None] = None  # Сделаем опциональным для генерации
+    contractNumber: Union[str, None] = None
     contractDate: str
     fullName: str
     passportSeries: str
@@ -78,12 +78,12 @@ class ContractData(BaseModel):
     floor: int
     apartmentNumber: int
     rooms: int
-    size: float  # Используем float для удобства, или str если нужно точное строковое представление
-    totalPrice: str  # Оставляем строкой для форматирования и number_to_words
-    pricePerM2: str  # Оставляем строкой
+    size: float
+    totalPrice: str
+    pricePerM2: str
     paymentChoice: str
-    initialPayment: str  # Оставляем строкой
-    salesDepartment: Union[str, None] = None  # Добавим, так как есть в реестре
+    initialPayment: str
+    salesDepartment: Union[str, None] = None
 
 
 # Функция преобразования числа в слова (на русском языке)
@@ -387,30 +387,19 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     total_amount = clean_number(data.totalPrice)
     initial_payment = clean_number(data.initialPayment)
 
-    start_date = datetime(2025, 7, 1)
-    end_date = start_date + relativedelta(months=22)
 
-    # Текущая дата (сегодня)
-    today = datetime.today()
-
-    # Считаем разницу в месяцах
-    diff_years = end_date.year - today.year
-    diff_months = end_date.month - today.month
-    total_months_left = diff_years * 12 + diff_months
-
-    # Если день уже прошел текущий месяц, уменьшаем на 1
-    if today.day > 1:
-        total_months_left -= 1
 
     # Не допускаем отрицательных значений
-    total_months_left = max(total_months_left, 0)
     # Осторожно с делением на 0, если total_amount может быть 0
-    monthly_payment = (
-                                  total_amount - initial_payment) / total_months_left if total_amount and initial_payment is not None else 0
     contract_date = parse_date(data.contractDate)  # Предполагаем, что parse_date возвращает datetime объект
     print(data.contractDate)
-    start_date = datetime(2025, 7, 1)
-    end_date = start_date + relativedelta(months=22)
+    if data.jkName == "ЖК_Бахор":
+        start_date = datetime(2025, 7, 1)
+        end_date = start_date + relativedelta(months=22)
+
+    else:
+        start_date = datetime(2025, 8, 1)
+        end_date = start_date + relativedelta(months=23)
 
     # Текущая дата (сегодня)
     today = datetime.today()
@@ -423,9 +412,11 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     # Если день уже прошел текущий месяц, уменьшаем на 1
     if today.day > 1:
         total_months_left -= 1
+    total_months_left = max(total_months_left, 0)
+    monthly_payment = (
+                              total_amount - initial_payment) / total_months_left if total_amount and initial_payment is not None else 0
 
     # Не допускаем отрицательных значений
-    total_months_left = max(total_months_left, 0)
     # Ключи БЕЗ {{ }}
     context = {
         "Номер_Договора": data.contractNumber or "N/A",
