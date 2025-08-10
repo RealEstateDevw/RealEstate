@@ -50,3 +50,145 @@
   .file-pill .actions .delete {
     color: var(--danger);
   }
+
+
+  #savePriceBtn,
+  #saveReplaceBtn,
+#cancelReplaceBtn,
+  #cancelPriceBtn,
+  #saveChessBtn, 
+#closeChessBtn {
+  background: #216BF4; /* основной синий */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+
+#cancelReplaceBtn,
+#cancelPriceBtn,
+#closeChessBtn {
+  background: #f0f0f0;
+  color: #333;
+}
+#saveReplaceBtn:hover,
+#savePriceBtn:hover,
+#saveChessBtn:hover {
+  background: #1652c5;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+
+
+#cancelReplaceBtn:hover,
+#cancelPriceBtn:hover,
+#closeChessBtn:hover {
+  background: #e5e5e5;
+}
+
+#saveReplaceBtn:active,
+#cancelReplaceBtn:active,
+ #savePriceBtn:active,
+#cancelPriceBtn:active,
+#saveChessBtn:active,
+#closeChessBtn:active {
+  transform: scale(0.97);
+}
+
+/* Базовый стиль (можно оставить твой прежний) */
+#saveChessBtn {
+  position: relative;
+  background: #216BF4;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s ease, box-shadow .2s ease, transform .06s ease;
+  box-shadow: 0 6px 18px rgba(33,107,244,.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#saveChessBtn:hover:not(:disabled) {
+  background: #1652c5;
+  box-shadow: 0 8px 22px rgba(33,107,244,.32);
+}
+
+#saveChessBtn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+#saveChessBtn:disabled {
+  opacity: .9;
+  cursor: not-allowed;
+}
+
+/* Контейнер текста, чтобы прятать его при загрузке (опционально) */
+#saveChessBtn .btn-label {
+  display: inline-block;
+}
+
+/* Спиннер (svg или псевдоэлемент — тут svg внутри span) */
+#saveChessBtn .btn-spinner {
+  width: 16px;
+  height: 16px;
+  display: none;
+  flex: 0 0 auto;
+}
+
+#saveChessBtn.is-loading .btn-spinner {
+  display: inline-block;
+  animation: btn-rotate 0.9s linear infinite;
+}
+
+/* Когда идёт загрузка — можно слегка приглушить текст */
+#saveChessBtn.is-loading .btn-label {
+  opacity: .95;
+}
+
+/* Состояния успеха/ошибки цветом */
+#saveChessBtn.is-success {
+  background: #28a745;
+  box-shadow: 0 6px 18px rgba(40,167,69,.25);
+}
+
+#saveChessBtn.is-error {
+  background: #dc3545;
+  box-shadow: 0 6px 18px rgba(220,53,69,.25);
+}
+
+@keyframes btn-rotate {
+  from { transform: rotate(0); }
+  to   { transform: rotate(360deg); }
+}
+
+
+.file-pill .actions .sync {
+  background: #F3F6FF;
+  color: #216BF4;
+  border: 1px solid rgba(33,107,244,.25);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+  margin-left: 6px;
+}
+.file-pill .actions .sync:hover {
+  background: #e7efff;
+  box-shadow: 0 2px 8px rgba(33,107,244,.15);
+}
+.file-pill .actions .sync:disabled {
+  opacity: .7;
+  cursor: not-allowed;
+}

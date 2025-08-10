@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from io import BytesIO
-from typing import Union, Dict, List, Any
+from typing import Union, Dict, List, Any, Optional
 from dateutil.relativedelta import relativedelta
 from docx.shared import Mm
 from docxtpl import DocxTemplate, InlineImage
@@ -83,7 +83,9 @@ class ContractData(BaseModel):
     pricePerM2: str
     paymentChoice: str
     initialPayment: str
-    salesDepartment: Union[str, None] = None
+    salesDepartment: Union[str, None] = None,
+    unitType: Optional[str] = Field(default="residential",
+                                    description="Тип помещения: 'residential' (жилой) или 'nonresidential' (нежилой)")
 
 
 # Функция преобразования числа в слова (на русском языке)
@@ -107,9 +109,6 @@ def find_row_and_update_status(file_path: str, update_data: ApartmentStatusUpdat
         apt_num_col_idx = col_letter_to_index(COLUMN_MAPPING["apartmentNumber"])
         status_col_idx = col_letter_to_index(COLUMN_MAPPING["status"])
 
-        print(f"Поиск в файле: {file_path}")
-        print(f"Критерии: Блок='{update_data.blockName}', Этаж={update_data.floor}, Кв={update_data.apartmentNumber}")
-        print(f"Колонки: Блок={block_col_idx}, Этаж={floor_col_idx}, Кв={apt_num_col_idx}, Статус={status_col_idx}")
 
         target_row_idx = -1
         for row_idx in range(DATA_START_ROW, sheet.max_row + 1):
@@ -117,7 +116,6 @@ def find_row_and_update_status(file_path: str, update_data: ApartmentStatusUpdat
             cell_floor = sheet.cell(row=row_idx, column=floor_col_idx).value
             cell_apt_num = sheet.cell(row=row_idx, column=apt_num_col_idx).value
 
-            print(f"Строка {row_idx}: Блок='{cell_block}', Этаж='{cell_floor}', Кв='{cell_apt_num}'")
 
             try:
                 current_block = str(cell_block).strip().lower() if cell_block else ""
@@ -132,20 +130,16 @@ def find_row_and_update_status(file_path: str, update_data: ApartmentStatusUpdat
 
                 if matches_block and matches_floor and matches_apt_num:
                     target_row_idx = row_idx
-                    print(f"Найдена строка {row_idx}!")
                     break
 
             except (ValueError, TypeError) as e:
-                print(f"Ошибка в строке {row_idx}: {e}")
                 continue
 
-        print(f"Итоговый target_row_idx: {target_row_idx}")
         if target_row_idx != -1:
             status_cell = sheet.cell(row=target_row_idx, column=status_col_idx)
             old_status = status_cell.value
             status_cell.value = update_data.newStatus
             workbook.save(file_path)
-            print(f"Статус обновлен: строка {target_row_idx}, '{old_status}' -> '{update_data.newStatus}'")
             return True
         else:
             print(
@@ -213,9 +207,12 @@ async def get_last_contract_number(jkName: str):
         # Ищем последнюю строку с номером договора в формате Д-XXXX
         for row in reversed(list(ws_registry.iter_rows(min_row=2, values_only=True))):
             contract_num = row[0]
-            if contract_num and isinstance(contract_num, str):
+            if contract_num:
                 try:
-                    number = int(contract_num.split('-')[0])
+                    if isinstance(contract_num, str):
+                        number = int(contract_num.split('-')[0])
+                    else:
+                        number = int(contract_num)
                     last_number = max(last_number, number)
                 except (IndexError, ValueError):
                     continue
@@ -295,11 +292,18 @@ floorplan_images = convert_floorplan_pdf_to_images(PDF_PLAN_PATH, FLOORPLAN_IMAG
 
 @router.post("/generate-contract")
 async def generate_contract(data: ContractData):
-    """Генерация договора в формате DOCX и обновление реестра в XLSX (с использованием docxtpl)."""
+    """Генерация договора в формате DOCX (автоматический выбор шаблона: жилой/нежилой) и обновление реестра в XLSX (docxtpl)."""
 
     jk_dir = os.path.join(BASE_STATIC_PATH, data.jkName)
     TEMPLATE_PATH = os.path.join(jk_dir, "contract_template.docx")
     REGISTRY_PATH = os.path.join(jk_dir, "contract_registry.xlsx")
+    # Выбор шаблона: жилой/нежилой
+    alt_template_path = os.path.join(jk_dir, "contract_template_empty.docx")
+    unit_type_val = (data.unitType or "residential").strip().lower()
+    # Поддерживаем русские и английские значения
+    nonres_aliases = {"nonresidential", "non-residential", "commercial", "нежилой", "не жилой", "помещение", "нежилое"}
+    if unit_type_val in nonres_aliases:
+        TEMPLATE_PATH = alt_template_path
 
     os.makedirs(jk_dir, exist_ok=True)
 
@@ -387,8 +391,6 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     total_amount = clean_number(data.totalPrice)
     initial_payment = clean_number(data.initialPayment)
 
-
-
     # Не допускаем отрицательных значений
     # Осторожно с делением на 0, если total_amount может быть 0
     contract_date = parse_date(data.contractDate)  # Предполагаем, что parse_date возвращает datetime объект
@@ -432,6 +434,7 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
         "Номер_КВ": str(data.apartmentNumber) if data.apartmentNumber is not None else "N/A",
         "Кол_во_Ком": str(data.rooms) if data.rooms is not None else "N/A",
         "Квадратура_Квартиры": str(data.size) if data.size is not None else "N/A",
+        "Квадратура_Не_жилое": str(data.size) if data.size is not None else "N/A",
         "Общ_Стоимость": f"{(monthly_payment * total_months_left):,.0f}".replace(",",
                                                                                  " ") if total_amount is not None else "N/A",
         "Общ_Стоимость_1": f"{total_amount :,.0f}".replace(",", " ") if total_amount is not None else "N/A",
@@ -589,6 +592,103 @@ REGISTRY_COLUMN_HEADERS = {
     "floor": "Этаж",  # Пример
     "apartmentNumber": "№ КВ"  # Пример
 }
+
+# --- Новый функционал: Синхронизация статусов шахматки с реестром ---
+SOLD_STATUS_IN_CHESS = "продана"
+
+
+def sync_chess_with_registry(jkName: str) -> dict:
+    """
+    Синхронизирует статусы в шахматке (jk_data.xlsx) с реестром договоров (contract_registry.xlsx).
+    Для всех квартир, присутствующих в реестре, выставляет статус `продана` в шахматке.
+    Возвращает сводку по изменениям.
+    """
+    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
+    chess_path = os.path.join(jk_dir, "jk_data.xlsx")
+    registry_path = os.path.join(jk_dir, "contract_registry.xlsx")
+
+    if not os.path.exists(chess_path):
+        raise HTTPException(status_code=404, detail=f"Шахматка не найдена для '{jkName}'")
+    if not os.path.exists(registry_path):
+        raise HTTPException(status_code=404, detail=f"Реестр договоров не найден для '{jkName}'")
+
+    # 1) Собираем множество квартир из реестра
+    try:
+        wb_reg = load_workbook(registry_path, data_only=True)
+        ws_reg = wb_reg.active
+        headers_reg = [cell.value for cell in ws_reg[1]]
+        try:
+            idx_contract = headers_reg.index(
+                REGISTRY_COLUMN_HEADERS["contractNumber"])  # не используется, но проверит заголовки
+            idx_block = headers_reg.index(REGISTRY_COLUMN_HEADERS["block"])  # Блок
+            idx_floor = headers_reg.index(REGISTRY_COLUMN_HEADERS["floor"])  # Этаж
+            idx_apt = headers_reg.index(REGISTRY_COLUMN_HEADERS["apartmentNumber"])  # № КВ
+        except ValueError as e:
+            raise HTTPException(status_code=500, detail=f"В реестре отсутствуют необходимые заголовки: {e}")
+
+        sold_keys = set()
+        for row in ws_reg.iter_rows(min_row=2, values_only=True):
+            try:
+                block = (str(row[idx_block]).strip().lower()) if row[idx_block] is not None else ""
+                floor = int(row[idx_floor]) if row[idx_floor] is not None else None
+                apt = int(row[idx_apt]) if row[idx_apt] is not None else None
+                if block and floor is not None and apt is not None:
+                    sold_keys.add((block, floor, apt))
+            except (TypeError, ValueError):
+                # Пропускаем некорректные строки
+                continue
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка чтения реестра: {e}")
+
+    # 2) Проходим по шахматке и выставляем статусы
+    try:
+        wb_chess = load_workbook(chess_path)
+        ws_chess = wb_chess.active
+
+        block_col = col_letter_to_index(COLUMN_MAPPING["blockName"])  # A
+        floor_col = col_letter_to_index(COLUMN_MAPPING["floor"])  # G
+        apt_col = col_letter_to_index(COLUMN_MAPPING["apartmentNumber"])  # E
+        status_col = col_letter_to_index(COLUMN_MAPPING["status"])  # C
+
+        changes = []
+        updated_count = 0
+
+        for r in range(DATA_START_ROW, ws_chess.max_row + 1):
+            cell_block = ws_chess.cell(row=r, column=block_col).value
+            cell_floor = ws_chess.cell(row=r, column=floor_col).value
+            cell_apt = ws_chess.cell(row=r, column=apt_col).value
+            cell_status = ws_chess.cell(row=r, column=status_col).value
+
+            try:
+                key = (
+                    str(cell_block).strip().lower() if cell_block is not None else "",
+                    int(cell_floor) if cell_floor is not None else None,
+                    int(cell_apt) if cell_apt is not None else None,
+                )
+            except (TypeError, ValueError):
+                continue
+
+            if key in sold_keys:
+                current_status = str(cell_status).strip().lower() if cell_status is not None else ""
+                if current_status != SOLD_STATUS_IN_CHESS:
+                    ws_chess.cell(row=r, column=status_col, value=SOLD_STATUS_IN_CHESS)
+                    updated_count += 1
+                    changes.append({
+                        "row": r,
+                        "blockName": cell_block,
+                        "floor": cell_floor,
+                        "apartmentNumber": cell_apt,
+                        "oldStatus": cell_status,
+                        "newStatus": SOLD_STATUS_IN_CHESS
+                    })
+
+        if updated_count:
+            wb_chess.save(chess_path)
+
+        return {"status": "success", "updated": updated_count, "changes": changes}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка обновления шахматки: {e}")
 
 
 @router.delete("/delete-contract-from-registry")
@@ -748,6 +848,13 @@ async def delete_contract_from_registry_and_update_shaxmatka(  # Переиме�
         raise HTTPException(status_code=500, detail=f"Внутренняя ошибка сервера при обработке запроса: {str(e)}")
 
 
+# --- Новый эндпоинт: Синхронизация шахматки с реестром ---
+@router.post("/sync-chess-with-registry", summary="Sync chess (jk_data.xlsx) statuses with contract registry")
+async def api_sync_chess_with_registry(jkName: str = Query(..., description="Название ЖК для синхронизации")):
+    """Сравнивает шахматку с реестром и, если квартира есть в реестре, меняет её статус в шахматке на 'продана'."""
+    return sync_chess_with_registry(jkName)
+
+
 import os
 
 
@@ -784,6 +891,7 @@ async def list_complex_files(jkName: str):
             fname for fname in os.listdir(jk_dir)
             if os.path.isfile(os.path.join(jk_dir, fname))
         ]
+        print(files)
         return {"files": files}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при чтении файлов ЖК: {e}")
@@ -1060,11 +1168,13 @@ async def download_complex_file(
       - 'jk_data' -> jk_data.xlsx
       - 'price' -> price_shaxamtka.xlsx
       - 'template' -> contract_template.docx
+      - 'registry' -> contract_registry.xlsx
     """
     filename_map = {
         "jk_data": "jk_data.xlsx",
         "price": "price_shaxamtka.xlsx",
-        "template": "contract_template.docx"
+        "template": "contract_template.docx",
+        "registry": "contract_registry.xlsx"
     }
     file_name = filename_map.get(fileType)
     if not file_name:

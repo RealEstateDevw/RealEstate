@@ -30,28 +30,29 @@ async function openComplexDetails(jkName) {
         const { files } = await resp.json();
 
         // 5) Категоризируем
-        const dataFiles = files.filter(f => /jk_data\.xlsx$/i.test(f));
-        const priceFiles = files.filter(f => /price_shaxamtka\.xlsx$/i.test(f));
-        const templateFiles = files.filter(f => /contract_template\.docx$/i.test(f));
+const dataFiles     = files.filter(f => /jk_data\.xlsx$/i.test(f));
+const priceFiles    = files.filter(f => /price_shaxamtka\.xlsx$/i.test(f));
+const templateFiles = files.filter(f => /contract_template\.docx$/i.test(f));
+const registryFiles = files.filter(f => /contract_registry\.xlsx$/i.test(f)); // NEW
 
-        // 6) Получаем контейнеры
-        const sections = panel.querySelectorAll('.upload-section .file-list');
-        const [dataList, pricesList, templateList] = sections;
+// 6) Получаем контейнеры (теперь 4 секции)
+const sections = panel.querySelectorAll('.upload-section .file-list');
+const [dataList, pricesList, templateList, registryList] = sections;
 
-        // 7) Очищаем
-        [dataList, pricesList, templateList].forEach(el => el.innerHTML = '');
+// 7) Очищаем
+[dataList, pricesList, templateList, registryList].forEach(el => el.innerHTML = '');
 
-        // 8) Функция-рендер для одной секции
-        function renderFiles(listEl, arr, jkName) {
-            if (arr.length === 0) {
-                listEl.innerHTML = '<p style="color:#777;">Нет файлов</p>';
-                return;
-            }
-            arr.forEach(fname => {
-                const pill = document.createElement('div');
-                pill.className = 'file-pill';
-                pill.innerHTML = `
-            <span>${fname}</span>
+// 8) Функция-рендер для одной секции (без изменений, но добавим обработку registry)
+function renderFiles(listEl, arr, jkName) {
+  if (arr.length === 0) {
+    listEl.innerHTML = '<p style="color:#777;">Нет файлов</p>';
+    return;
+  }
+  arr.forEach(fname => {
+    const pill = document.createElement('div');
+    pill.className = 'file-pill';
+    pill.innerHTML = `
+      <span>${fname}</span>
             <div class="actions">
               <button type="button" class="edit"   title="Редактировать"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
   <path opacity="0.5" d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#216BF4"/>
@@ -62,52 +63,96 @@ async function openComplexDetails(jkName) {
   <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M4 19.5C4.55228 19.5 5 19.9477 5 20.5C5 22.4139 5.00212 23.7487 5.13753 24.7559C5.26907 25.7343 5.50967 26.2523 5.87868 26.6213C6.24769 26.9904 6.7658 27.2309 7.74416 27.3625C8.75129 27.4979 10.0861 27.5 12 27.5H20C21.9139 27.5 23.2487 27.4979 24.2559 27.3625C25.2343 27.2309 25.7523 26.9904 26.1213 26.6213C26.4904 26.2523 26.7309 25.7343 26.8625 24.7559C26.9979 23.7487 27 22.4139 27 20.5C27 19.9477 27.4477 19.5 28 19.5C28.5523 19.5 29 19.9477 29 20.5V20.5732C29 22.3967 29 23.8664 28.8447 25.0224C28.6833 26.2225 28.3381 27.2329 27.5356 28.0355C26.7329 28.8381 25.7225 29.1833 24.5224 29.3447C23.3664 29.5 21.8967 29.5 20.0732 29.5H11.9268C10.1034 29.5 8.63363 29.5 7.47767 29.3447C6.27752 29.1833 5.26703 28.8381 4.46447 28.0356C3.66191 27.2329 3.31672 26.2225 3.15536 25.0224C2.99995 23.8664 2.99997 22.3967 3 20.5732C3 20.5488 3 20.5244 3 20.5C3 19.9477 3.44772 19.5 4 19.5Z" fill="#216BF4"/>
   <path fill-rule="evenodd" clip-rule="evenodd" d="M15.9994 3.5C16.2802 3.5 16.5479 3.61803 16.7374 3.82523L22.0707 9.65856C22.4434 10.0662 22.4151 10.6987 22.0075 11.0714C21.5999 11.444 20.9674 11.4157 20.5947 11.0081L16.9994 7.07573V21.8333C16.9994 22.3856 16.5516 22.8333 15.9994 22.8333C15.4471 22.8333 14.9994 22.3856 14.9994 21.8333V7.07573L11.4041 11.0081C11.0314 11.4157 10.3989 11.444 9.99126 11.0714C9.58366 10.6987 9.55532 10.0662 9.92799 9.65856L15.2614 3.82523C15.4508 3.61803 15.7186 3.5 15.9994 3.5Z" fill="#216BF4"/>
 </svg></button>
+${/contract_registry\.xlsx$/i.test(fname)
+          ? `<button type="button" class="sync" title="Синхронизировать">Синхронизировать</button>` // NEW
+          : ``}
             </div>
-          `;
-                // Привязываем действия
-                // Привязываем действия
-                if (/jk_data\.xlsx$/i.test(fname)) {
-                    // Для шахматки вызываем свой модал
-                    pill.querySelector('.edit').addEventListener('click', () => openChessModal(jkName));
-                } else if (/price_shaxamtka\.xlsx$/i.test(fname)) {
-                    pill.querySelector('.edit').addEventListener('click', () => openPriceModal(jkName));
-                } else {
-                    pill.querySelector('.edit').addEventListener('click', () => openReplaceModal(jkName, fname));
-                }
+    `;
 
+    // Привязываем действия (добавили ветку для contract_registry.xlsx)
+    if (/jk_data\.xlsx$/i.test(fname)) {
+      pill.querySelector('.edit').addEventListener('click', () => openChessModal(jkName));
+    } else if (/price_shaxamtka\.xlsx$/i.test(fname)) {
+      pill.querySelector('.edit').addEventListener('click', () => openPriceModal(jkName));
+    } else if (/contract_registry\.xlsx$/i.test(fname)) {
+      // если есть спец-модал - используем, иначе fallback на замену файла
+      pill.querySelector('.edit').addEventListener('click', () =>
+     openReplaceModal(jkName, fname));
+    } else {
+      // шаблоны договоров и прочее
+      pill.querySelector('.edit').addEventListener('click', () => openReplaceModal(jkName, fname));
+    }
 
-                // Attach download action
-                const downloadBtn = pill.querySelector('.download');
-                if (downloadBtn) {
-                  downloadBtn.addEventListener('click', () => {
-                                        // Determine fileType for download endpoint
-                    let fileType = '';
-                    if (/jk_data\.xlsx$/i.test(fname)) {
-                      fileType = 'jk_data';
-                    } else if (/price_shaxamtka\.xlsx$/i.test(fname)) {
-                      fileType = 'price';
-                    } else if (/contract_template\.docx$/i.test(fname)) {
-                      fileType = 'template';
-                    }
-                    const url = `/excel/complexes/${encodeURIComponent(jkName)}/download?fileType=${fileType}`;
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = fname;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  });
-                }
-
-               
-                listEl.append(pill);
-            });
+    // Download
+    const downloadBtn = pill.querySelector('.download');
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', () => {
+        let fileType = '';
+        if (/jk_data\.xlsx$/i.test(fname)) {
+          fileType = 'jk_data';
+        } else if (/price_shaxamtka\.xlsx$/i.test(fname)) {
+          fileType = 'price';
+        } else if (/contract_template\.docx$/i.test(fname)) {
+          fileType = 'template';
+        } else if (/contract_registry\.xlsx$/i.test(fname)) {   // NEW
+          fileType = 'registry';
         }
+        const url = `/excel/complexes/${encodeURIComponent(jkName)}/download?fileType=${fileType}`;
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fname;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+    const syncBtn = pill.querySelector('.sync');
+    if (syncBtn) {
+      syncBtn.addEventListener('click', async () => {
+        const originalText = syncBtn.textContent;
+        syncBtn.disabled = true;
+        syncBtn.textContent = 'Синхронизируем...';
 
-        // 9) Рендерим каждую секцию
-        renderFiles(dataList, dataFiles, jkName);
-        renderFiles(pricesList, priceFiles, jkName);
-        renderFiles(templateList, templateFiles, jkName);
+        try {
+          const res = await fetch(`/excel/sync-chess-with-registry?jkName=${encodeURIComponent(jkName)}`, {
+            method: 'POST'
+          });
+          if (!res.ok) {
+            const t = await res.text().catch(() => '');
+            throw new Error(t || `HTTP ${res.status}`);
+          }
+          const json = await res.json().catch(() => ({}));
+          const updated = typeof json.updated === 'number' ? json.updated : 0;
+
+          syncBtn.textContent = `Готово (${updated}) ✅`;
+          // при необходимости обнови модалки/таблицы:
+          if (typeof refreshChessGrid === 'function') {
+            try { await refreshChessGrid(jkName); } catch (_) {}
+          }
+          setTimeout(() => {
+            syncBtn.textContent = originalText;
+            syncBtn.disabled = false;
+          }, 1200);
+        } catch (e) {
+          console.error('Sync error:', e);
+          syncBtn.textContent = 'Ошибка ❌';
+          setTimeout(() => {
+            syncBtn.textContent = originalText;
+            syncBtn.disabled = false;
+          }, 1800);
+        }
+      });
+    }
+
+    listEl.append(pill);
+  });
+}
+
+// 9) Рендерим каждую секцию (добавили registry)
+renderFiles(dataList,     dataFiles,     jkName);
+renderFiles(pricesList,   priceFiles,    jkName);
+renderFiles(templateList, templateFiles, jkName);
+renderFiles(registryList, registryFiles, jkName); // NEW
 
     } catch (err) {
         console.error('Ошибка загрузки деталей ЖК:', err);
@@ -217,7 +262,7 @@ async function openChessModal(jkName) {
       html += `<tr style="background-color: ${bgColor}">`;
       headers.forEach(col => {
         const val = rowObj[col] ?? "";
-        console.log(rowIdx);
+
         
         if (col === statusField) {
             statusLower = val.toLowerCase().trim();
@@ -251,42 +296,105 @@ async function openChessModal(jkName) {
     document.getElementById("closeChessBtn").onclick = () => modal.remove();
   
     
-        document.getElementById("saveChessBtn").onclick = async () => {
-            const selects = content.querySelectorAll("select[data-row]");
-            const updates = Array.from(selects).map(sel => {
-              const rowIdx = +sel.dataset.row;
-              const rowObj = grid[rowIdx];
-              return {
-                jkName:          jkName,                       // теперь передаём ЖК внутри объекта
-                blockName:       rowObj[blockField],           // Блок
-                floor:           Number(rowObj[floorField]),    // Этаж
-                apartmentNumber: rowObj[aptField],              // Номер квартиры (может быть строкой)
-                newStatus:       sel.value                      // Новый статус
-              };
-            });
-        
+    // Подготовим кнопку: оборачиваем текст и добавляем спиннер один раз
+(function prepareSaveBtn(){
+  const btn = document.getElementById("saveChessBtn");
+  if (!btn) return;
+  if (!btn.querySelector('.btn-label')) {
+    const label = document.createElement('span');
+    label.className = 'btn-label';
+    label.textContent = btn.textContent.trim() || 'Сохранить';
 
-        
-            try {
-              const saveResp = await fetch(
-                '/excel/complexes/chess',
-                {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ updates })
-                }
-              );
-              if (!saveResp.ok) {
-                const errBody = await saveResp.text();
-                console.error("Server responded:", errBody);
-                throw new Error(saveResp.status);
-              }
-              alert("Статусы сохранены");
-              modal.remove();
-            } catch (e) {
-              alert("Ошибка при сохранении: " + e);
-            }
-          };
+    const spinner = document.createElement('span');
+    spinner.className = 'btn-spinner';
+    // SVG-спиннер (монохромный, берёт цвет от currentColor)
+    spinner.innerHTML = `
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+        <circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="4" opacity="0.2"/>
+        <path d="M12 2.5a9.5 9.5 0 0 1 9.5 9.5" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+    `;
+
+    btn.textContent = '';
+    btn.appendChild(spinner);
+    btn.appendChild(label);
+  }
+})();
+
+function setBtnLoading(btn, isLoading) {
+  const label = btn.querySelector('.btn-label');
+  if (isLoading) {
+    btn.classList.remove('is-success','is-error');
+    btn.classList.add('is-loading');
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    label.textContent = 'Сохраняем...';
+  } else {
+    btn.classList.remove('is-loading');
+    btn.removeAttribute('aria-busy');
+    btn.disabled = false;
+  }
+}
+
+function setBtnResult(btn, type, text) {
+  const label = btn.querySelector('.btn-label');
+  btn.classList.remove('is-loading','is-success','is-error');
+  btn.classList.add(type === 'success' ? 'is-success' : 'is-error');
+  label.textContent = text;
+}
+
+// Твой обработчик с лоадером/результатами
+document.getElementById("saveChessBtn").onclick = async () => {
+  const btn = document.getElementById("saveChessBtn");
+
+  // Собираем обновления
+  const selects = content.querySelectorAll("select[data-row]");
+  const updates = Array.from(selects).map(sel => {
+    const rowIdx = +sel.dataset.row;
+    const rowObj = grid[rowIdx];
+    return {
+      jkName:          jkName,
+      blockName:       rowObj[blockField],
+      floor:           Number(rowObj[floorField]),
+      apartmentNumber: rowObj[aptField],
+      newStatus:       sel.value
+    };
+  });
+
+  setBtnLoading(btn, true);
+
+  try {
+    const saveResp = await fetch('/excel/complexes/chess', {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ updates })
+    });
+
+    if (!saveResp.ok) {
+      const errBody = await saveResp.text();
+      console.error("Server responded:", errBody);
+      throw new Error(saveResp.status);
+    }
+
+    setBtnResult(btn, 'success', 'Сохранено ✅');
+
+    // закрываем модалку спустя короткую паузу
+    setTimeout(() => {
+      modal.remove?.();
+    }, 900);
+
+  } catch (e) {
+    console.error(e);
+    setBtnResult(btn, 'error', 'Ошибка ❌');
+    // вернуть кнопку в исходное состояние через 2 сек
+    setTimeout(() => {
+      const label = btn.querySelector('.btn-label');
+      btn.classList.remove('is-success','is-error');
+      label.textContent = 'Сохранить';
+      setBtnLoading(btn, false);
+    }, 2000);
+  }
+};
       }
   
 /**

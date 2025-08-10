@@ -1221,10 +1221,12 @@
 
                     const rooms = row[3] || "Не указано";
 
+
                     apartmentCard.setAttribute("data-jk-name", jkName);
                     apartmentCard.setAttribute("data-block", block);
                     apartmentCard.setAttribute("data-size", row[5]);
                     apartmentCard.setAttribute("data-floor", row[6]);
+                    apartmentCard.setAttribute("data-unitType", row[1])
                     apartmentCard.setAttribute("data-number", row[4]);
                     apartmentCard.setAttribute("data-rooms", rooms);
 
@@ -1364,6 +1366,7 @@
                 const floor = card.getAttribute("data-floor");
                 const apartmentNumber = card.getAttribute("data-number");
                 const rooms = card.getAttribute("data-rooms"); // Получаем кол-во комнат
+                const unitType = card.getAttribute("data-unitType")
 
                 updateBackButton("Назад к выбору квартир", () => {
                     // ... (logic to handle potential missing global data) ...
@@ -1458,6 +1461,7 @@
                             status = "неизвестно",
                             months_left = 23
                         } = apartmentInfo.data;
+
 
                         // --- Константы для текстов (лучше вынести наружу, если много) ---
                         const AREA_LABEL = "Площадь";
@@ -2025,6 +2029,7 @@ if (allowedHybrid.includes(jkName)) {
                                             throw new Error(`Ошибка получения номера договора: ${response.statusText}`);
                                         }
                                         const data = await response.json();
+
                                         return data.lastContractNumber;
                                     } catch (error) {
                                         console.error('Ошибка при получении номера договора:', error);
@@ -2044,7 +2049,8 @@ if (allowedHybrid.includes(jkName)) {
                                     // Передаем выбранный процент или 'hybrid'
                                     paymentChoice: userSelection.paymentChoice,
                                     initialPayment: initialPayment, // Передаем актуальный первый взнос
-                                    contractNumber: nextContractNumber // Передаем полученный номер
+                                    contractNumber: nextContractNumber, 
+                                    unitType:unitType // Передаем полученный номер
                                 });
                             });
                             actionButtonsContainer.appendChild(contractButton);
@@ -2088,7 +2094,7 @@ if (allowedHybrid.includes(jkName)) {
                                 } else if (prefilledData.paymentChoice === 'hybrid') {
                                     displayPaymentChoice = 'Гибридная';
                                 }
-
+                                console.log(rooms);
                                 modalContent.innerHTML = `
                             <h3 style="margin-top: 0;">Оформление договора</h3>
                             <form id="contract-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -2100,7 +2106,7 @@ if (allowedHybrid.includes(jkName)) {
                                 <div><label>Блок:</label><input type="text" name="block" value="${prefilledData.block}" readonly></div>
                                 <div><label>Этаж:</label><input type="number" name="floor" value="${prefilledData.floor}" readonly></div>
                                 <div><label>№ квартиры:</label><input type="number" name="apartmentNumber" value="${prefilledData.apartmentNumber}" readonly></div>
-                                <div><label>Комнат:</label><input type="number" name="rooms" value="${prefilledData.rooms}" readonly></div>
+                                <div><label>Комнат:</label><input type="number" name="rooms" value="${Number.isInteger(prefilledData.rooms) ? prefilledData.rooms : 0}" readonly></div>
                                 <div><label>Площадь (м²):</label><input type="number" name="size" value="${prefilledData.size}" readonly></div>
                                 <div><label>Выбор оплаты:</label><input type="text" name="paymentChoice" value="${displayPaymentChoice}" readonly></div>
                                 <div style="grid-column: 1 / -1;"><label>Общая стоимость:</label><input type="text" name="totalPrice" value="${Number(prefilledData.totalPrice).toLocaleString('ru-RU')}" readonly></div>
@@ -2177,6 +2183,7 @@ if (allowedHybrid.includes(jkName)) {
 
                                     const formData = new FormData(form);
                                     const contractData = Object.fromEntries(formData.entries());
+                                    contractData.unitType = unitType
                                     const enteredContractNumber = parseInt(contractData.contractNumber, 10);
                                     const lastContractNumber = parseInt(prefilledData.contractNumber, 10);
                                     if (enteredContractNumber < lastContractNumber) {
@@ -2185,6 +2192,7 @@ if (allowedHybrid.includes(jkName)) {
                                     }
 
                                     try {
+
                                         const response = await fetch("/excel/generate-contract", {
                                             method: "POST",
                                             headers: { "Content-Type": "application/json" },

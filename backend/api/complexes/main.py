@@ -169,9 +169,6 @@ async def get_plan_image(
     base_path = os.path.join('static', 'Жилые_Комплексы', jkName, 'Planirovki')
     print(f"Looking for plans in: {base_path}")
 
-    # if not os.path.exists(base_path):
-    #     raise HTTPException(status_code=404, detail="Планировки для указанного ЖК не найдены")
-
     # Сначала пытаемся найти графический файл с именем apartmentSize.xxx
     possible_files = [f"{apartmentSize}.{ext}" for ext in ['jpg', 'jpeg', 'png', 'svg']]
     for file_name in possible_files:
@@ -180,7 +177,6 @@ async def get_plan_image(
             return FileResponse(file_path)
 
     # Если графического файла нет, пытаемся найти PDF-файл
-    # Предположим, что PDF-файл называется по имени блока, например: "Блок 1.pdf"
     pdf_file_path = os.path.join(base_path, f"{blockName}.pdf")
     print(pdf_file_path)
     if os.path.exists(pdf_file_path):
@@ -188,10 +184,8 @@ async def get_plan_image(
             doc = fitz.open(pdf_file_path)
             for page in doc:
                 text = page.get_text()
-                # Если на странице содержится искомый apartmentSize, считаем, что это нужная страница
                 if apartmentSize in text:
                     pix = page.get_pixmap()
-                    # Сохраняем изображение страницы во временный файл
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
                         pix.save(tmp_file.name)
                         tmp_file_path = tmp_file.name
@@ -200,7 +194,15 @@ async def get_plan_image(
             doc.close()
             raise HTTPException(status_code=404, detail="Файл планировки не найден в PDF")
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Ошибка при обработке PDF: {e}")
+            render_path = os.path.join("static", 'Жилые_Комплексы', jkName, 'render')
+            if os.path.exists(render_path):
+                render_files = [f for f in os.listdir(render_path) if
+                                f.lower().endswith(('.png', '.jpg', '.jpeg', '.svg'))]
+                if render_files:
+                    first_render_file = os.path.join(render_path, render_files[0])
+                    return FileResponse(first_render_file)
+
+
 
     raise HTTPException(status_code=404, detail="Файл планировки не найден")
 
