@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from io import BytesIO
 from typing import Union, Dict, List, Any, Optional
@@ -596,6 +597,46 @@ REGISTRY_COLUMN_HEADERS = {
 # --- Новый функционал: Синхронизация статусов шахматки с реестром ---
 SOLD_STATUS_IN_CHESS = "продана"
 
+# --- Helpers for robust matching (blocks/floor/apt) ---
+def _to_int_first(value) -> Optional[int]:
+    """Берёт первые найденные цифры из значения и возвращает int, иначе None."""
+    if value is None:
+        return None
+    s = str(value)
+    m = re.search(r"\d+", s)
+    return int(m.group()) if m else None
+
+# Карта замены «похожих» кириллических букв на латиницу
+_CYR_TO_LAT = {
+    "А": "A", "а": "a",
+    "В": "V", "в": "v",
+    "С": "S", "с": "s",
+    "Е": "E", "е": "e",
+    "К": "K", "к": "k",
+    "М": "M", "м": "m",
+    "Н": "N", "н": "n",
+    "О": "O", "о": "o",
+    "Р": "R", "р": "r",
+    "Т": "T", "т": "t",
+    "Х": "H", "х": "h",
+    "У": "U", "у": "u",
+}
+
+def _normalize_block_name(value: Any) -> str:
+    """
+    Нормализует название блока:
+      - trim + lower
+      - конверт «похожие» кириллические буквы в латиницу
+      - все пробелы/подчёркивания/дефисы -> одиночный '-'
+    """
+    if value is None:
+        return ""
+    s = str(value).strip()
+    s = "".join(_CYR_TO_LAT.get(ch, ch) for ch in s)  # unify Cyrillic lookalikes
+    s = s.lower()
+    s = re.sub(r"[\\s_–—\\-]+", "-", s)
+    return s
+
 
 def sync_chess_with_registry(jkName: str) -> dict:
     """
@@ -612,31 +653,39 @@ def sync_chess_with_registry(jkName: str) -> dict:
     if not os.path.exists(registry_path):
         raise HTTPException(status_code=404, detail=f"Реестр договоров не найден для '{jkName}'")
 
-    # 1) Собираем множество квартир из реестра
+    # 1) Собираем множество квартир из реестра (robust parsing)
     try:
         wb_reg = load_workbook(registry_path, data_only=True)
         ws_reg = wb_reg.active
-        headers_reg = [cell.value for cell in ws_reg[1]]
-        try:
-            idx_contract = headers_reg.index(
-                REGISTRY_COLUMN_HEADERS["contractNumber"])  # не используется, но проверит заголовки
-            idx_block = headers_reg.index(REGISTRY_COLUMN_HEADERS["block"])  # Блок
-            idx_floor = headers_reg.index(REGISTRY_COLUMN_HEADERS["floor"])  # Этаж
-            idx_apt = headers_reg.index(REGISTRY_COLUMN_HEADERS["apartmentNumber"])  # № КВ
-        except ValueError as e:
-            raise HTTPException(status_code=500, detail=f"В реестре отсутствуют необходимые заголовки: {e}")
+        headers_reg = [str(cell.value).strip() if cell.value is not None else "" for cell in ws_reg[1]]
+
+        # locate columns by header text to avoid hard-coding positions
+        def _find_col(headers, keywords):
+            for idx, h in enumerate(headers):
+                h_low = h.lower()
+                if any(kw in h_low for kw in keywords):
+                    return idx
+            return None
+
+        idx_block = _find_col(headers_reg, ["блок", "block", "корпус"])
+        idx_floor = _find_col(headers_reg, ["этаж", "floor"])
+        idx_apt = _find_col(headers_reg, ["№ кв", "квартира", "кв", "apartment", "помещ"])
+
+        if None in (idx_block, idx_floor, idx_apt):
+            raise HTTPException(status_code=500, detail="В реестре отсутствуют необходимые заголовки (блок/этаж/№ кв)")
 
         sold_keys = set()
         for row in ws_reg.iter_rows(min_row=2, values_only=True):
             try:
-                block = (str(row[idx_block]).strip().lower()) if row[idx_block] is not None else ""
-                floor = int(row[idx_floor]) if row[idx_floor] is not None else None
-                apt = int(row[idx_apt]) if row[idx_apt] is not None else None
-                if block and floor is not None and apt is not None:
-                    sold_keys.add((block, floor, apt))
-            except (TypeError, ValueError):
-                # Пропускаем некорректные строки
+                block_norm = _normalize_block_name(row[idx_block])
+                floor_i = _to_int_first(row[idx_floor])
+                apt_i = _to_int_first(row[idx_apt])
+                if block_norm and floor_i is not None and apt_i is not None:
+                    sold_keys.add((block_norm, floor_i, apt_i))
+            except Exception:
                 continue
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка чтения реестра: {e}")
 
@@ -645,10 +694,21 @@ def sync_chess_with_registry(jkName: str) -> dict:
         wb_chess = load_workbook(chess_path)
         ws_chess = wb_chess.active
 
-        block_col = col_letter_to_index(COLUMN_MAPPING["blockName"])  # A
-        floor_col = col_letter_to_index(COLUMN_MAPPING["floor"])  # G
-        apt_col = col_letter_to_index(COLUMN_MAPPING["apartmentNumber"])  # E
-        status_col = col_letter_to_index(COLUMN_MAPPING["status"])  # C
+        # Сначала пробуем найти колонки по заголовкам; fallback на COLUMN_MAPPING
+        headers_chess = [str(cell.value).strip().lower() if cell.value is not None else "" for cell in ws_chess[1]]
+
+        def _find_col_idx(headers, keywords):
+            for i, h in enumerate(headers, start=1):  # 1-based
+                if any(kw in h for kw in keywords):
+                    return i
+            return None
+
+        block_col = _find_col_idx(headers_chess, ["блок", "block", "корпус"]) or col_letter_to_index(
+            COLUMN_MAPPING["blockName"])
+        floor_col = _find_col_idx(headers_chess, ["этаж", "floor"]) or col_letter_to_index(COLUMN_MAPPING["floor"])
+        apt_col = _find_col_idx(headers_chess, ["№ кв", "квартира", "кв", "apartment", "помещ"]) or col_letter_to_index(
+            COLUMN_MAPPING["apartmentNumber"])
+        status_col = _find_col_idx(headers_chess, ["статус", "status"]) or col_letter_to_index(COLUMN_MAPPING["status"])
 
         changes = []
         updated_count = 0
@@ -659,16 +719,14 @@ def sync_chess_with_registry(jkName: str) -> dict:
             cell_apt = ws_chess.cell(row=r, column=apt_col).value
             cell_status = ws_chess.cell(row=r, column=status_col).value
 
-            try:
-                key = (
-                    str(cell_block).strip().lower() if cell_block is not None else "",
-                    int(cell_floor) if cell_floor is not None else None,
-                    int(cell_apt) if cell_apt is not None else None,
-                )
-            except (TypeError, ValueError):
+            block_norm = _normalize_block_name(cell_block)
+            floor_i = _to_int_first(cell_floor)
+            apt_i = _to_int_first(cell_apt)
+
+            if not block_norm or floor_i is None or apt_i is None:
                 continue
 
-            if key in sold_keys:
+            if (block_norm, floor_i, apt_i) in sold_keys:
                 current_status = str(cell_status).strip().lower() if cell_status is not None else ""
                 if current_status != SOLD_STATUS_IN_CHESS:
                     ws_chess.cell(row=r, column=status_col, value=SOLD_STATUS_IN_CHESS)
@@ -687,6 +745,8 @@ def sync_chess_with_registry(jkName: str) -> dict:
 
         return {"status": "success", "updated": updated_count, "changes": changes}
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка обновления шахматки: {e}")
 
