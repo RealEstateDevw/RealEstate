@@ -1942,6 +1942,8 @@ if (allowedHybrid.includes(jkName)) {
                                         if (paymentActionsContainer) paymentActionsContainer.style.display = 'none';
                                         if (actionButtonsContainer) actionButtonsContainer.style.display = 'none';
 
+                                            setTimeout(() => window.location.reload(), 300);
+
                                     } else {
                                         // Обработка ошибок от API создания лида (без изменений)
                                         let errorMsg = `Ошибка регистрации лида: ${response.statusText}`;

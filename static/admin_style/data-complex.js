@@ -32,7 +32,7 @@ async function openComplexDetails(jkName) {
         // 5) Категоризируем
 const dataFiles     = files.filter(f => /jk_data\.xlsx$/i.test(f));
 const priceFiles    = files.filter(f => /price_shaxamtka\.xlsx$/i.test(f));
-const templateFiles = files.filter(f => /contract_template\.docx$/i.test(f));
+const templateFiles = files.filter(f => /contract_template\.docx$/i.test(f)|| /contract_template_empty\.docx$/i.test(f));
 const registryFiles = files.filter(f => /contract_registry\.xlsx$/i.test(f)); // NEW
 
 // 6) Получаем контейнеры (теперь 4 секции)
@@ -480,6 +480,8 @@ function openReplaceModal(jkName, oldFilename) {
     formData.append('file', file);
     formData.append('category', oldFilename.match(/jk_data\.xlsx$/i) ? 'jk_data' :
                                  oldFilename.match(/price_shaxamtka\.xlsx$/i) ? 'price' :
+                                 oldFilename.match(/contract_registry\.xlsx$/i) ? 'registry':
+                                 oldFilename.match(/contract_template_empty\.docx$/i) ? 'template_empty':
                                  'template');
     formData.append('name', jkName);
     try {

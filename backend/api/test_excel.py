@@ -1127,7 +1127,7 @@ async def update_chess(data: ChessUpdates):
 @router.post("/replace-file", summary="Replace a file in a given residential complex")
 async def replace_file(
         name: str = Form(..., description="Название жилого комплекса (jkName)"),
-        category: str = Form(..., description="Категория файла: 'jk_data', 'price', 'template'"),
+        category: str = Form(..., description="Категория файла: 'jk_data', 'price', 'template', 'registry', 'tamplate_empty'"),
         file: UploadFile = File(..., description="Загружаемый файл")
 ):
     """
@@ -1142,7 +1142,9 @@ async def replace_file(
     filename_map = {
         "jk_data": "jk_data.xlsx",
         "price": "price_shaxamtka.xlsx",
-        "template": "contract_template.docx"
+        "template": "contract_template.docx",
+        "registry": "contract_registry.xlsx",
+        "template_empty": "contract_template_empty.docx"
     }
     target_filename = filename_map.get(category)
     if not target_filename:
