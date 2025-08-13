@@ -2192,9 +2192,7 @@ if (allowedHybrid.includes(jkName)) {
                                         alert(`Номер договора ${enteredContractNumber} уже занят. Используйте номер не меньше ${lastContractNumber}.`);
                                         return;
                                     }
-                                      saveButton.disabled = true;
-    saveButton.style.opacity = '0.6';
-    saveButton.style.cursor = 'not-allowed'
+                                   
 
                                     try {
 
@@ -2225,6 +2223,7 @@ if (allowedHybrid.includes(jkName)) {
                                         window.URL.revokeObjectURL(url);
 
                                         alert("Договор и реестр успешно сгенерированы и скачаны!");
+                                          
                                         modal.remove();
                                         await updateApartmentStatusInExcel(jkName, blockName, floor, apartmentNumber, "продана");
 
