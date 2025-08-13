@@ -2108,7 +2108,7 @@ if (allowedHybrid.includes(jkName)) {
                                 <div><label>Блок:</label><input type="text" name="block" value="${prefilledData.block}" readonly></div>
                                 <div><label>Этаж:</label><input type="number" name="floor" value="${prefilledData.floor}" readonly></div>
                                 <div><label>№ квартиры:</label><input type="number" name="apartmentNumber" value="${prefilledData.apartmentNumber}" readonly></div>
-                                <div><label>Комнат:</label><input type="number" name="rooms" value="${Number.isInteger(prefilledData.rooms) ? prefilledData.rooms : 0}" readonly></div>
+                                <div><label>Комнат:</label><input type="number" name="rooms" value="${rooms}" readonly></div>
                                 <div><label>Площадь (м²):</label><input type="number" name="size" value="${prefilledData.size}" readonly></div>
                                 <div><label>Выбор оплаты:</label><input type="text" name="paymentChoice" value="${displayPaymentChoice}" readonly></div>
                                 <div style="grid-column: 1 / -1;"><label>Общая стоимость:</label><input type="text" name="totalPrice" value="${Number(prefilledData.totalPrice).toLocaleString('ru-RU')}" readonly></div>
@@ -2167,7 +2167,7 @@ if (allowedHybrid.includes(jkName)) {
                                 modal.appendChild(modalContent);
                                 document.body.appendChild(modal);
 
-                                // Закрытие модального окна
+                                // Закрытие модального окнам
                                 modal.querySelector(".close-modal").addEventListener("click", () => {
                                     modal.remove();
                                 });
@@ -2192,6 +2192,9 @@ if (allowedHybrid.includes(jkName)) {
                                         alert(`Номер договора ${enteredContractNumber} уже занят. Используйте номер не меньше ${lastContractNumber}.`);
                                         return;
                                     }
+                                      saveButton.disabled = true;
+    saveButton.style.opacity = '0.6';
+    saveButton.style.cursor = 'not-allowed'
 
                                     try {
 
