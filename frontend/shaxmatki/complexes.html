@@ -1766,10 +1766,11 @@ if (allowedHybrid.includes(jkName)) {
                 const totalPrice = pricePerM2 * parseFloat(apartmentSize.replace(',', '.'));
 
                 const initialPayment = totalPrice * (initialPct / 100);
-                const lastPayment    = totalPrice * 0.30;               // всегда 30%
+                const lastPayment    = totalPrice * 0.30; // последний платёж всегда 30%
                 const middleTotal    = totalPrice - initialPayment - lastPayment;
-                const months         = months_left > 0 ? months_left : 1;
-                const monthlyPayment = middleTotal / months;
+                const months         = months_left > 0 ? months_left : 1; // всего месяцев по договору
+                const middleMonths   = months > 1 ? (months - 1) : 1;      // первые (months-1) месяцев
+                const monthlyPayment = middleTotal / middleMonths;         // делим среднюю часть на первые месяцы
 
                 userSelection.totalPrice = totalPrice;
                 userSelection.pricePerM2 = pricePerM2;
@@ -1780,17 +1781,16 @@ if (allowedHybrid.includes(jkName)) {
                     <p>Стоимость квартиры: ${Math.round(totalPrice).toLocaleString('ru-RU')} сум</p>
                     <p>Первоначальный взнос (${initialPct}%): ${Math.round(initialPayment).toLocaleString('ru-RU')} сум</p>
                     ${months_left > 0
-                        ? `<p>Ежемесячная оплата (${months} мес., ${(100 - initialPct - 30)}%): ${Math.round(monthlyPayment).toLocaleString('ru-RU')} сум</p>`
+                        ? `<p>Ежемесячная оплата (первые ${middleMonths} мес., ${(100 - initialPct - 30)}%): ${Math.round(monthlyPayment).toLocaleString('ru-RU')} сум</p>`
                         : '<p>Срок рассрочки не указан.</p>'
                     }
-                    <p>Последний платёж (30%): ${Math.round(lastPayment).toLocaleString('ru-RU')} сум</p>
+                    <p>Последний платёж (${months}-й месяц, 30%): ${Math.round(lastPayment).toLocaleString('ru-RU')} сум</p>
                 `;
 
                 // Подсветка выбранного процента
                 document.querySelectorAll('.hybrid-percent-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             });
-
             hybridOptions.appendChild(btn);
         });
 
