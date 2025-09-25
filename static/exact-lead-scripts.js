@@ -124,12 +124,17 @@ async function addComment(text, isInternal) {
 }
 
 // Event listeners
-document.getElementById('send-comment').addEventListener('click', () => {
-    const text = document.getElementById('comment-input').value.trim();
-    const isInternal = document.getElementById('internal-comment').checked;
-    
-    if (text) {
-        addComment(text, isInternal);
+document.addEventListener('DOMContentLoaded', function() {
+    const sendCommentBtn = document.getElementById('send-comment');
+    if (sendCommentBtn) {
+        sendCommentBtn.addEventListener('click', () => {
+            const text = document.getElementById('comment-input').value.trim();
+            const isInternal = document.getElementById('internal-comment').checked;
+            
+            if (text) {
+                addComment(text, isInternal);
+            }
+        });
     }
 });
 function showNotification(message, type = "success") {
@@ -180,11 +185,11 @@ function showNotification(message, type = "success") {
     }, { once: true }); // Убираем слушатель после одного клика, чтобы избежать дублирования
 }
 
-document.querySelector('.fix-client').addEventListener("click", async() => {
-    // Получаем кнопку "Фиксация клиента"
-    const fixClientButton = document.querySelector('.fix-client');
- 
-        // Получаем lead_id из атрибута data-lead-id кнопки (замени на динамическое получение, если нужно)
+const fixClientButton = document.querySelector('.fix-client');
+
+if (fixClientButton) {
+    fixClientButton.addEventListener("click", async () => {
+        // Получаем кнопку "Фиксация клиента"
         const leadId = fixClientButton.getAttribute('data-lead-id');
 
         if (!leadId) {
@@ -218,11 +223,11 @@ document.querySelector('.fix-client').addEventListener("click", async() => {
             console.error("Ошибка сети:", error);
             showNotification("Ошибка сети! Проверьте подключение к серверу.", "error");
         }
-});
+    });
+}
 
 
 // Initial load
 fetchComments();
-
 
 

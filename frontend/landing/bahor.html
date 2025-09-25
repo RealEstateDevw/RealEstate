@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЖК Бахор - ISMConstructions</title>
+    <link rel="stylesheet" href="/static/landing/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .site-header {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 9999 !important;
+            background-color: #fff !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+            width: 100% !important;
+            display: block !important;
+            margin: 0 !important;
+            padding: 10px 0 !important;
+        }
+        .header-container {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            gap: 10px !important;
+            width: 100% !important;
+        }
+        .header-logo {
+            display: flex !important;
+            align-items: center !important;
+            margin-right: auto !important;
+            text-decoration: none !important;
+        }
+        .header-buttons {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+        }
+        @media (max-width: 768px) {
+            .header-buttons {
+                display: none !important;
+            }
+            .mobile-menu-btn {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+        }
+
+        .blocks-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .blocks-section h3 {
+            margin: 0 0 20px 0;
+            color: #1f2937;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .blocks-grid {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .block-btn {
+            padding: 10px 20px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6B7280;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .block-btn:hover {
+            border-color: #216BF4;
+            color: #216BF4;
+        }
+
+        .block-btn.active {
+            background: #216BF4;
+            border-color: #216BF4;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bahor">
+    <header class="site-header">
+        <div class="container header-container">
+            <!-- Logo -->
+            <a href="/" class="header-logo">
+                <span class="logo-text">ISMConstructions</span>
+            </a>
+            
+            <!-- Header Buttons -->
+            <div class="header-buttons">
+                <!-- Phone Button -->
+                <a href="#contacts" class="header-btn header-btn--phone">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="#216BF4"/>
+                    </svg>
+                    <span>Контакты</span>
+                </a>
+                
+                <!-- Conditions Button -->
+                <a href="#conditions" class="header-btn header-btn--conditions">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#216BF4"/>
+                        <path d="M2 17L12 22L22 17" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Условия покупки</span>
+                </a>
+                
+                <!-- Pricing Button -->
+                <a href="#pricing" class="header-btn header-btn--pricing">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#216BF4"/>
+                    </svg>
+                    <span>Стоимость квартир</span>
+                </a>
+                
+                <!-- Language Button -->
+                <button class="header-btn header-btn--lang">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="#216BF4" stroke-width="2"/>
+                        <path d="M2 12h20" stroke="#216BF4" stroke-width="2"/>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="#216BF4" stroke-width="2"/>
+                    </svg>
+                    <span>RU</span>
+                </button>
+                
+                <!-- ЖК Рассвет Button -->
+                <a href="/rassvet" class="header-btn header-btn--rassvet">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 22V12H15V22" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>ЖК Рассвет</span>
+                </a>
+                
+                <!-- CTA Button -->
+                    <a href="/shaxmatki/complexes.html?complex=bahor" class="header-btn header-btn--cta">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7 5H11C12.8856 5 13.8284 5 14.4142 5.58579C15 6.17157 15 7.11438 15 9V21.25H16.5H21H22C22.4142 21.25 22.75 21.5858 22.75 22C22.75 22.4142 22.4142 22.75 22 22.75H2C1.58579 22.75 1.25 22.4142 1.25 22C1.25 21.5858 1.58579 21.25 2 21.25H3V9C3 7.11438 3 6.17157 3.58579 5.58579C4.17157 5 5.11438 5 7 5ZM5.25 8C5.25 7.58579 5.58579 7.25 6 7.25H12C12.4142 7.25 12.75 7.58579 12.75 8C12.75 8.41421 12.4142 8.75 12 8.75H6C5.58579 8.75 5.25 8.41421 5.25 8ZM5.25 11C5.25 10.5858 5.58579 10.25 6 10.25H12C12.4142 10.25 12.75 10.5858 12.75 11C12.75 11.4142 12.4142 11.75 12 11.75H6C5.58579 11.75 5.25 11.4142 5.25 11ZM5.25 14C5.25 13.5858 5.58579 13.25 6 13.25H12C12.4142 13.25 12.75 13.5858 12.75 14C12.75 14.4142 12.4142 14.75 12 14.75H6C5.58579 14.75 5.25 14.4142 5.25 14ZM9 18.25C9.41421 18.25 9.75 18.5858 9.75 19V21.25H8.25V19C8.25 18.5858 8.58579 18.25 9 18.25Z" fill="white"/>
+                        <path opacity="0.5" d="M15 2H17C18.8856 2 19.8284 2 20.4142 2.58579C21 3.17157 21 4.11438 21 6V21.25H15V9C15 7.11438 15 6.17157 14.4142 5.58579C13.8416 5.01319 12.9279 5.0003 11.126 5.00001V3.49999C11.2103 3.11275 11.351 2.82059 11.5858 2.58579C12.1715 2 13.1144 2 15 2Z" fill="white"/>
+                    </svg>
+                    <span>Выбрать квартиру</span>
+                </a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn header-item--mobile" onclick="toggleMobileMenu()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-menu-content">
+                <!-- Close Button -->
+                <button class="mobile-menu-close" onclick="toggleMobileMenu()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                
+                <a href="#contacts" class="mobile-menu-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="#216BF4"/>
+                    </svg>
+                    <span>Контакты</span>
+                </a>
+                <a href="#conditions" class="mobile-menu-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#216BF4"/>
+                        <path d="M2 17L12 22L22 17" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Условия покупки</span>
+                </a>
+                <a href="#pricing" class="mobile-menu-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#216BF4"/>
+                    </svg>
+                    <span>Стоимость квартир</span>
+                </a>
+                <a href="/rassvet" class="mobile-menu-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 22V12H15V22" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>ЖК Рассвет</span>
+                </a>
+                <a href="/shaxmatki/complexes.html?complex=bahor" class="mobile-menu-link mobile-menu-cta">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7 5H11C12.8856 5 13.8284 5 14.4142 5.58579C15 6.17157 15 7.11438 15 9V21.25H16.5H21H22C22.4142 21.25 22.75 21.5858 22.75 22C22.75 22.4142 22.4142 22.75 22 22.75H2C1.58579 22.75 1.25 22.4142 1.25 22C1.25 21.5858 1.58579 21.25 2 21.25H3V9C3 7.11438 3 6.17157 3.58579 5.58579C4.17157 5 5.11438 5 7 5ZM5.25 8C5.25 7.58579 5.58579 7.25 6 7.25H12C12.4142 7.25 12.75 7.58579 12.75 8C12.75 8.41421 12.4142 8.75 12 8.75H6C5.58579 8.75 5.25 8.41421 5.25 8ZM5.25 11C5.25 10.5858 5.58579 10.25 6 10.25H12C12.4142 10.25 12.75 10.5858 12.75 11C12.75 11.4142 12.4142 11.75 12 11.75H6C5.58579 11.75 5.25 11.4142 5.25 11ZM5.25 14C5.25 13.5858 5.58579 13.25 6 13.25H12C12.4142 13.25 12.75 13.5858 12.75 14C12.75 14.4142 12.4142 14.75 12 14.75H6C5.58579 14.75 5.25 14.4142 5.25 14ZM9 18.25C9.41421 18.25 9.75 18.5858 9.75 19V21.25H8.25V19C8.25 18.5858 8.58579 18.25 9 18.25Z" fill="white"/>
+                        <path opacity="0.5" d="M15 2H17C18.8856 2 19.8284 2 20.4142 2.58579C21 3.17157 21 4.11438 21 6V21.25H15V9C15 7.11438 15 6.17157 14.4142 5.58579C13.8416 5.01319 12.9279 5.0003 11.126 5.00001V3.49999C11.2103 3.11275 11.351 2.82059 11.5858 2.58579C12.1715 2 13.1144 2 15 2Z" fill="white"/>
+                    </svg>
+                    <span>Выбрать квартиру</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Блок Hero -->
+    <section class="hero">
+        <div class="hero__background" style="background-image: url('/static/Жилые_Комплексы/ЖК_Бахор/render/01.png');">
+            <div class="hero__overlay"></div>
+        </div>
+        <div class="hero__main-content-area">
+            <div class="container hero__content-container">
+                <div class="hero__content">
+                    <div class="hero__main">
+                        <span class="hero__jk-name">ЖК «Бахор»</span>
+                        <h1 class="hero__title">Пространство<br>света и комфорта</h1>
+                    </div>
+                    <div class="hero__details">
+                        <ul class="hero__features">
+                            <li>18 уникальных планировок</li>
+                            <li>Площади от 35 м² до 85 м²</li>
+                            <li>4 блока с современной архитектурой</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero__deadline-wrapper">
+            <div class="container">
+                <div class="hero__deadline">
+                    <span class="hero__deadline-label">Срок сдачи</span>
+                    <span class="hero__deadline-value">3 Квартал<br>2025 года</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- Блок Стоимость квартир -->
+    <section class="section pricing apartments-section" id="pricing">
+        <div class="container">
+            <h2 class="section__title">Стоимость квартир</h2>
+            
+            <!-- Фильтр по количеству комнат -->
+            <div class="apartment-filter">
+                <button class="apartment-filter__btn active" data-rooms="all">Все квартиры</button>
+                <button class="apartment-filter__btn" data-rooms="1">1 комната</button>
+                <button class="apartment-filter__btn" data-rooms="2">2 комнаты</button>
+                <button class="apartment-filter__btn" data-rooms="3">3 комнаты</button>
+                <button class="apartment-filter__btn" data-rooms="4">4+ комнат</button>
+            </div>
+
+            <!-- Карточки квартир с планами -->
+            <div class="apartments-grid">
+                <!-- Квартиры загружаются динамически через API -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Блок Условия покупки -->
+    <section class="section conditions" id="conditions">
+        <div class="container">
+            <h2 class="section__title">Условия покупки — удобно и с выгодой</h2>
+            <div class="conditions-content">
+                <div class="conditions-left">
+                    <div class="condition-card" data-condition="installment">
+                        <div class="condition-card__icon">
+                            <div class="condition-card__icon-circle">0%</div>
+                        </div>
+                        <div class="condition-card__content">
+                            <h3 class="condition-card__title">Рассрочка</h3>
+                            <p class="condition-card__description">До 18 месяцев</p>
+                        </div>
+                        <div class="condition-card__arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="condition-card" data-condition="hybrid">
+                        <div class="condition-card__icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="condition-card__content">
+                            <h3 class="condition-card__title">Гибридная рассрочка</h3>
+                            <p class="condition-card__description">С отложенным платежом до 25%</p>
+                        </div>
+                        <div class="condition-card__arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="condition-card" data-condition="mortgage">
+                        <div class="condition-card__icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2"/>
+                                <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <div class="condition-card__content">
+                            <h3 class="condition-card__title">Переход на ипотеку</h3>
+                            <p class="condition-card__description">В удобный момент без потерь</p>
+                        </div>
+                        <div class="condition-card__arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="conditions-right">
+                    <div class="apartment-info">
+                        <div class="apartment-size">58.25 м²</div>
+                        <div class="apartment-details">
+                            <div class="apartment-rooms">
+                                <div class="room-item">
+                                    <span class="room-name">Гостиная</span>
+                                    <span class="room-size">18.50 м²</span>
+                                </div>
+                                <div class="room-item">
+                                    <span class="room-name">Спальня</span>
+                                    <span class="room-size">14.20 м²</span>
+                                </div>
+                                <div class="room-item">
+                                    <span class="room-name">Балкон</span>
+                                    <span class="room-size">4.15 м²</span>
+                                </div>
+                            </div>
+                            <div class="apartment-block">Блок А. Этажи 3-15</div>
+                        </div>
+                    </div>
+                    
+                    <div class="condition-details" id="installment-details">
+                        <h3>Рассрочка — удобно и без переплат.</h3>
+                        <div class="condition-details__options">
+                            <p><strong>Варианты:</strong> 70%, 50% или 30%</p>
+                            <p><strong>Первоначальный взнос</strong> — N сум</p>
+                            <p><strong>Ежемесячная оплата</strong> — N сум, фиксировано.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="condition-details" id="hybrid-details" style="display: none;">
+                        <h3>Ваш комфорт в приоритете:</h3>
+                        <div class="condition-details__options">
+                            <p><strong>Первоначальный взнос</strong> — N сум</p>
+                            <p><strong>Ежемесячный платёж</strong> — N сум</p>
+                            <p><strong>До 25% суммы</strong> можно отложить на удобный момент</p>
+                        </div>
+                    </div>
+                    
+                    <div class="condition-details" id="mortgage-details" style="display: none;">
+                        <h3>30% оплачиваются при сдаче объекта.</h3>
+                        <div class="condition-details__options">
+                            <p>Если к этому моменту будет удобнее — вы сможете оформить ипотеку и рассчитаться комфортно, без лишних забот.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Блок Контакты -->
+    <section class="contacts-section" id="contacts">
+        <div class="container">
+            <div class="contacts-content">
+                <div class="office-locations">
+                    <h2 class="contacts-title">Контакты</h2>
+                    <div class="office-location">
+                        <div class="office-info">
+                            <h3>Отдел продаж ЖК «Бахор»</h3>
+                            <p class="office-type">Главный офис</p>
+                            <a href="#" class="location-link">📍 ул. Амира Темура, 25, Ташкент</a>
+                        </div>
+                        <div class="contact-details">
+                            <div class="contact-item">
+                                <h4>Телефон</h4>
+                                <a href="tel:+998901234567" class="phone-link">+998 90 123 45 67</a>
+                            </div>
+                            <div class="contact-item">
+                                <h4>Социальные сети</h4>
+                                <div class="social-links">
+                                    <a href="#" class="social-link">Instagram</a>
+                                    <a href="#" class="social-link">Telegram</a>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <h4>График работы</h4>
+                                <div class="working-hours">
+                                    <p>Пн-Пт: 9:00 - 18:00</p>
+                                    <p>Сб-Вс: 10:00 - 16:00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="contacts-map">
+                    <div class="map-placeholder">
+                        <p>Карта расположения ЖК «Бахор»</p>
+                        <div class="map-links">
+                            <a href="#" class="map-link">Открыть в Google Maps</a>
+                            <a href="#" class="map-link">Открыть в Яндекс.Картах</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="trust-line">
+                <p>Доверьте нам свою мечту о новом доме</p>
+            </div>
+            <div class="back-to-selection">
+                <a href="/" class="back-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Назад к выбору ЖК
+                </a>
+            </div>
+            <div class="copyright">
+                <p>© 2025 Buildings. Все права защищены.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Модальное окно для условий оплаты -->
+    <div id="conditionModal" class="condition-modal" style="display: none;">
+        <div class="condition-modal-content">
+            <span class="condition-modal-close" onclick="closeConditionModal()">&times;</span>
+            <div id="conditionExample" class="condition-example"></div>
+        </div>
+    </div>
+
+    <script>
+        // Модальное окно для условий оплаты
+        function showConditionExample(condition) {
+            const modal = document.getElementById('conditionModal');
+            const modalContent = document.getElementById('conditionExample');
+            
+            let content = '';
+            
+            switch(condition) {
+                case 'installment':
+                    content = `
+                        <h3>Пример рассрочки</h3>
+                        <p><strong>Стоимость квартиры:</strong> 200 000 000 сум</p>
+                        <p><strong>Первоначальный взнос:</strong> 40 000 000 сум (20%)</p>
+                        <p><strong>Ежемесячный платеж:</strong> 8 888 889 сум</p>
+                        <p><strong>Срок рассрочки:</strong> 18 месяцев</p>
+                        <p><strong>Переплата:</strong> 0 сум</p>
+                    `;
+                    break;
+                case 'hybrid':
+                    content = `
+                        <h3>Пример гибридной рассрочки</h3>
+                        <p><strong>Стоимость квартиры:</strong> 200 000 000 сум</p>
+                        <p><strong>Первоначальный взнос (25%):</strong> 50 000 000 сум</p>
+                        <p><strong>Ежемесячная оплата (12 мес., 50%):</strong> 8 333 333 сум</p>
+                        <p><strong>Последний платёж (13-й месяц, 25%):</strong> 50 000 000 сум</p>
+                    `;
+                    break;
+                case 'mortgage':
+                    content = `
+                        <h3>Переход на ипотеку</h3>
+                        <p><strong>Стоимость квартиры:</strong> 200 000 000 сум</p>
+                        <p><strong>Первоначальный взнос:</strong> 40 000 000 сум (20%)</p>
+                        <p><strong>Сумма ипотеки:</strong> 160 000 000 сум</p>
+                        <p><strong>Ставка:</strong> от 18% годовых</p>
+                        <p><strong>Срок:</strong> до 20 лет</p>
+                        <p><strong>Ежемесячный платеж:</strong> от 1 600 000 сум</p>
+                    `;
+                    break;
+            }
+            
+            modalContent.innerHTML = content;
+            modal.style.display = 'block';
+        }
+
+        // Закрытие модального окна
+        function closeConditionModal() {
+            document.getElementById('conditionModal').style.display = 'none';
+        }
+
+        // Обработчики для кликабельных элементов
+        document.addEventListener('DOMContentLoaded', function() {
+            const clickableItems = document.querySelectorAll('.condition-item.clickable');
+            clickableItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const condition = this.getAttribute('data-condition');
+                    showConditionExample(condition);
+                });
+            });
+        });
+
+        // Мобильное меню
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (mobileMenu.classList.contains('active')) {
+                mobileMenu.classList.remove('active');
+                mobileMenuBtn.classList.remove('active');
+                document.body.style.overflow = '';
+            } else {
+                mobileMenu.classList.add('active');
+                mobileMenuBtn.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        // Закрытие мобильного меню при клике на ссылку
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuLinks = document.querySelectorAll('.mobile-menu-link');
+            mobileMenuLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const mobileMenu = document.getElementById('mobileMenu');
+                    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+                    mobileMenu.classList.remove('active');
+                    mobileMenuBtn.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            });
+            // Condition cards interaction
+            document.querySelectorAll('.condition-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const condition = this.getAttribute('data-condition');
+                    
+                    // Remove active class from all cards
+                    document.querySelectorAll('.condition-card').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked card
+                    this.classList.add('active');
+                    
+                    // Hide all details
+                    document.querySelectorAll('.condition-details').forEach(detail => {
+                        detail.style.display = 'none';
+                    });
+                    
+                    // Show corresponding details
+                    const details = document.getElementById(condition + '-details');
+                    if (details) {
+                        details.style.display = 'block';
+                    }
+                });
+            });
+        });
+
+        // Mobile menu toggle function
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (mobileMenu && mobileMenuBtn) {
+                mobileMenu.classList.toggle('active');
+                mobileMenuBtn.classList.toggle('active');
+                document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+            }
+        }
+
+        // API functions for apartment data
+        async function loadApartments(jkName, roomsFilter = null) {
+            try {
+                // Получаем данные шахматки для ЖК
+                const response = await fetch(`/api/complexes/jk/${jkName}`);
+                const data = await response.json();
+                
+                if (data.status !== 'success') {
+                    throw new Error('Ошибка загрузки данных ЖК');
+                }
+                
+                const shaxmatka = data.shaxmatka;
+                const apartments = [];
+                
+                // Обрабатываем данные шахматки
+                for (let i = 1; i < shaxmatka.length; i++) { // Пропускаем заголовок
+                    const row = shaxmatka[i];
+                    if (row.length < 7) continue;
+                    
+                    const blockName = row[0];
+                    const status = row[2];
+                    const apartmentNumber = row[4];
+                    const size = row[5];
+                    const floor = row[6];
+                    
+                    // Фильтрация по количеству комнат
+                    if (roomsFilter) {
+                        const roomCount = getRoomCountFromSize(parseFloat(size));
+                        if (roomCount !== roomsFilter) continue;
+                    }
+                    
+                    // Пропускаем занятые квартиры
+                    if (status && status.toLowerCase().includes('занят')) continue;
+                    
+                    apartments.push({
+                        blockName,
+                        apartmentNumber,
+                        size: parseFloat(size),
+                        floor: parseInt(floor),
+                        status,
+                        rooms: getRoomCountFromSize(parseFloat(size))
+                    });
+                }
+                
+                return apartments;
+            } catch (error) {
+                console.error('Ошибка загрузки квартир:', error);
+                return [];
+            }
+        }
+        
+        function getRoomCountFromSize(size) {
+            if (size <= 35) return 1;
+            if (size <= 50) return 2;
+            if (size <= 70) return 3;
+            return 4;
+        }
+        
+        async function loadApartmentDetails(jkName, apartment) {
+            try {
+                const response = await fetch(`/api/complexes/apartment-info?jkName=${jkName}&blockName=${apartment.blockName}&apartmentSize=${apartment.size}&floor=${apartment.floor}&apartmentNumber=${apartment.apartmentNumber}`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    return data.data;
+                }
+                return null;
+            } catch (error) {
+                console.error('Ошибка загрузки деталей квартиры:', error);
+                return null;
+            }
+        }
+        
+        async function renderApartments(jkName, roomsFilter = null, blockFilter = null) {
+            const apartmentsGrid = document.querySelector('.apartments-grid');
+            if (!apartmentsGrid) return;
+            
+            // Показываем загрузку
+            apartmentsGrid.innerHTML = '<div class="loading">Загрузка квартир...</div>';
+            
+            const apartments = await loadApartments(jkName, roomsFilter);
+            
+            // Фильтруем по блоку, если указан фильтр
+            let filteredApartments = apartments;
+            if (blockFilter) {
+                filteredApartments = apartments.filter(apartment => 
+                    apartment.blockName && apartment.blockName.toLowerCase() === blockFilter.toLowerCase()
+                );
+            }
+            
+            if (filteredApartments.length === 0) {
+                apartmentsGrid.innerHTML = '<div class="no-apartments">Квартиры не найдены</div>';
+                return;
+            }
+            
+            // Ограничиваем количество квартир для отображения
+            const displayApartments = filteredApartments.slice(0, 6);
+            
+            apartmentsGrid.innerHTML = '';
+            
+            for (const apartment of displayApartments) {
+                const details = await loadApartmentDetails(jkName, apartment);
+                
+                const apartmentCard = document.createElement('div');
+                apartmentCard.className = 'apartment-card';
+                
+                const remainingCount = Math.floor(Math.random() * 5) + 1; // Случайное количество оставшихся
+                
+                apartmentCard.innerHTML = `
+                    <div class="apartment-card__header">
+                        <span class="apartment-card__remaining">Осталось всего ${remainingCount} квартир</span>
+                        <button class="apartment-card__favorite">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M20.84 4.61C20.3292 4.099 19.7228 3.69364 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69364 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.5783 8.50903 2.9987 7.05 2.9987C5.59096 2.9987 4.19169 3.5783 3.16 4.61C2.1283 5.6417 1.5487 7.04097 1.5487 8.5C1.5487 9.95903 2.1283 11.3583 3.16 12.39L12 21.23L20.84 12.39C21.351 11.8792 21.7563 11.2728 22.0329 10.6053C22.3095 9.93789 22.4518 9.22248 22.4518 8.5C22.4518 7.77752 22.3095 7.06211 22.0329 6.39465C21.7563 5.72719 21.351 5.1208 20.84 4.61Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="apartment-card__floorplan">
+                        <img src="/api/complexes/plan-image?jkName=${jkName}&blockName=${apartment.blockName}&apartmentSize=${apartment.size}" alt="План квартиры" class="apartment-card__image">
+                    </div>
+                    <div class="apartment-card__details">
+                        <div class="apartment-detail">
+                            <span class="apartment-detail__label">Номер квартиры</span>
+                            <span class="apartment-detail__value">${apartment.apartmentNumber}</span>
+                        </div>
+                        <div class="apartment-detail">
+                            <span class="apartment-detail__label">Площадь</span>
+                            <span class="apartment-detail__value">${apartment.size} м²</span>
+                        </div>
+                        <div class="apartment-detail">
+                            <span class="apartment-detail__label">Комнат</span>
+                            <span class="apartment-detail__value">${apartment.rooms}</span>
+                        </div>
+                        <div class="apartment-detail">
+                            <span class="apartment-detail__label">Этаж</span>
+                            <span class="apartment-detail__value">${apartment.floor}</span>
+                        </div>
+                        <div class="apartment-detail">
+                            <span class="apartment-detail__label">Год сдачи</span>
+                            <span class="apartment-detail__value">2026</span>
+                        </div>
+                        <div class="apartment-detail">
+                            <span class="apartment-detail__label">Проект</span>
+                            <span class="apartment-detail__value">${jkName.replace('ЖК_', '')}</span>
+                        </div>
+                        ${details ? `
+                        <div class="apartment-detail">
+                            <span class="apartment-detail__label">Цена за м²</span>
+                            <span class="apartment-detail__value">${details.pricePerM2_30.toLocaleString()} сум</span>
+                        </div>
+                        <div class="apartment-detail">
+                            <span class="apartment-detail__label">Общая стоимость</span>
+                            <span class="apartment-detail__value">${details.total_price.toLocaleString()} сум</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <button class="apartment-card__button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Узнать подробнее
+                    </button>
+                `;
+                
+                apartmentsGrid.appendChild(apartmentCard);
+            }
+        }
+        
+        // Функция для загрузки и отображения блоков
+        async function loadBlocks() {
+            try {
+                const response = await fetch('/api/complexes/blocks/ЖК_Бахор');
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.blocks.length > 0) {
+                    // Создаем секцию с блоками
+                    const blocksSection = document.createElement('div');
+                    blocksSection.className = 'blocks-section';
+                    blocksSection.innerHTML = `
+                        <h3>Выберите блок:</h3>
+                        <div class="blocks-grid">
+                            ${data.blocks.map(block => `
+                                <button class="block-btn" data-block="${block}">${block}</button>
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                    // Вставляем секцию блоков перед секцией квартир
+                    const apartmentsSection = document.querySelector('.apartments-section');
+                    if (apartmentsSection) {
+                        apartmentsSection.parentNode.insertBefore(blocksSection, apartmentsSection);
+                    }
+                    
+                    // Добавляем обработчики для кнопок блоков
+                    const blockButtons = document.querySelectorAll('.block-btn');
+                    blockButtons.forEach(button => {
+                        button.addEventListener('click', function() {
+                            // Убираем активный класс со всех кнопок
+                            blockButtons.forEach(btn => btn.classList.remove('active'));
+                            // Добавляем активный класс к нажатой кнопке
+                            this.classList.add('active');
+                            
+                            // Загружаем квартиры для выбранного блока
+                            const selectedBlock = this.getAttribute('data-block');
+                            renderApartments('ЖК_Бахор', null, selectedBlock);
+                        });
+                    });
+                    
+                    // Проверяем URL параметры для автоматического выбора блока
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const selectedBlock = urlParams.get('block');
+                    if (selectedBlock) {
+                        const blockButton = document.querySelector(`[data-block="${selectedBlock}"]`);
+                        if (blockButton) {
+                            blockButton.click();
+                        }
+                    } else {
+                        // Выбираем первый блок по умолчанию
+                        blockButtons[0].click();
+                    }
+                } else {
+                    // Если блоки не найдены, загружаем все квартиры
+                    renderApartments('ЖК_Бахор');
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке блоков:', error);
+                // В случае ошибки загружаем все квартиры
+                renderApartments('ЖК_Бахор');
+            }
+        }
+
+        // Загружаем квартиры при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBlocks();
+            
+            // Обработчики для фильтрации
+            const filterButtons = document.querySelectorAll('.apartment-filter__btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Убираем активный класс со всех кнопок
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    // Добавляем активный класс к нажатой кнопке
+                    this.classList.add('active');
+                    
+                    // Получаем фильтр по комнатам
+                    const roomsFilter = this.getAttribute('data-rooms');
+                    const filterValue = roomsFilter === 'all' ? null : parseInt(roomsFilter);
+                    
+                    // Получаем выбранный блок
+                    const selectedBlock = document.querySelector('.block-btn.active')?.getAttribute('data-block');
+                    
+                    // Перерисовываем квартиры с фильтром
+                    renderApartments('ЖК_Бахор', filterValue, selectedBlock);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

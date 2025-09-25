@@ -692,6 +692,201 @@ border-radius: 57px;
     opacity: 1;
 }
 
+.comment-form {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    border: 1px solid #eef2ff;
+}
+
+.comment-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.comment-note::before {
+    content: '\2728';
+    font-size: 0.9rem;
+}
+
+.comment-input-row textarea {
+    font-family: inherit;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.comment-input-row textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    background: #fff;
+}
+
+.comment-input-row button {
+
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.comment-input-row button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.comment-input-row button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(59, 130, 246, 0.3);
+}
+
+.comment-input-row button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.comment-form label {
+    color: #475569;
+}
+
+.comment-form input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #cbd5f5;
+}
+
+.comment-form input[type="checkbox"]:checked {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.comment-form input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+}
+
+.comments-container + .comment-form {
+    margin-top: 12px;
+}
+
+/* Кнопки быстрого действия под чатом */
+.buttons-row {
+    display: flex;
+    gap: 20px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+
+.buttons-row > .quick-action-button-wrapper {
+    flex: 1 1 280px;
+    display: flex;
+}
+
+.quick-action-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 26px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.2;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    letter-spacing: 0.01em;
+    min-height: 68px;
+    box-sizing: border-box;
+}
+
+.quick-action-button__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    flex-shrink: 0;
+}
+
+.quick-action-button__text {
+    flex: 1;
+    text-align: left;
+    white-space: normal;
+}
+
+.quick-action-button__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.quick-action-button__arrow svg {
+    width: 20px;
+    height: 20px;
+}
+
+.quick-action-button--ghost {
+    background: linear-gradient(180deg, #f9fbff 0%, #ffffff 100%);
+    border: 1.5px solid #dbeafe;
+    color: #1d4ed8;
+    box-shadow: 0 12px 30px rgba(30, 64, 175, 0.08);
+}
+
+.quick-action-button--ghost .quick-action-button__icon {
+    background: rgba(37, 99, 235, 0.12);
+    color: #1d4ed8;
+}
+
+.quick-action-button--primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #fff;
+    box-shadow: 0 20px 42px rgba(37, 99, 235, 0.3);
+}
+
+.quick-action-button--primary .quick-action-button__icon {
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+}
+
+.quick-action-button:hover {
+    transform: translateY(-2px);
+}
+
+.quick-action-button--ghost:hover {
+    box-shadow: 0 18px 36px rgba(30, 64, 175, 0.16);
+}
+
+.quick-action-button--primary:hover {
+    filter: brightness(1.03);
+}
+
+.quick-action-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+    filter: none;
+}
+
+.quick-action-button svg {
+    display: block;
+}
+
 /* --- Адаптивность --- */
 @media (max-width: 1024px) {
     .main-content {

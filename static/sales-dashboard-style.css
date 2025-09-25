@@ -62,7 +62,7 @@ line-height: normal;
 
 
 .lead-count {
-    color: #666;
+    color: #2e2c2c;
 
 }
 
@@ -210,6 +210,131 @@ line-height: normal;
     color: #2563eb;
     text-decoration: none;
     font-size: 0.875rem;
+    transition: color 0.3s ease;
+}
+
+.open-card:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.no-access {
+    color: #9ca3af !important;
+    font-size: 0.8rem !important;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* Стили для карточек без доступа */
+.card.no-access-card {
+    opacity: 0.8;
+    border-left: 4px solid #e5e7eb;
+}
+
+.card.no-access-card .card-header {
+    opacity: 0.9;
+}
+
+/* Стили для карточек с истекшим лимитом созвона */
+.card.call-limit-expired {
+    border: 4px solid #ff0000 !important;
+    background: linear-gradient(135deg, #fff5f5, #ffe6e6) !important;
+    box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3);
+    animation: urgentPulse 1.5s infinite;
+}
+
+/* Стили для обработанных карточек (после отметки созвона) */
+.card.call-completed {
+    border: 2px solid #10b981 !important;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
+    animation: none;
+}
+
+.card.call-completed .card-header {
+    color: #059669;
+    font-weight: bold;
+}
+
+.card.call-completed .call-limit-warning {
+    display: none !important;
+}
+
+/* Стили для кнопки обработанной карточки */
+.open-card.processed-card {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+    font-weight: bold !important;
+    border: 2px solid #059669 !important;
+}
+
+.open-card.processed-card:hover {
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3) !important;
+}
+
+.card.call-limit-expired .card-header {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+/* Анимация пульсации для срочных карточек */
+@keyframes urgentPulse {
+    0% {
+        box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 6px 30px rgba(255, 0, 0, 0.5);
+        transform: scale(1.02);
+    }
+    100% {
+        box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3);
+        transform: scale(1);
+    }
+}
+
+/* Анимация пульсации для предупреждений */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Стили для предупреждений */
+.call-limit-warning {
+    background: linear-gradient(135deg, #ff0000, #dc2626) !important;
+    color: white !important;
+    padding: 8px !important;
+    margin: 8px 0 !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+    font-weight: bold !important;
+    font-size: 0.9em !important;
+    animation: pulse 2s infinite !important;
+    box-shadow: 0 2px 10px rgba(255, 0, 0, 0.3);
+}
+
+.time-warning {
+    background: linear-gradient(135deg, #ffa500, #ff8c00) !important;
+    color: white !important;
+    padding: 6px !important;
+    margin: 6px 0 !important;
+    border-radius: 6px !important;
+    text-align: center !important;
+    font-size: 0.85em !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(255, 165, 0, 0.3);
 }
 
 /* Hide scrollbars on columns but allow scrolling */

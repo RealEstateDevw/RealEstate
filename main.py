@@ -21,11 +21,26 @@ from backend.api.mop.main import router as mop_api_router
 from backend.api.users.schemas import ROLE_REDIRECTS, UserRead
 from backend.bot.main import run_bot
 from backend.core.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password, SECRET_KEY, ALGORITHM
+from settings import settings
 from backend.core.deps import get_current_user, get_current_user_from_cookie
 # from backend.core.google_sheets import schedule_lid_check, load_data_to_cache
 from backend.database import Base, engine, get_db
 from fastapi import FastAPI, Request, HTTPException, Form, Depends, BackgroundTasks, Body
 from fastapi.responses import HTMLResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from backend.core.exceptions import (
+    http_exception_handler, 
+    validation_exception_handler, 
+    general_exception_handler
+)
+from backend.core.middleware import (
+    LoggingMiddleware, 
+    SecurityHeadersMiddleware, 
+    DatabaseConnectionMiddleware
+)
+from backend.core.rate_limiter import RateLimitMiddleware
+from backend.core.logging_config import setup_logging
 from backend.database.userservice import get_user_by_login, get_all_users
 from config import logger, templates
 from backend.crm.admin.main import router as admin_router
@@ -41,7 +56,28 @@ from backend.api.draws.main import router as draw_users_router
 # from backend.api.excel_utils import router as excel_router
 from backend.api.test_excel import router as test_excel
 
-app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc")
+# Инициализация логирования
+setup_logging()
+
+app = FastAPI(
+    docs_url="/api/docs", 
+    redoc_url="/api/redoc",
+    title="RealEstate CRM API",
+    description="API для системы управления недвижимостью",
+    version="1.0.0"
+)
+
+# Добавляем middleware (порядок важен!)
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(DatabaseConnectionMiddleware)
+app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
+
+# Добавляем обработчики ошибок
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
 
 app.include_router(user_router)
 app.include_router(leads_router)
@@ -64,9 +100,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with actual frontend domain
+    allow_origins=settings.ALLOWED_ORIGINS if not settings.DEBUG else ["*"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -123,7 +159,18 @@ async def on_startup():
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
+    # Перенаправляем на главную страницу выбора ЖК
     return templates.TemplateResponse("/landing/index.html", {"request": request})
+
+@app.get("/rassvet", response_class=HTMLResponse)
+async def rassvet_landing(request: Request):
+    # Страница ЖК Рассвет
+    return templates.TemplateResponse("/landing/rassvet.html", {"request": request})
+
+@app.get("/bahor", response_class=HTMLResponse)
+async def bahor_landing(request: Request):
+    # Страница ЖК Бахор
+    return templates.TemplateResponse("/landing/bahor.html", {"request": request})
 
 
 @app.get("/login", response_class=HTMLResponse)
@@ -200,10 +247,10 @@ async def auth_middleware(request: Request, call_next):
     # --- Публичные пути ---
     # Пути, которые НЕ требуют аутентификации
     # Используем startswith для /static и /docs и т.д.
-    public_paths_exact = {"/", "/login", "/register", "/api/auth/login", "/api/auth/register", "/complexes"}
+    public_paths_exact = {"/", "/login", "/register", "/api/auth/login", "/api/auth/register", "/complexes", "/rassvet", "/bahor"}
     public_paths_startswith = {"/static", "/docs",
                                "/openapi.json", "/complexes", "/api/complexes",
-                               "/excel",
+                               "/excel", "/shaxmatki", "/api/shaxmatki",
                                "/webhook"}  # Добавь сюда /docs и /openapi.json, если используешь Swagger/OpenAPI UI
 
     is_public = False

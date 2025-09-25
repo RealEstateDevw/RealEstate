@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # Основное приложение
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+      - ./data.db:/app/data.db
+    environment:
+      - DATABASE_URL=sqlite:///data.db
+      - DEBUG=True
+      - ENVIRONMENT=development
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # Redis для Celery и кэширования
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # Celery worker
+  celery:
+    build: .
+    command: celery -A celery_proccess worker --loglevel=info
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    environment:
+      - DATABASE_URL=sqlite:///data.db
+      - DEBUG=True
+      - ENVIRONMENT=development
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # Celery beat (планировщик)
+  celery-beat:
+    build: .
+    command: celery -A celery_proccess beat --loglevel=info
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    environment:
+      - DATABASE_URL=sqlite:///data.db
+      - DEBUG=True
+      - ENVIRONMENT=development
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+volumes:
+  redis_data:

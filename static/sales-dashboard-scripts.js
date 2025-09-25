@@ -8,18 +8,24 @@ let currentUser = null;
 
 async function loadLeads() {
     try {
+        console.log("Начинаем загрузку лидов...");
+        
         // Получаем текущего пользователя
         const currentUser = await getCurrentUser();
         if (!currentUser) throw new Error("Пользователь не найден");
+        console.log("Пользователь найден:", currentUser);
 
         // Запрашиваем лиды пользователя
         const response = await fetch(`/api/leads/user/${currentUser.id}?include_callbacks=true`);
         if (!response.ok) throw new Error("Ошибка загрузки данных");
+        console.log("Ответ от API получен");
 
         const leads = await response.json();
+        console.log("Лиды загружены:", leads);
 
         // Очищаем старые данные в колонках
         document.querySelectorAll(".lead-list").forEach(el => el.innerHTML = "");
+        console.log("Колонки очищены");
 
         // Группируем лидов по статусу
         const groupedLeads = leads.reduce((acc, lead) => {
@@ -28,12 +34,30 @@ async function loadLeads() {
             acc[status].push(lead);
             return acc;
         }, {});
+        console.log("Лиды сгруппированы:", groupedLeads);
+
+        // Проверяем истекшие лимиты и показываем уведомления
+        try {
+            checkCallLimits(leads);
+            console.log("Проверка лимитов завершена");
+        } catch (error) {
+            console.error("Ошибка при проверке лимитов:", error);
+        }
 
         // Заполняем колонки
-        Object.entries(groupedLeads).forEach(([status, leads]) => updateColumn(status, leads));
+        Object.entries(groupedLeads).forEach(([status, leads]) => {
+            try {
+                console.log(`Обновляем колонку ${status} с ${leads.length} лидами`);
+                updateColumn(status, leads);
+            } catch (error) {
+                console.error(`Ошибка при обновлении колонки ${status}:`, error);
+            }
+        });
+        console.log("Все колонки обновлены");
 
     } catch (error) {
         console.error("Ошибка загрузки лидов:", error);
+        showNotification("Ошибка загрузки данных: " + error.message, "error");
     }
 }
 
@@ -49,14 +73,17 @@ async function getCurrentUser() {
 }
 
 function updateColumn(status, leads) {
+    console.log(`Обновляем колонку ${status} с ${leads.length} лидами`);
+    
     const column = document.querySelector(`.column[data-status="${status}"] .lead-list`);
     const leadCount = document.querySelector(`.column[data-status="${status}"] .lead-count`);
 
     if (!column) {
-        console.warn(`Колонка для статуса "${status}" не найдена.`);
+        console.error(`Колонка для статуса "${status}" не найдена.`);
         return;
     }
-    console.log("Updating column:", status, leads);
+    
+    console.log("Колонка найдена, начинаем обновление");
 
     // Очищаем список перед обновлением
     column.innerHTML = '';
@@ -64,33 +91,103 @@ function updateColumn(status, leads) {
     // Обновляем счётчик лидов
     leadCount.textContent = `${leads.length} ${getLeadWord(leads.length)}`;
     leads.sort((a, b) => {
+        // Приоритет 1: Карточки с истекшим лимитом созвона (24 часа)
+        const aCallLimitExpired = isCallLimitExpired(a);
+        const bCallLimitExpired = isCallLimitExpired(b);
+        
+        if (aCallLimitExpired && !bCallLimitExpired) return -1;
+        if (!aCallLimitExpired && bCallLimitExpired) return 1;
+        
+        // Приоритет 2: Карточки с предстоящими созвонами
         const aLatestCallback = a.callbacks.length ? new Date(Math.max(...a.callbacks.map(cb => new Date(cb)))) : null;
         const bLatestCallback = b.callbacks.length ? new Date(Math.max(...b.callbacks.map(cb => new Date(cb)))) : null;
         const aHasPending = aLatestCallback && aLatestCallback > new Date();
         const bHasPending = bLatestCallback && bLatestCallback > new Date();
+        
+        if (aCallLimitExpired && bCallLimitExpired) {
+            // Если у обеих истек лимит, сортируем по времени истечения
+            const aExpiredTime = getCallLimitExpiredTime(a);
+            const bExpiredTime = getCallLimitExpiredTime(b);
+            return aExpiredTime - bExpiredTime;
+        }
+        
         return bHasPending - aHasPending;
     });
 
-    leads.forEach(lead => {
-        const card = document.createElement("div");
-        card.classList.add("card");
-        card.setAttribute('draggable', true); // Включаем возможность перетаскивания
-        card.setAttribute('data-lead-id', lead.id); // Добавляем ID лида для идентификации
-        card.setAttribute('data-status', lead.status); // Текущий статус лида
-
+    leads.forEach((lead, index) => {
+        try {
+            console.log(`Создаем карточку для лида ${index + 1}/${leads.length}:`, lead.full_name);
+            
+            const card = document.createElement("div");
+            card.classList.add("card");
+            card.setAttribute('draggable', true); // Включаем возможность перетаскивания
+            card.setAttribute('data-lead-id', lead.id); // Добавляем ID лида для идентификации
+            card.setAttribute('data-status', lead.status); // Текущий статус лида
+            
         const now = new Date();
         const latestCallback = lead.callbacks.length ? new Date(Math.max(...lead.callbacks.map(cb => new Date(cb)))) : null;
         const isPending = latestCallback && latestCallback > now;
         const isMissed = latestCallback && latestCallback < now;
-        if (isPending) card.style.border = '2px solid rgb(255 158 68)'; // Red border for pending
-        if (isMissed) card.style.opacity = '0.5';
-        if (isMissed) card.style.border = '4px solid #ff4444'
+        const isCallLimitExpiredFlag = isCallLimitExpired(lead);
+        
+        // Добавляем класс для лидов без доступа только если есть проблемы с callback
+        if (isCallLimitExpiredFlag || isMissed) {
+            card.classList.add("no-access-card");
+        }
+        
+        // Проверяем, был ли callback сегодня (карточка обработана)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const callbackDate = latestCallback ? new Date(latestCallback) : null;
+        if (callbackDate) {
+            callbackDate.setHours(0, 0, 0, 0);
+        }
+        const isProcessedToday = latestCallback && callbackDate && callbackDate.getTime() === today.getTime();
+        
+        // Стили для разных состояний
+        if (isProcessedToday) {
+            // Карточка обработана сегодня (есть callback сегодня)
+            card.style.border = '2px solid #10b981'; // Зеленая рамка
+            card.style.backgroundColor = '#f0fdf4'; // Светло-зеленый фон
+            card.classList.add('call-completed');
+        } else if (isCallLimitExpiredFlag) {
+            // Лимит истек (callback был вчера или раньше) - ВЫСОКИЙ ПРИОРИТЕТ
+            card.style.border = '4px solid #ff0000'; // Красная рамка для истекшего лимита
+            card.style.backgroundColor = '#fff5f5'; // Светло-красный фон
+            card.classList.add('call-limit-expired');
+        } else if (isPending) {
+            // Предстоящий callback - СРЕДНИЙ ПРИОРИТЕТ
+            card.style.border = '2px solid rgb(255 158 68)'; // Оранжевая рамка для предстоящих
+        } else if (isMissed) {
+            // Пропущенный callback - ВЫСОКИЙ ПРИОРИТЕТ
+            card.style.opacity = '0.5';
+            card.style.border = '4px solid #ff4444';
+        } else {
+            // Нет callback - ОБЫЧНАЯ КАРТОЧКА (есть доступ)
+            card.style.border = '1px solid #e5e7eb';
+            card.style.backgroundColor = '#ffffff';
+        }
+
+        // Создаем индикатор истекшего лимита
+        const callLimitIndicator = isCallLimitExpiredFlag ? 
+            `<div class="call-limit-warning" style="background: #ff0000; color: white; padding: 8px; margin: 8px 0; border-radius: 8px; text-align: center; font-weight: bold; animation: pulse 2s infinite;">
+                ⚠️ ЛИМИТ СОЗВОНА ИСТЕК! Требуется срочное действие
+            </div>` : '';
+
+        // Создаем индикатор времени до истечения лимита
+        const timeUntilExpiry = getTimeUntilCallLimitExpires(lead);
+        const timeWarning = timeUntilExpiry && timeUntilExpiry < 2 * 60 * 60 * 1000 ? // Менее 2 часов
+            `<div class="time-warning" style="background: #ffa500; color: white; padding: 6px; margin: 6px 0; border-radius: 6px; text-align: center; font-size: 0.9em;">
+                ⏰ Лимит созвона истечет через ${Math.round(timeUntilExpiry / (60 * 60 * 1000))}ч ${Math.round((timeUntilExpiry % (60 * 60 * 1000)) / (60 * 1000))}м
+            </div>` : '';
 
         card.innerHTML = `
                     <div class="card-header">
                         <div class="name">${lead.full_name || "Без имени"}</div>
                         <div class="date">${formatDate(lead.created_at)}</div>
                     </div>
+                    ${callLimitIndicator}
+                    ${timeWarning}
                     <div class="contact-info">
                         <span class="messenger elements-info ${lead.contact_source}">${lead.contact_source || "Не указан"}</span>
                         <span class="location elements-info">${lead.region || "Не указан"}</span>
@@ -104,17 +201,25 @@ function updateColumn(status, leads) {
                             <span>${getStatusText(lead.state)}</span>
                         </div>
 
-                        <a href="/dashboard/sales/lead/${lead.id}" class="open-card">Открыть карточку</a>
+                        ${isProcessedToday ? 
+                            `<a href="/dashboard/sales/lead/${lead.id}" class="open-card processed-card">Карточка обработана</a>` :
+                            `<a href="/dashboard/sales/lead/${lead.id}" class="open-card">Открыть карточку</a>`
+                        }
                     </div>
-                        ${latestCallback ? `<div>Напоминание: ${formatDate(latestCallback)}</div>` : ''} 
+                        ${latestCallback && !isProcessedToday ? `<div>Напоминание: ${formatDate(latestCallback)}</div>` : ''} 
 
                 `;
 
-        // Добавляем обработчики для перетаскивания
-        card.addEventListener('dragstart', handleDragStart);
-        card.addEventListener('dragend', handleDragEnd);
+            // Добавляем обработчики для перетаскивания
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
 
-        column.appendChild(card);
+            column.appendChild(card);
+            console.log(`Карточка для лида ${lead.full_name} добавлена`);
+            
+        } catch (error) {
+            console.error(`Ошибка при создании карточки для лида ${lead.full_name}:`, error);
+        }
     });
 }
 
@@ -229,6 +334,58 @@ function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString("ru-RU");
 }
 
+// Функция для проверки истечения лимита созвона (24 часа)
+function isCallLimitExpired(lead) {
+    // Если у лида нет callbacks, лимит не применим
+    if (!lead.callbacks || lead.callbacks.length === 0) return false;
+    
+    // Получаем последний callback
+    const latestCallback = new Date(Math.max(...lead.callbacks.map(cb => new Date(cb))));
+    const now = new Date();
+    
+    // Если последний callback был в будущем (предстоящий), лимит не истек
+    if (latestCallback > now) return false;
+    
+    // Проверяем, был ли callback сегодня - если да, то лимит не истек
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const callbackDate = new Date(latestCallback);
+    callbackDate.setHours(0, 0, 0, 0);
+    
+    if (callbackDate.getTime() === today.getTime()) {
+        return false; // Callback был сегодня, лимит не истек
+    }
+    
+    // Проверяем, прошло ли 24 часа с последнего callback
+    const timeDiff = now - latestCallback;
+    const hoursDiff = timeDiff / (1000 * 60 * 60); // Конвертируем в часы
+    
+    return hoursDiff >= 24;
+}
+
+// Функция для получения времени истечения лимита
+function getCallLimitExpiredTime(lead) {
+    if (!lead.callbacks || lead.callbacks.length === 0) return null;
+    
+    const latestCallback = new Date(Math.max(...lead.callbacks.map(cb => new Date(cb))));
+    const expiredTime = new Date(latestCallback.getTime() + 24 * 60 * 60 * 1000); // +24 часа
+    
+    return expiredTime;
+}
+
+// Функция для получения времени до истечения лимита
+function getTimeUntilCallLimitExpires(lead) {
+    if (!lead.callbacks || lead.callbacks.length === 0) return null;
+    
+    const latestCallback = new Date(Math.max(...lead.callbacks.map(cb => new Date(cb))));
+    const expiredTime = new Date(latestCallback.getTime() + 24 * 60 * 60 * 1000);
+    const now = new Date();
+    
+    if (expiredTime <= now) return null; // Уже истек
+    
+    return expiredTime - now;
+}
+
 // Функция для подбора цвета статуса
 function getStatusColor(state) {
     const colors = {
@@ -267,5 +424,29 @@ function getStatusText(state) {
 }
 
 
+// Функция для автоматического обновления данных
+function startAutoRefresh() {
+    // Обновляем данные каждые 5 минут
+    setInterval(() => {
+        console.log("Автоматическое обновление данных...");
+        loadLeads();
+    }, 5 * 60 * 1000); // 5 минут
+}
+
+// Функция для проверки и показа уведомлений о истекших лимитах
+function checkCallLimits(leads) {
+    const expiredLeads = leads.filter(lead => isCallLimitExpired(lead));
+    
+    if (expiredLeads.length > 0) {
+        showNotification(
+            `Внимание! У ${expiredLeads.length} лид${expiredLeads.length === 1 ? 'а' : 'ов'} истек лимит созвона!`, 
+            "error"
+        );
+    }
+}
+
 // Загружаем данные при открытии страницы
-document.addEventListener("DOMContentLoaded", loadLeads);
+document.addEventListener("DOMContentLoaded", () => {
+    loadLeads();
+    startAutoRefresh();
+});

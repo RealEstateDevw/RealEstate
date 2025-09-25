@@ -6,7 +6,7 @@ import tempfile
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import fitz
 from dateutil.relativedelta import relativedelta
@@ -69,37 +69,9 @@ async def get_jk_data(jk_name: str):
             for img in os.listdir(render_folder)
             if img.lower().endswith(('.png', '.jpg', '.jpeg'))
         ]
-        render_image = images[1] if images else images[0]
-    # Пример обработки данных, аналогичный исходному коду
-    # for row in shaxmatka_data:
-    #     # print(row[2])
-    #     if row[2].strip().lower() in "свободна ":
-    #         try:
-    #             floor = int(row[6])
-    #             area = float(row[5])
-    #             price_data = await get_price_data_for_sheet_all(jk_name)
-    #             price_30 = None
-    #             if price_data:
-    #                 for item in price_data:
-    #                     try:
-    #                         if int(item[0]) == floor:
-    #                             price_30 = float(item[4])
-    #                             break
-    #                     except (ValueError, IndexError):
-    #                         continue
-    #             if price_30:
-    #                 print(round(price_30*area))
-    #                 total_price_30 = round(price_30 * area)
-    #                 row.append(total_price_30)
-    #             else:
-    #                 row.append(None)
-    #         except (ValueError, TypeError) as e:
-    #             print(f"Ошибка обработки строки {row}: {e}")
-    #             row.append(None)
-    # else:
-    #     row.append(None)
+        if images:
+            render_image = images[1] if len(images) > 1 else images[0]
 
-    # Sanitize non-finite floats to avoid JSON errors
     sanitized_shaxmatka = []
     for row in shaxmatka_data:
         sanitized_row = []
@@ -167,24 +139,87 @@ async def get_plan_image(
 
     # Путь к директории с планировками
     base_path = os.path.join('static', 'Жилые_Комплексы', jkName, 'Planirovki')
-    print(f"Looking for plans in: {base_path}")
+    print(f"[plan-image] base_path: {base_path}")
 
-    # Сначала пытаемся найти графический файл с именем apartmentSize.xxx
-    possible_files = [f"{apartmentSize}.{ext}" for ext in ['jpg', 'jpeg', 'png', 'svg']]
-    for file_name in possible_files:
-        file_path = os.path.join(base_path, file_name)
-        if os.path.exists(file_path):
-            return FileResponse(file_path)
+    # Нормализация входных значений
+    size_raw = (apartmentSize or '').strip()
+    size_dot = size_raw.replace(',', '.')
+    # округлим до 1 знака после запятой (часто так хранятся файлы)
+    try:
+        size_float = float(size_dot)
+        size_1d = f"{size_float:.1f}"
+        size_0d = f"{round(size_float):d}"
+    except ValueError:
+        size_float = None
+        size_1d = size_dot
+        size_0d = size_dot
 
-    # Если графического файла нет, пытаемся найти PDF-файл
+    # Генерируем варианты имён файлов
+    size_variants = {
+        size_raw,
+        size_dot,
+        size_1d,
+        size_0d,
+        size_1d.replace('.', ','),
+        size_dot.replace('.', '_'),
+        size_dot.replace('.', '-'),
+        size_dot.replace('.', ' '),
+    }
+
+    # Возможные расширения
+    exts = ('jpg', 'jpeg', 'png', 'svg')
+
+    # Список директорий, где ищем: Planirovki и подкаталог блока
+    search_dirs = [base_path, os.path.join(base_path, blockName)]
+
+    # 1) Пытаемся найти точное совпадение имени (с учётом разных вариантов записи площади)
+    for d in search_dirs:
+        if not os.path.isdir(d):
+            continue
+        for v in size_variants:
+            for ext in exts:
+                candidate = os.path.join(d, f"{v}.{ext}")
+                if os.path.exists(candidate):
+                    print(f"[plan-image] found by exact filename: {candidate}")
+                    return FileResponse(candidate)
+
+    # 2) Гибкий поиск: ищем файлы, содержащие число площади внутри имени
+    # Готовим шаблон: число с точкой и то же число с запятой
+    if size_float is not None:
+        plain = f"{size_float:.1f}"
+    else:
+        # Если парсинг не удался — используем исходную строку с точкой
+        plain = size_dot
+
+    token_regex = re.escape(plain)
+    alt_plain = plain.replace('.', ',')
+    alt_regex = re.escape(alt_plain)
+
+    filename_pattern = re.compile(fr"(^|[^\d])({token_regex}|{alt_regex})($|[^\d])", re.IGNORECASE)
+    for d in search_dirs:
+        if not os.path.isdir(d):
+            continue
+        for fname in os.listdir(d):
+            if not fname.lower().endswith(exts):
+                continue
+            if filename_pattern.search(fname):
+                candidate = os.path.join(d, fname)
+                print(f"[plan-image] found by pattern: {candidate}")
+                return FileResponse(candidate)
+
+    # 3) Если графических файлов нет, пытаемся найти PDF-файл
     pdf_file_path = os.path.join(base_path, f"{blockName}.pdf")
-    print(pdf_file_path)
+    print(f"[plan-image] try pdf: {pdf_file_path}")
     if os.path.exists(pdf_file_path):
         try:
             doc = fitz.open(pdf_file_path)
             for page in doc:
-                text = page.get_text()
-                if apartmentSize in text:
+                text = (page.get_text() or '')
+                # Нормализуем текст страницы и искомую площадь (точки↔запятые)
+                normalized_page = text.replace(',', '.').replace(' ', '')
+                query_variants = {size_dot, size_1d, size_0d}
+                query_variants = {q.replace(' ', '').replace(',', '.') for q in query_variants if q}
+                if any(q in normalized_page for q in query_variants):
                     pix = page.get_pixmap()
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
                         pix.save(tmp_file.name)
@@ -194,6 +229,7 @@ async def get_plan_image(
             doc.close()
             raise HTTPException(status_code=404, detail="Файл планировки не найден в PDF")
         except Exception as e:
+            print(f"[plan-image] pdf error: {e}")
             render_path = os.path.join("static", 'Жилые_Комплексы', jkName, 'render')
             if os.path.exists(render_path):
                 render_files = [f for f in os.listdir(render_path) if
@@ -205,6 +241,259 @@ async def get_plan_image(
 
 
     raise HTTPException(status_code=404, detail="Файл планировки не найден")
+
+
+def _natural_key(path: str) -> List[Any]:
+    name = os.path.basename(path)
+    return [int(fragment) if fragment.isdigit() else fragment.lower() for fragment in re.split(r'(\d+)', name)]
+
+
+def _sanitize_token(value: str) -> List[str]:
+    """Возвращает набор безопасных вариантов записи для имени файла."""
+    if value is None:
+        return []
+
+    token = str(value).strip()
+    if not token:
+        return []
+
+    variants = {
+        token,
+        token.lower(),
+        token.upper(),
+        token.replace(' ', '_'),
+        token.replace(' ', ''),
+        token.replace('-', '_'),
+        token.replace('-', ''),
+        token.replace(',', '.'),
+        token.replace(',', '_'),
+        token.replace('.', '_'),
+        token.replace('.', ''),
+    }
+
+    try:
+        numeric = int(float(token.replace(',', '.')))
+        variants.update({str(numeric), f"{numeric:02d}"})
+    except ValueError:
+        pass
+
+    return list(variants)
+
+
+@router.get("/floor-plan")
+async def get_floor_plan(
+        jkName: str = Query(..., alias="jkName"),
+        floor: str = Query(..., alias="floor"),
+        blockName: Optional[str] = Query(None, alias="blockName")
+):
+    """Возвращает изображение плана этажа для указанного ЖК."""
+    if not jkName or not floor:
+        raise HTTPException(status_code=400, detail="Параметры jkName и floor обязательны")
+
+    base_dir = os.path.join('static', 'Жилые_Комплексы', jkName)
+    if not os.path.isdir(base_dir):
+        raise HTTPException(status_code=404, detail=f"ЖК {jkName} не найден")
+
+    pdf_candidates = [
+        os.path.join(base_dir, name)
+        for name in ("plan_roof.pdf", "Plan pradaja.pdf")
+        if os.path.exists(os.path.join(base_dir, name))
+    ]
+    PDF_PAGE_OVERRIDES: Dict[str, int] = {
+        "ЖК_Рассвет": 1,
+    }
+
+    pdf_plan_path = pdf_candidates[0] if pdf_candidates else None
+
+    try:
+        floor_number = int(float(str(floor).replace(',', '.')))
+    except ValueError:
+        floor_number = None
+
+    unique_floors: List[int] = []
+    try:
+        shaxmatka_data = await get_shaxmatka_data(jkName)
+    except Exception as exc:
+        print(f"[floor-plan] failed to load shaxmatka for {jkName}: {exc}")
+        shaxmatka_data = None
+
+    if shaxmatka_data:
+        seen = set()
+        for row in shaxmatka_data:
+            if len(row) < 7:
+                continue
+            val = row[6]
+            if val in (None, ''):
+                continue
+            try:
+                num = int(float(str(val).replace(',', '.')))
+            except (ValueError, TypeError):
+                continue
+            if num not in seen:
+                unique_floors.append(num)
+                seen.add(num)
+
+    def fallback_index(page_count: int) -> int:
+        if page_count <= 0:
+            return 0
+        if floor_number is None:
+            return 0
+        override = PDF_PAGE_OVERRIDES.get(jkName)
+        if override is not None:
+            adjusted = override + max(0, floor_number - 1)
+            return max(0, min(adjusted, page_count - 1))
+        if unique_floors:
+            floors_sorted = sorted(unique_floors)
+            min_floor = floors_sorted[0]
+            max_floor = floors_sorted[-1]
+
+            ordered_sequences: List[List[int]] = []
+            if (max_floor - floor_number) <= (floor_number - min_floor):
+                ordered_sequences.append(sorted(unique_floors, reverse=True))
+                ordered_sequences.append(sorted(unique_floors))
+            else:
+                ordered_sequences.append(sorted(unique_floors))
+                ordered_sequences.append(sorted(unique_floors, reverse=True))
+            ordered_sequences.append(unique_floors)
+
+            seen_sequences = set()
+            for seq in ordered_sequences:
+                key = tuple(seq)
+                if not seq or key in seen_sequences:
+                    continue
+                seen_sequences.add(key)
+                try:
+                    idx = seq.index(floor_number)
+                    return max(0, min(idx, page_count - 1))
+                except ValueError:
+                    continue
+        return max(0, min(floor_number - 1, page_count - 1))
+
+    def find_pdf_page_index(doc: fitz.Document) -> Optional[int]:
+        if floor_number is None:
+            return None
+        override = PDF_PAGE_OVERRIDES.get(jkName)
+        if override is not None:
+            return max(0, min(override + max(0, floor_number - 1), doc.page_count - 1))
+        tokens = {
+            str(floor_number),
+            f"{floor_number:02d}",
+            str(floor_number).replace('.', ','),
+            str(floor_number).replace('.', ' ')
+        }
+        for idx, page in enumerate(doc):
+            text = page.get_text() or ''
+            normalized = re.sub(r'\s+', '', text.lower())
+            for token in tokens:
+                if f"этаж{token}" in normalized or f"floor{token}" in normalized:
+                    return idx
+        return None
+
+    precomputed_dir = os.path.join('static', 'floorplans', jkName)
+    if os.path.isdir(precomputed_dir):
+        png_files = sorted(
+            [
+                os.path.join(precomputed_dir, name)
+                for name in os.listdir(precomputed_dir)
+                if name.lower().endswith('.png')
+            ],
+            key=_natural_key
+        )
+
+        if png_files:
+            page_index = None
+            doc = None
+            if pdf_plan_path:
+                try:
+                    doc = fitz.open(pdf_plan_path)
+                    page_index = find_pdf_page_index(doc)
+                except Exception as exc:
+                    print(f"[floor-plan] failed to analyse PDF {pdf_plan_path}: {exc}")
+                finally:
+                    if doc:
+                        doc.close()
+            if page_index is None:
+                page_index = fallback_index(len(png_files))
+            page_index = max(0, min(page_index, len(png_files) - 1))
+            return FileResponse(png_files[page_index])
+
+    floor_tokens = _sanitize_token(floor)
+    block_tokens = _sanitize_token(blockName) if blockName else []
+
+    candidates = []
+
+    def add_candidates(prefix: str):
+        for ext in ('.png', '.jpg', '.jpeg', '.webp', '.svg', '.pdf'):
+            candidates.append(os.path.join(base_dir, prefix + ext))
+
+    if block_tokens:
+        for block_token in block_tokens:
+            for floor_token in floor_tokens:
+                add_candidates(f"plan_{block_token}_{floor_token}")
+                add_candidates(f"plan_{floor_token}_{block_token}")
+
+    for floor_token in floor_tokens:
+        add_candidates(f"plan_{floor_token}")
+        add_candidates(f"floor_{floor_token}")
+
+    add_candidates('plan')
+    add_candidates('floorplan')
+    add_candidates('plan_roof')
+
+    seen = set()
+    for path in candidates:
+        if path in seen:
+            continue
+        seen.add(path)
+        if not os.path.exists(path):
+            continue
+
+        ext = os.path.splitext(path)[1].lower()
+        if ext == '.pdf':
+            try:
+                doc = fitz.open(path)
+                page_index = find_pdf_page_index(doc)
+                if page_index is None:
+                    page_index = fallback_index(doc.page_count)
+                page_index = max(0, min(page_index, doc.page_count - 1))
+                page = doc.load_page(page_index)
+                pix = page.get_pixmap()
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
+                    pix.save(tmp_file.name)
+                    tmp_path = tmp_file.name
+                doc.close()
+                return FileResponse(tmp_path, media_type="image/png")
+            except Exception as exc:
+                print(f"[floor-plan] Ошибка обработки PDF {path}: {exc}")
+                continue
+        else:
+            return FileResponse(path)
+
+    raise HTTPException(status_code=404, detail="План этажа не найден")
+
+
+@router.get("/blocks/{jk_name}")
+async def get_blocks(jk_name: str):
+    """
+    Возвращает список блоков для заданного ЖК.
+    """
+    try:
+        shaxmatka_data = await get_shaxmatka_data(jk_name)
+        
+        # Извлекаем уникальные блоки из данных шахматки
+        blocks = set()
+        for row in shaxmatka_data:
+            if len(row) > 0 and row[0]:  # Первая колонка содержит название блока
+                block_name = str(row[0]).strip()
+                if block_name and block_name != 'None':
+                    blocks.add(block_name)
+        
+        blocks_list = sorted(list(blocks))
+        return {"status": "success", "blocks": blocks_list}
+        
+    except Exception as e:
+        print(f"Ошибка при получении блоков для {jk_name}: {e}")
+        return {"status": "error", "message": str(e)}
 
 
 @router.get("/apartment-info")

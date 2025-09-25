@@ -31,6 +31,38 @@
         transition: background 0.5s ease;
     }
 
+    /* Стили для колонок с разными цветами фона */
+    .column[data-status="COLD"] {
+        background: linear-gradient(135deg, rgba(107, 114, 128, 0.6) 0%, rgba(147, 197, 253, 0.7) 100%);
+        border: 1px solid rgba(107, 114, 128, 0.4);
+    }
+
+    .column[data-status="WARM"] {
+        background: linear-gradient(135deg, rgba(107, 114, 128, 0.6) 0%, rgba(253, 186, 116, 0.7) 100%);
+        border: 1px solid rgba(107, 114, 128, 0.4);
+    }
+
+    .column[data-status="HOT"] {
+        background: linear-gradient(135deg, rgba(107, 114, 128, 0.6) 0%, rgba(252, 165, 165, 0.7) 100%);
+        border: 1px solid rgba(107, 114, 128, 0.4);
+    }
+
+    /* Hover эффекты для колонок */
+    .column[data-status="COLD"]:hover {
+        background: linear-gradient(135deg, rgba(107, 114, 128, 0.5) 0%, rgba(147, 197, 253, 0.6) 100%);
+        border-color: rgba(107, 114, 128, 0.5);
+    }
+
+    .column[data-status="WARM"]:hover {
+        background: linear-gradient(135deg, rgba(107, 114, 128, 0.5) 0%, rgba(253, 186, 116, 0.6) 100%);
+        border-color: rgba(107, 114, 128, 0.5);
+    }
+
+    .column[data-status="HOT"]:hover {
+        background: linear-gradient(135deg, rgba(107, 114, 128, 0.5) 0%, rgba(252, 165, 165, 0.6) 100%);
+        border-color: rgba(107, 114, 128, 0.5);
+    }
+
         </style>
 </head>
 

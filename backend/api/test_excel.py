@@ -20,6 +20,7 @@ import traceback  # Для логирования ошибок
 
 from starlette.responses import StreamingResponse, FileResponse
 
+from pdf2image import convert_from_path
 
 # --- Вспомогательные функции ---
 def col_letter_to_index(letter: str) -> int:
@@ -252,35 +253,34 @@ def clean_number(value: str | None) -> float:
         return 0.0
 
 
-from pdf2image import convert_from_path
-
 FLOORPLAN_IMAGES_DIR = os.path.join(BASE_DIR, "static", "floorplans")
+FLOORPLAN_PDF_PATHS = {
+    "ЖК_Бахор": os.path.join(BASE_STATIC_PATH, "ЖК_Бахор", "plan_roof.pdf"),
+    "ЖК_Рассвет": os.path.join(BASE_STATIC_PATH, "ЖК_Рассвет", "plan_roof.pdf"),
+}
+FLOORPLAN_CROP_BOX = (529, 530, 960, 982)  # (left, upper, right, lower)
 
-PDF_PLAN_PATH = os.path.join(BASE_STATIC_PATH, "ЖК_Бахор", "Plan pradaja.pdf")
 
+def convert_floorplan_pdf_to_images(jk_name: str, pdf_path: str, root_output_dir: str) -> List[str]:
+    """Конвертирует PDF плана этажа в PNG и возвращает пути к обрезанным изображениям."""
+    if not os.path.exists(pdf_path):
+        print(f"[floorplan] PDF для {jk_name} не найден: {pdf_path}")
+        return []
 
-def convert_floorplan_pdf_to_images(pdf_path: str, output_dir: str) -> list[str]:
-    """
-    Конвертирует PDF поэтажных планов в PNG, сохраняет в output_dir.
-    Возвращает список имен файлов изображений в том порядке, в каком страницы в PDF.
-    """
+    output_dir = os.path.join(root_output_dir, jk_name)
     os.makedirs(output_dir, exist_ok=True)
-    print(f"Конвертируем PDF {pdf_path} в PNG в директории {output_dir}")
+    print(f"Конвертируем PDF {pdf_path} для {jk_name} в директории {output_dir}")
 
-    pil_images = convert_from_path(pdf_path, dpi=150)
+    try:
+        pil_images = convert_from_path(pdf_path, dpi=150)
+    except Exception as exc:
+        print(f"[floorplan] Ошибка конвертации PDF {pdf_path}: {exc}")
+        return []
 
-    saved_paths: list[str] = []
-
-    crop_box = (529, 530, 960, 982)  # (left, upper, right, lower)
-
-    for idx, image in enumerate(pil_images):
-        page_number = idx + 1
-        # full_fname = os.path.join(output_dir, f"floorplan_page_{page_number}_full.png")
-        # image.save(full_fname, "PNG")
-
-        cropped_img = image.crop(crop_box)
-
-        cropped_fname = os.path.join(output_dir, f"floorplan_page_{page_number}.png")
+    saved_paths: List[str] = []
+    for idx, image in enumerate(pil_images, start=1):
+        cropped_img = image.crop(FLOORPLAN_CROP_BOX)
+        cropped_fname = os.path.join(output_dir, f"floorplan_page_{idx}.png")
         cropped_img.save(cropped_fname, "PNG")
         print(f"Сохранён скропанный план этажа: {cropped_fname}")
         saved_paths.append(cropped_fname)
@@ -288,7 +288,10 @@ def convert_floorplan_pdf_to_images(pdf_path: str, output_dir: str) -> list[str]
     return saved_paths
 
 
-floorplan_images = convert_floorplan_pdf_to_images(PDF_PLAN_PATH, FLOORPLAN_IMAGES_DIR)
+FLOORPLAN_IMAGES: Dict[str, List[str]] = {
+    jk: convert_floorplan_pdf_to_images(jk, path, FLOORPLAN_IMAGES_DIR)
+    for jk, path in FLOORPLAN_PDF_PATHS.items()
+}
 
 
 @router.post("/generate-contract")
@@ -321,6 +324,7 @@ async def generate_contract(data: ContractData):
         # Подготовка контекста (словаря) для Jinja2
         # Имена ключей должны ТОЧНО соответствовать плейсхолдерам БЕЗ {{ }}
         context = _prepare_context_for_tpl(data)
+        floorplan_images = FLOORPLAN_IMAGES.get(data.jkName, [])
         img_index = data.floor - 1
         if 0 <= img_index < len(floorplan_images):
             img_path = floorplan_images[img_index]
