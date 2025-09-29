@@ -55,9 +55,15 @@ class UserUpdate(BaseModel):
     work_days: Optional[List[str]] = None
     role_id: Optional[int] = None
     background_theme: Optional[str] = None
+    password: Optional[str] = None
 
     class Config:
         orm_mode = True
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
 
 
 class RoleRead(BaseModel):

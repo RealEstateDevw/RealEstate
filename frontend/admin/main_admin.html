@@ -50,6 +50,7 @@
         <div class="admin-section" id="rightPanel">
             <form id="userEditForm">
                 <input type="hidden" id="userId" name="user_id">
+                <input type="hidden" id="passwordField" name="password">
                 <h1 class="section-title-main">Администрирование</h1>
                 <div class="admin-header">
                     <!-- Карточка 1 -->
@@ -187,10 +188,10 @@
                         <div class="input-group-password">
                             <label class="section-title">Пароль</label>
                             <div class="password-input-container">
-                                <input type="password" class="password-input" placeholder="Введите пароль"
-                                    value="qwerty123" readonly>
+                                <input type="password" id="passwordInput" class="password-input" placeholder="Введите пароль"
+                                    value="qwerty123" data-field="password">
                                 <img src="https://cdn-icons-png.flaticon.com/512/565/565655.png" alt="Показать пароль"
-                                    class="eye-icon">
+                                    class="eye-icon" onclick="togglePasswordVisibility('passwordInput')">
                             </div>
                         </div>
 
@@ -513,6 +514,17 @@
             updateField('phone', user.phone);
             updateField('company', user.company);
             updateField('work-schedule', `${user.work_start_time || 'Не указано'} - ${user.work_end_time || 'Не указано'}`);
+            
+            // Обновляем пароль (если есть)
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordField = document.getElementById('passwordField');
+            if (passwordInput) {
+                passwordInput.value = user.password || 'qwerty123';
+                passwordInput.setAttribute('data-original', passwordInput.value);
+                if (passwordField) {
+                    passwordField.value = passwordInput.value;
+                }
+            }
 
             // Обработка рабочих дней
             if (Array.isArray(user.work_days)) {
@@ -600,6 +612,9 @@
             }
             if (isFieldChanged('phone', formData.get('phone'))) {
                 updateData.phone = formData.get('phone') || null;
+            }
+            if (isFieldChanged('password', formData.get('password'))) {
+                updateData.password = formData.get('password') || null;
             }
 
             // Если нет изменений, прерываем отправку запроса
@@ -706,6 +721,32 @@
                 .catch(error => {
                     console.error('Ошибка:', error);
             })
+        });
+        
+        // Функция для переключения видимости пароля
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = input.nextElementSibling;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.src = 'https://cdn-icons-png.flaticon.com/512/565/565655.png'; // Иконка "скрыть"
+            } else {
+                input.type = 'password';
+                icon.src = 'https://cdn-icons-png.flaticon.com/512/565/565655.png'; // Иконка "показать"
+            }
+        }
+        
+        // Синхронизация значений пароля
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordField = document.getElementById('passwordField');
+            
+            if (passwordInput && passwordField) {
+                passwordInput.addEventListener('input', function() {
+                    passwordField.value = this.value;
+                });
+            }
         });
     </script>
     <script src="/static/scripts.js"></script>

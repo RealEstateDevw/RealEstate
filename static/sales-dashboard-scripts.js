@@ -36,13 +36,13 @@ async function loadLeads() {
         }, {});
         console.log("Лиды сгруппированы:", groupedLeads);
 
-        // Проверяем истекшие лимиты и показываем уведомления
-        try {
-            checkCallLimits(leads);
-            console.log("Проверка лимитов завершена");
-        } catch (error) {
-            console.error("Ошибка при проверке лимитов:", error);
-        }
+        // // Проверяем истекшие лимиты и показываем уведомления
+        // try {
+        //     checkCallLimits(leads);
+        //     console.log("Проверка лимитов завершена");
+        // } catch (error) {
+        //     console.error("Ошибка при проверке лимитов:", error);
+        // }
 
         // Заполняем колонки
         Object.entries(groupedLeads).forEach(([status, leads]) => {
@@ -90,29 +90,29 @@ function updateColumn(status, leads) {
 
     // Обновляем счётчик лидов
     leadCount.textContent = `${leads.length} ${getLeadWord(leads.length)}`;
-    leads.sort((a, b) => {
-        // Приоритет 1: Карточки с истекшим лимитом созвона (24 часа)
-        const aCallLimitExpired = isCallLimitExpired(a);
-        const bCallLimitExpired = isCallLimitExpired(b);
+    // leads.sort((a, b) => {
+    //     // Приоритет 1: Карточки с истекшим лимитом созвона (24 часа)
+    //     const aCallLimitExpired = isCallLimitExpired(a);
+    //     const bCallLimitExpired = isCallLimitExpired(b);
         
-        if (aCallLimitExpired && !bCallLimitExpired) return -1;
-        if (!aCallLimitExpired && bCallLimitExpired) return 1;
+    //     if (aCallLimitExpired && !bCallLimitExpired) return -1;
+    //     if (!aCallLimitExpired && bCallLimitExpired) return 1;
         
-        // Приоритет 2: Карточки с предстоящими созвонами
-        const aLatestCallback = a.callbacks.length ? new Date(Math.max(...a.callbacks.map(cb => new Date(cb)))) : null;
-        const bLatestCallback = b.callbacks.length ? new Date(Math.max(...b.callbacks.map(cb => new Date(cb)))) : null;
-        const aHasPending = aLatestCallback && aLatestCallback > new Date();
-        const bHasPending = bLatestCallback && bLatestCallback > new Date();
+    //     // Приоритет 2: Карточки с предстоящими созвонами
+    //     const aLatestCallback = a.callbacks.length ? new Date(Math.max(...a.callbacks.map(cb => new Date(cb)))) : null;
+    //     const bLatestCallback = b.callbacks.length ? new Date(Math.max(...b.callbacks.map(cb => new Date(cb)))) : null;
+    //     const aHasPending = aLatestCallback && aLatestCallback > new Date();
+    //     const bHasPending = bLatestCallback && bLatestCallback > new Date();
         
-        if (aCallLimitExpired && bCallLimitExpired) {
-            // Если у обеих истек лимит, сортируем по времени истечения
-            const aExpiredTime = getCallLimitExpiredTime(a);
-            const bExpiredTime = getCallLimitExpiredTime(b);
-            return aExpiredTime - bExpiredTime;
-        }
+    //     if (aCallLimitExpired && bCallLimitExpired) {
+    //         // Если у обеих истек лимит, сортируем по времени истечения
+    //         const aExpiredTime = getCallLimitExpiredTime(a);
+    //         const bExpiredTime = getCallLimitExpiredTime(b);
+    //         return aExpiredTime - bExpiredTime;
+    //     }
         
-        return bHasPending - aHasPending;
-    });
+    //     return bHasPending - aHasPending;
+    // });
 
     leads.forEach((lead, index) => {
         try {
@@ -128,10 +128,10 @@ function updateColumn(status, leads) {
         const latestCallback = lead.callbacks.length ? new Date(Math.max(...lead.callbacks.map(cb => new Date(cb)))) : null;
         const isPending = latestCallback && latestCallback > now;
         const isMissed = latestCallback && latestCallback < now;
-        const isCallLimitExpiredFlag = isCallLimitExpired(lead);
+        // const isCallLimitExpiredFlag = isCallLimitExpired(lead);
         
         // Добавляем класс для лидов без доступа только если есть проблемы с callback
-        if (isCallLimitExpiredFlag || isMissed) {
+        if ( isMissed) {
             card.classList.add("no-access-card");
         }
         
@@ -150,17 +150,16 @@ function updateColumn(status, leads) {
             card.style.border = '2px solid #10b981'; // Зеленая рамка
             card.style.backgroundColor = '#f0fdf4'; // Светло-зеленый фон
             card.classList.add('call-completed');
-        } else if (isCallLimitExpiredFlag) {
-            // Лимит истек (callback был вчера или раньше) - ВЫСОКИЙ ПРИОРИТЕТ
-            card.style.border = '4px solid #ff0000'; // Красная рамка для истекшего лимита
-            card.style.backgroundColor = '#fff5f5'; // Светло-красный фон
-            card.classList.add('call-limit-expired');
+        // } else if (isCallLimitExpiredFlag) {
+        //     // Лимит истек (callback был вчера или раньше) - ВЫСОКИЙ ПРИОРИТЕТ
+        //     card.style.border = '4px solid #ff0000'; // Красная рамка для истекшего лимита
+        //     card.style.backgroundColor = '#fff5f5'; // Светло-красный фон
+        //     card.classList.add('call-limit-expired');
         } else if (isPending) {
             // Предстоящий callback - СРЕДНИЙ ПРИОРИТЕТ
             card.style.border = '2px solid rgb(255 158 68)'; // Оранжевая рамка для предстоящих
         } else if (isMissed) {
             // Пропущенный callback - ВЫСОКИЙ ПРИОРИТЕТ
-            card.style.opacity = '0.5';
             card.style.border = '4px solid #ff4444';
         } else {
             // Нет callback - ОБЫЧНАЯ КАРТОЧКА (есть доступ)
@@ -169,25 +168,24 @@ function updateColumn(status, leads) {
         }
 
         // Создаем индикатор истекшего лимита
-        const callLimitIndicator = isCallLimitExpiredFlag ? 
-            `<div class="call-limit-warning" style="background: #ff0000; color: white; padding: 8px; margin: 8px 0; border-radius: 8px; text-align: center; font-weight: bold; animation: pulse 2s infinite;">
-                ⚠️ ЛИМИТ СОЗВОНА ИСТЕК! Требуется срочное действие
-            </div>` : '';
+        // const callLimitIndicator = isCallLimitExpiredFlag ? 
+        //     `<div class="call-limit-warning" style="background: #ff0000; color: white; padding: 8px; margin: 8px 0; border-radius: 8px; text-align: center; font-weight: bold; animation: pulse 2s infinite;">
+        //         ⚠️ ЛИМИТ СОЗВОНА ИСТЕК! Требуется срочное действие
+        //     </div>` : '';
 
         // Создаем индикатор времени до истечения лимита
-        const timeUntilExpiry = getTimeUntilCallLimitExpires(lead);
-        const timeWarning = timeUntilExpiry && timeUntilExpiry < 2 * 60 * 60 * 1000 ? // Менее 2 часов
-            `<div class="time-warning" style="background: #ffa500; color: white; padding: 6px; margin: 6px 0; border-radius: 6px; text-align: center; font-size: 0.9em;">
-                ⏰ Лимит созвона истечет через ${Math.round(timeUntilExpiry / (60 * 60 * 1000))}ч ${Math.round((timeUntilExpiry % (60 * 60 * 1000)) / (60 * 1000))}м
-            </div>` : '';
+        // const timeUntilExpiry = getTimeUntilCallLimitExpires(lead);
+        // const timeWarning = timeUntilExpiry && timeUntilExpiry < 2 * 60 * 60 * 1000 ? // Менее 2 часов
+        //     `<div class="time-warning" style="background: #ffa500; color: white; padding: 6px; margin: 6px 0; border-radius: 6px; text-align: center; font-size: 0.9em;">
+        //         ⏰ Лимит созвона истечет через ${Math.round(timeUntilExpiry / (60 * 60 * 1000))}ч ${Math.round((timeUntilExpiry % (60 * 60 * 1000)) / (60 * 1000))}м
+        //     </div>` : '';
 
         card.innerHTML = `
                     <div class="card-header">
                         <div class="name">${lead.full_name || "Без имени"}</div>
                         <div class="date">${formatDate(lead.created_at)}</div>
                     </div>
-                    ${callLimitIndicator}
-                    ${timeWarning}
+                    
                     <div class="contact-info">
                         <span class="messenger elements-info ${lead.contact_source}">${lead.contact_source || "Не указан"}</span>
                         <span class="location elements-info">${lead.region || "Не указан"}</span>
@@ -225,6 +223,7 @@ function updateColumn(status, leads) {
 
 // Обработчики событий для drag-and-drop
 let draggedLead = null;
+let leadToDelete = null;
 
 function handleDragStart(e) {
     draggedLead = e.target;
@@ -232,11 +231,17 @@ function handleDragStart(e) {
     setTimeout(() => {
         draggedLead.style.opacity = '0.5'; // Скрываем элемент во время перетаскивания
     }, 0);
+    
+    // Показываем кнопку удаления при начале перетаскивания
+    showDeleteButton();
 }
 
 function handleDragEnd(e) {
     draggedLead.style.opacity = '1'; // Возвращаем видимость после перетаскивания
     draggedLead = null;
+    
+    // Скрываем кнопку удаления при окончании перетаскивания
+    hideDeleteButton();
 }
 
 // Обработчики для колонок (drop zones)
@@ -334,57 +339,57 @@ function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString("ru-RU");
 }
 
-// Функция для проверки истечения лимита созвона (24 часа)
-function isCallLimitExpired(lead) {
-    // Если у лида нет callbacks, лимит не применим
-    if (!lead.callbacks || lead.callbacks.length === 0) return false;
+// // Функция для проверки истечения лимита созвона (24 часа)
+// function isCallLimitExpired(lead) {
+//     // Если у лида нет callbacks, лимит не применим
+//     if (!lead.callbacks || lead.callbacks.length === 0) return false;
     
-    // Получаем последний callback
-    const latestCallback = new Date(Math.max(...lead.callbacks.map(cb => new Date(cb))));
-    const now = new Date();
+//     // Получаем последний callback
+//     const latestCallback = new Date(Math.max(...lead.callbacks.map(cb => new Date(cb))));
+//     const now = new Date();
     
-    // Если последний callback был в будущем (предстоящий), лимит не истек
-    if (latestCallback > now) return false;
+//     // Если последний callback был в будущем (предстоящий), лимит не истек
+//     if (latestCallback > now) return false;
     
-    // Проверяем, был ли callback сегодня - если да, то лимит не истек
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const callbackDate = new Date(latestCallback);
-    callbackDate.setHours(0, 0, 0, 0);
+//     // Проверяем, был ли callback сегодня - если да, то лимит не истек
+//     const today = new Date();
+//     today.setHours(0, 0, 0, 0);
+//     const callbackDate = new Date(latestCallback);
+//     callbackDate.setHours(0, 0, 0, 0);
     
-    if (callbackDate.getTime() === today.getTime()) {
-        return false; // Callback был сегодня, лимит не истек
-    }
+//     if (callbackDate.getTime() === today.getTime()) {
+//         return false; // Callback был сегодня, лимит не истек
+//     }
     
-    // Проверяем, прошло ли 24 часа с последнего callback
-    const timeDiff = now - latestCallback;
-    const hoursDiff = timeDiff / (1000 * 60 * 60); // Конвертируем в часы
+//     // Проверяем, прошло ли 24 часа с последнего callback
+//     const timeDiff = now - latestCallback;
+//     const hoursDiff = timeDiff / (1000 * 60 * 60); // Конвертируем в часы
     
-    return hoursDiff >= 24;
-}
+//     return hoursDiff >= 24;
+// }
 
-// Функция для получения времени истечения лимита
-function getCallLimitExpiredTime(lead) {
-    if (!lead.callbacks || lead.callbacks.length === 0) return null;
+// // Функция для получения времени истечения лимита
+// function getCallLimitExpiredTime(lead) {
+//     if (!lead.callbacks || lead.callbacks.length === 0) return null;
     
-    const latestCallback = new Date(Math.max(...lead.callbacks.map(cb => new Date(cb))));
-    const expiredTime = new Date(latestCallback.getTime() + 24 * 60 * 60 * 1000); // +24 часа
+//     const latestCallback = new Date(Math.max(...lead.callbacks.map(cb => new Date(cb))));
+//     const expiredTime = new Date(latestCallback.getTime() + 24 * 60 * 60 * 1000); // +24 часа
     
-    return expiredTime;
-}
+//     return expiredTime;
+// }
 
-// Функция для получения времени до истечения лимита
-function getTimeUntilCallLimitExpires(lead) {
-    if (!lead.callbacks || lead.callbacks.length === 0) return null;
+// // Функция для получения времени до истечения лимита
+// function getTimeUntilCallLimitExpires(lead) {
+//     if (!lead.callbacks || lead.callbacks.length === 0) return null;
     
-    const latestCallback = new Date(Math.max(...lead.callbacks.map(cb => new Date(cb))));
-    const expiredTime = new Date(latestCallback.getTime() + 24 * 60 * 60 * 1000);
-    const now = new Date();
+//     const latestCallback = new Date(Math.max(...lead.callbacks.map(cb => new Date(cb))));
+//     const expiredTime = new Date(latestCallback.getTime() + 24 * 60 * 60 * 1000);
+//     const now = new Date();
     
-    if (expiredTime <= now) return null; // Уже истек
+//     if (expiredTime <= now) return null; // Уже истек
     
-    return expiredTime - now;
-}
+//     return expiredTime - now;
+// }
 
 // Функция для подбора цвета статуса
 function getStatusColor(state) {
@@ -434,16 +439,126 @@ function startAutoRefresh() {
 }
 
 // Функция для проверки и показа уведомлений о истекших лимитах
-function checkCallLimits(leads) {
-    const expiredLeads = leads.filter(lead => isCallLimitExpired(lead));
+// function checkCallLimits(leads) {
+//     const expiredLeads = leads.filter(lead => isCallLimitExpired(lead));
     
-    if (expiredLeads.length > 0) {
-        showNotification(
-            `Внимание! У ${expiredLeads.length} лид${expiredLeads.length === 1 ? 'а' : 'ов'} истек лимит созвона!`, 
-            "error"
-        );
+//     if (expiredLeads.length > 0) {
+//         showNotification(
+//             `Внимание! У ${expiredLeads.length} лид${expiredLeads.length === 1 ? 'а' : 'ов'} истек лимит созвона!`, 
+//             "error"
+//         );
+//     }
+// }
+
+// Функции для работы с кнопкой удаления
+function showDeleteButton() {
+    const deleteZone = document.getElementById('delete-zone');
+    if (deleteZone) {
+        deleteZone.style.display = 'block';
     }
 }
+
+function hideDeleteButton() {
+    const deleteZone = document.getElementById('delete-zone');
+    if (deleteZone) {
+        deleteZone.style.display = 'none';
+    }
+}
+
+// Обработчик для кнопки удаления
+document.addEventListener('DOMContentLoaded', () => {
+    const deleteZone = document.getElementById('delete-zone');
+    if (deleteZone) {
+        deleteZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            deleteZone.classList.add('drag-over-delete');
+        });
+        
+        deleteZone.addEventListener('dragleave', (e) => {
+            deleteZone.classList.remove('drag-over-delete');
+        });
+        
+        deleteZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            deleteZone.classList.remove('drag-over-delete');
+            
+            const leadId = e.dataTransfer.getData('text/plain');
+            const leadCard = document.querySelector(`.card[data-lead-id="${leadId}"]`);
+            
+            if (leadCard) {
+                const leadName = leadCard.querySelector('.name').textContent;
+                showDeleteModal(leadId, leadName);
+            }
+        });
+    }
+});
+
+// Функции для модального окна удаления
+function showDeleteModal(leadId, leadName) {
+    leadToDelete = leadId;
+    const modal = document.getElementById('delete-modal');
+    const leadNameElement = document.getElementById('delete-lead-name');
+    
+    if (modal && leadNameElement) {
+        leadNameElement.textContent = leadName;
+        modal.style.display = 'flex';
+    }
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('delete-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        leadToDelete = null;
+    }
+}
+
+async function confirmDelete() {
+    if (!leadToDelete) return;
+    
+    try {
+        const response = await fetch(`/api/leads/${leadToDelete}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            showNotification('Лид успешно удален!', 'success');
+            
+            // Удаляем карточку из DOM
+            const leadCard = document.querySelector(`.card[data-lead-id="${leadToDelete}"]`);
+            if (leadCard) {
+                leadCard.remove();
+                updateLeadCounts(); // Обновляем счетчики
+            }
+            
+            closeDeleteModal();
+        } else {
+            const result = await response.json();
+            showNotification('Ошибка при удалении лида: ' + (result.detail || 'Неизвестная ошибка'), 'error');
+        }
+    } catch (error) {
+        console.error('Ошибка при удалении лида:', error);
+        showNotification('Ошибка сети при удалении лида!', 'error');
+    }
+}
+
+// Закрытие модального окна при клике вне его
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('delete-modal');
+    if (modal && e.target === modal) {
+        closeDeleteModal();
+    }
+});
+
+// Закрытие модального окна по клавише Escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeDeleteModal();
+    }
+});
 
 // Загружаем данные при открытии страницы
 document.addEventListener("DOMContentLoaded", () => {

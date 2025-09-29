@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
@@ -80,6 +80,7 @@ class LeadUpdate(BaseModel):
     notes: Optional[str] = None
     next_contact_date: Optional[datetime] = None
     user_id: Optional[int] = None
+    callbacks: Optional[List] = None
 
 
 class LeadInDB(LeadBase):
@@ -87,6 +88,13 @@ class LeadInDB(LeadBase):
     user_id: int
     created_at: datetime
     updated_at: Optional[datetime]
+    callbacks: List[datetime] = Field(default_factory=list)
+
+    @validator("callbacks", pre=True, always=True)
+    def extract_callback_times(cls, value):
+        if not value:
+            return []
+        return [getattr(callback, "callback_time", callback) for callback in value if callback is not None]
 
     class Config:
         orm_mode = True

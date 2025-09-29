@@ -66,90 +66,84 @@
     /* Стили для новых кнопок действий лида */
     .lead-actions-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
       margin-top: 24px;
-      padding: 20px;
-      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      border: 1px solid rgba(33, 107, 244, 0.1);
+      padding: 24px;
+      background: linear-gradient(180deg, #f3f4ff 0%, #ffffff 100%);
+      border-radius: 24px;
+      border: 1px solid rgba(99, 102, 241, 0.08);
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
     }
 
     .lead-action-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 20px 16px;
-      border: 2px solid #e5e7eb;
-      background: #ffffff;
-      border-radius: 12px;
+      gap: 16px;
+      padding: 20px 24px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #fbfdff 0%, #ffffff 100%);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-      min-height: 100px;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    .lead-action-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-      transition: left 0.5s;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      min-height: 92px;
+      text-align: left;
     }
 
     .lead-action-btn:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-    }
-
-    .lead-action-btn:hover::before {
-      left: 100%;
+      transform: translateY(-3px);
+      box-shadow: 0 22px 48px rgba(15, 23, 42, 0.12);
+      border-color: rgba(37, 99, 235, 0.18);
+      background: #ffffff;
     }
 
     .lead-btn-icon {
-      width: 48px;
-      height: 48px;
-      display: flex;
+      width: 56px;
+      height: 56px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 12px;
-      border-radius: 12px;
-      transition: all 0.3s ease;
+      border-radius: 18px;
+      color: #fff;
+      box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+      flex-shrink: 0;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .lead-action-btn:hover .lead-btn-icon {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.16);
+    }
+
+    .lead-btn-icon svg {
+      width: 28px;
+      height: 28px;
     }
 
     .lead-btn-text {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 600;
-      text-align: center;
-      line-height: 1.4;
-      transition: all 0.3s ease;
+      color: #0f172a;
+      line-height: 1.35;
     }
 
     /* Стили для кнопки фиксации клиента */
     .lead-schedule-btn {
-      border-color: #f59e0b;
+      border-color: rgba(245, 158, 11, 0.28);
+      background: linear-gradient(180deg, #fff7eb 0%, #ffffff 100%);
     }
 
     .lead-schedule-btn .lead-btn-icon {
       background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: white;
+      color: #fff;
+      box-shadow: 0 18px 34px rgba(245, 158, 11, 0.32);
     }
 
     .lead-schedule-btn:hover {
-      border-color: #d97706;
-      background: linear-gradient(135deg, #fef3c7, #ffffff);
-    }
-
-    .lead-schedule-btn:hover .lead-btn-icon {
-      transform: scale(1.1);
-      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+      border-color: rgba(245, 158, 11, 0.4);
+      box-shadow: 0 24px 48px rgba(245, 158, 11, 0.22);
     }
 
     /* Стили для модального окна планирования созвона */
@@ -300,125 +294,120 @@
 
     /* Стили для кнопки созвона */
     .lead-call-btn {
-      border-color: #8b5cf6;
+      border-color: rgba(139, 92, 246, 0.28);
+      background: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%);
     }
 
     .lead-call-btn .lead-btn-icon {
       background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-      color: white;
+      color: #fff;
+      box-shadow: 0 18px 34px rgba(139, 92, 246, 0.32);
     }
 
     .lead-call-btn:hover {
-      border-color: #7c3aed;
-      background: linear-gradient(135deg, #f3f0ff, #ffffff);
-    }
-
-    .lead-call-btn:hover .lead-btn-icon {
-      transform: scale(1.1);
-      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+      border-color: rgba(124, 58, 237, 0.4);
+      box-shadow: 0 24px 48px rgba(124, 58, 237, 0.22);
     }
 
     .lead-call-btn.completed {
-      background: linear-gradient(135deg, #f0fdf4, #ffffff);
-      border-color: #10b981;
+      border-color: rgba(16, 185, 129, 0.32);
+      background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%);
     }
 
     .lead-call-btn.completed .lead-btn-icon {
       background: linear-gradient(135deg, #10b981, #059669);
+      box-shadow: 0 18px 34px rgba(16, 185, 129, 0.28);
     }
 
     .lead-call-btn.completed .lead-btn-text {
-      color: #059669;
-      font-weight: bold;
+      color: #047857;
+      font-weight: 700;
     }
 
     /* Стили для кнопки бронирования */
     .lead-booking-btn {
-      border-color: #10b981;
+      border-color: rgba(16, 185, 129, 0.28);
+      background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%);
     }
 
     .lead-booking-btn .lead-btn-icon {
       background: linear-gradient(135deg, #10b981, #059669);
-      color: white;
+      color: #fff;
+      box-shadow: 0 18px 34px rgba(16, 185, 129, 0.32);
     }
 
     .lead-booking-btn:hover {
-      border-color: #059669;
-      background: linear-gradient(135deg, #f0fdf4, #ffffff);
-    }
-
-    .lead-booking-btn:hover .lead-btn-icon {
-      transform: scale(1.1);
-      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+      border-color: rgba(5, 150, 105, 0.4);
+      box-shadow: 0 24px 48px rgba(5, 150, 105, 0.22);
     }
 
     .lead-booking-btn.booked {
-      background: linear-gradient(135deg, #fef3c7, #ffffff);
-      border-color: #f59e0b;
+      background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
+      border-color: rgba(245, 158, 11, 0.28);
     }
 
     .lead-booking-btn.booked .lead-btn-icon {
       background: linear-gradient(135deg, #f59e0b, #d97706);
+      box-shadow: 0 18px 34px rgba(245, 158, 11, 0.28);
     }
 
     /* Стили для кнопки договора */
     .lead-contract-btn {
-      border-color: #216BF4;
+      border-color: rgba(33, 107, 244, 0.3);
+      background: linear-gradient(180deg, #edf4ff 0%, #ffffff 100%);
     }
 
     .lead-contract-btn .lead-btn-icon {
-      background: linear-gradient(135deg, #216BF4, #1d4ed8);
-      color: white;
+      background: linear-gradient(135deg, #216bf4, #1d4ed8);
+      color: #fff;
+      box-shadow: 0 18px 34px rgba(33, 107, 244, 0.32);
     }
 
     .lead-contract-btn:hover {
-      border-color: #1d4ed8;
-      background: linear-gradient(135deg, #eff6ff, #ffffff);
-    }
-
-    .lead-contract-btn:hover .lead-btn-icon {
-      transform: scale(1.1);
-      box-shadow: 0 8px 20px rgba(33, 107, 244, 0.3);
+      border-color: rgba(33, 107, 244, 0.45);
+      box-shadow: 0 24px 48px rgba(33, 107, 244, 0.24);
     }
 
     /* Стили для кнопки удаления */
     .lead-delete-btn {
-      border-color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.35);
+      background: linear-gradient(180deg, #fff5f5 0%, #ffffff 100%);
     }
 
     .lead-delete-btn .lead-btn-icon {
       background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
+      color: #fff;
+      box-shadow: 0 18px 34px rgba(239, 68, 68, 0.32);
+    }
+
+    .lead-delete-btn .lead-btn-text {
+      color: #b91c1c;
     }
 
     .lead-delete-btn:hover {
-      border-color: #dc2626;
-      background: linear-gradient(135deg, #fef2f2, #ffffff);
-    }
-
-    .lead-delete-btn:hover .lead-btn-icon {
-      transform: scale(1.1);
-      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+      border-color: rgba(220, 38, 38, 0.45);
+      box-shadow: 0 24px 48px rgba(220, 38, 38, 0.24);
     }
 
     /* Стили для кнопки архивации */
     .lead-archive-btn {
-      border-color: #f59e0b;
+      border-color: rgba(249, 115, 22, 0.3);
+      background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
     }
 
     .lead-archive-btn .lead-btn-icon {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: white;
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: #fff;
+      box-shadow: 0 18px 34px rgba(249, 115, 22, 0.32);
+    }
+
+    .lead-archive-btn .lead-btn-text {
+      color: #c2410c;
     }
 
     .lead-archive-btn:hover {
-      border-color: #d97706;
-      background: linear-gradient(135deg, #fffbeb, #ffffff);
-    }
-
-    .lead-archive-btn:hover .lead-btn-icon {
-      transform: scale(1.1);
-      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+      border-color: rgba(234, 88, 12, 0.42);
+      box-shadow: 0 24px 48px rgba(234, 88, 12, 0.24);
     }
 
     /* Состояния кнопок */
@@ -456,7 +445,16 @@
       }
     }
 
-    /* Мобильная адаптивность */
+    /* Планшеты - 2 колонки */
+    @media (max-width: 1024px) and (min-width: 769px) {
+      .lead-actions-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        padding: 18px;
+      }
+    }
+
+    /* Мобильная адаптивность - 1 колонка */
     @media (max-width: 768px) {
       .lead-actions-container {
         grid-template-columns: 1fr;
@@ -487,6 +485,157 @@
       box-sizing: content-box;
     }
 
+    /* Стили для редактирования клиента */
+    .client-header-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .phone-container {
+      display: flex;
+      align-items: center;
+
+      gap: 8px;
+    }
+
+    .edit-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      color: #6b7280;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .edit-btn:hover {
+      background-color: #f3f4f6;
+      color: #374151;
+    }
+
+    .edit-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .edit-input {
+      background: #ffffff;
+      border: 2px solid #3b82f6;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #374151;
+      outline: none;
+      width: 100%;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .edit-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+    /* Стили для модального окна статуса */
+    .status-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .status-option {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      background: #ffffff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+      width: 100%;
+    }
+
+    .status-option:hover {
+      border-color: #6366f1;
+      background: #f8fafc;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+    }
+
+    .status-option.selected {
+      border-color: #6366f1;
+      background: #eef2ff;
+    }
+
+    .status-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .status-icon.new {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .status-icon.in-work {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    .status-icon.processed {
+      background: #d1fae5;
+      color: #059669;
+    }
+
+    .status-icon.sent {
+      background: #e0e7ff;
+      color: #6366f1;
+    }
+
+    .status-icon.waiting {
+      background: #fce7f3;
+      color: #be185d;
+    }
+
+    .status-icon.closed {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .status-icon.inactive {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    .status-info {
+      flex: 1;
+    }
+
+    .status-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+
+    .status-desc {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
     </style>
 </head>
 
@@ -508,7 +657,15 @@
     <input type="text" id="leadId" value="{{ lead.id }}" hidden="true">
     <div class="main-content">
         <div class="client-info">
-            <h1 class="client-header">{{ lead.full_name }} </h1>
+            <div class="client-header-container">
+                <h1 class="client-header" id="client-name">{{ lead.full_name }}</h1>
+                <button class="edit-btn" onclick="editClientName()" title="Редактировать имя">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+            </div>
             <hr class="divider">
 
             <div class="info-grid">
@@ -518,8 +675,14 @@
                 <div class="info-box-tag">
                     <span class="input_info_lead">{{ lead.region}}</span>
                 </div>
-                <div class="info-box-tag">
-                    <span class="input_info_lead">{{ lead.phone}}</span>
+                <div class="info-box-tag phone-container">
+                    <span class="input_info_lead" id="client-phone">{{ lead.phone}}</span>
+                    <button class="edit-btn" onclick="editClientPhone()" title="Редактировать телефон">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
                 </div>
                 <div class="info-box-tag">
                     <span class="input_info_lead">{{ lead.created_at.strftime('%d.%m.%Y') }}</span>
@@ -559,9 +722,10 @@
                 
             </div>
             <hr class="divider">
-            <div class="info-box">
+            <div class="info-box info-box--full info-box--interactive" id="lead-attach-trigger" role="button" tabindex="0">
                 <div class="info-label">Жилой комплекс</div>
-                <div class="info-value">{{ lead.complex_name }}</div>
+                <div class="info-value">{{ lead.complex_name or '—' }}</div>
+                <div class="info-action-hint">Закрепить квартиру к лиду</div>
             </div>
           
 <div class="price-card">
@@ -653,22 +817,6 @@
                   </span>
                 </button>
               </div>
-              <div class="quick-action-button-wrapper attach-apartment-button">
-                <button type="button" class="quick-action-button quick-action-button--primary" onclick="openAttachModal({{ lead.id }})">
-                  <span class="quick-action-button__icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" fill="none">
-                      <path d="M4.58325 9.16669L10.9999 3.66669L17.4166 9.16669V17.4167C17.4166 18.6043 16.4376 19.5834 15.2499 19.5834H6.74992C5.56225 19.5834 4.58325 18.6043 4.58325 17.4167V9.16669Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                      <path d="M9.16675 19.5833V12.8333H12.8334V19.5833" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </span>
-                  <span class="quick-action-button__text">Закрепить квартиру к лиду</span>
-                  <span class="quick-action-button__arrow">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M8 5L13 10L8 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </span>
-                </button>
-              </div>
             </div>
           <!-- Chat Modal -->
 <div id="chatModal" class="modal" style="display:none;">
@@ -692,16 +840,16 @@
                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
                         </svg>
                     </div>
-                    <div class="lead-btn-text">Фиксация клиента</div>
+                    <div class="lead-btn-text">Запланировать созвон</div>
                 </button>
                 
-                <button id="callCompletedButton" class="lead-action-btn lead-call-btn" type="button">
+                <button id="statusButton" class="lead-action-btn lead-status-btn" type="button">
                     <div class="lead-btn-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z" fill="currentColor"/>
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <div class="lead-btn-text">Отметить созвон</div>
+                    <div class="lead-btn-text">Статус</div>
                 </button>
                 
                 <button id="bookingButton" class="lead-action-btn lead-booking-btn" type="button">
@@ -840,7 +988,7 @@
         <!-- Schedule Callback Modal -->
         <div id="scheduleCallbackModal" class="modal" style="display: none;">
           <div class="modal-content schedule-callback-modal">
-            <h2 class="client-header">Фиксация клиента - Запланировать созвон</h2>
+            <h2 class="client-header">Запланировать созвон</h2>
             <form id="scheduleCallbackForm">
               <div class="form-group schedule-form-group">
                 <label for="callbackDateTime" class="schedule-label">Дата и время созвона:</label>
@@ -873,6 +1021,104 @@
                 <button type="submit" class="btn confirm">Запланировать созвон</button>
               </div>
             </form>
+          </div>
+        </div>
+
+        <!-- Status Change Modal -->
+        <div id="statusModal" class="modal" style="display: none;">
+          <div class="modal-content">
+            <h2 class="client-header">Изменить статус лида</h2>
+            <div class="status-options">
+              <button class="status-option" data-status="NEW">
+                <div class="status-icon new">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="status-info">
+                  <div class="status-name">Новый</div>
+                  <div class="status-desc">Только что созданный лид</div>
+                </div>
+              </button>
+              
+              <button class="status-option" data-status="IN_WORK">
+                <div class="status-icon in-work">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="status-info">
+                  <div class="status-name">В работе</div>
+                  <div class="status-desc">Активно обрабатывается</div>
+                </div>
+              </button>
+              
+              <button class="status-option" data-status="PROCESSED">
+                <div class="status-icon processed">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <div class="status-info">
+                  <div class="status-name">Обработан</div>
+                  <div class="status-desc">Успешно завершен</div>
+                </div>
+              </button>
+              
+              <button class="status-option" data-status="SENT">
+                <div class="status-icon sent">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <div class="status-info">
+                  <div class="status-name">Отправлен</div>
+                  <div class="status-desc">Материалы отправлены</div>
+                </div>
+              </button>
+              
+              <button class="status-option" data-status="WAITING_RESPONSE">
+                <div class="status-icon waiting">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="status-info">
+                  <div class="status-name">Ожидает ответа</div>
+                  <div class="status-desc">Ждем реакции клиента</div>
+                </div>
+              </button>
+              
+              <button class="status-option" data-status="CLOSED">
+                <div class="status-icon closed">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <div class="status-info">
+                  <div class="status-name">Закрыт</div>
+                  <div class="status-desc">Дело закрыто</div>
+                </div>
+              </button>
+              
+              <button class="status-option" data-status="INACTIVE">
+                <div class="status-icon inactive">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <div class="status-info">
+                  <div class="status-name">Неактивен</div>
+                  <div class="status-desc">Неактуальный лид</div>
+                </div>
+              </button>
+            </div>
+            <div class="modal-actions" style="display: flex; gap: 8px; justify-content: flex-end;">
+              <button class="btn cancel" onclick="closeStatusModal()">Отмена</button>
+            </div>
           </div>
         </div>
     </div>
@@ -1069,7 +1315,7 @@ function openContractModal(prefilledData) {
             showNotification('Договор успешно создан и квартира отмечена как проданная!', 'success');
             // После создания договора переводим лид в состояние PROCESSED
             const leadId = document.getElementById('leadId').value;
-            await fetch(`/leads/${leadId}`, {
+            await fetch(`/api/leads/${leadId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ state: 'PROCESSED' })
@@ -1179,7 +1425,7 @@ function openContractModal(prefilledData) {
       const size = {{ lead.square_meters }};
       const totalPrice = {{ (lead.total_price) | round(2)}};
       const pricePerM2 = {{ lead.square_meters_price }};
-      const monthlyPayment = {{lead.monthly_payment}}
+      const monthlyPayment = {{ (lead.monthly_payment or 0) | round(2) }}
       const paymentChoice = "{{ lead.down_payment_percent }}";
       {% if lead.down_payment %}
       const initialPayment = {{ (lead.down_payment | round(2)) }};
@@ -1258,126 +1504,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   });
 
-  // Обработчик для кнопки отметки созвона
-  const callCompletedBtn = document.getElementById('callCompletedButton');
-  
-  // Проверяем, был ли уже отмечен созвон сегодня
-  async function checkTodayCallStatus() {
-    try {
-      const leadId = document.getElementById('leadId').value;
-      const response = await fetch(`/api/leads/user/{{ user.id }}?include_callbacks=true`);
-      
-      if (response.ok) {
-        const leadsData = await response.json();
-        const leadData = leadsData.find(lead => lead.id == leadId);
-        
-        if (leadData && leadData.callbacks && leadData.callbacks.length > 0) {
-          const today = new Date().toDateString();
-          const lastCallback = new Date(Math.max(...leadData.callbacks.map(cb => new Date(cb))));
-          const lastCallbackDate = lastCallback.toDateString();
-          
-          if (lastCallbackDate === today) {
-            // Созвон уже отмечен сегодня
-            callCompletedBtn.classList.add('completed');
-            callCompletedBtn.querySelector('.lead-btn-text').textContent = 'Созвон отмечен';
-            callCompletedBtn.disabled = true;
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Ошибка при проверке статуса созвона:', error);
-    }
-  }
-  
-  // Проверяем статус при загрузке страницы
-  checkTodayCallStatus();
-  
-  callCompletedBtn.addEventListener('click', async function() {
-    if (callCompletedBtn.disabled) return;
-    
-    try {
-      const leadId = document.getElementById('leadId').value;
-      const currentTime = new Date().toISOString();
-      
-      // Отправляем запрос на добавление callback
-      const response = await fetch(`/api/leads/${leadId}/schedule-callback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          callbackTime: currentTime
-        })
-      });
-
-      if (response.ok) {
-        // Обновляем внешний вид кнопки
-        callCompletedBtn.classList.add('completed');
-        callCompletedBtn.querySelector('.lead-btn-text').textContent = 'Созвон отмечен';
-        callCompletedBtn.disabled = true;
-        
-        // Показываем уведомление
-        showNotification('Созвон успешно отмечен! Карточка обработана.', 'success');
-        
-        // Обновляем карточку на главной странице
-        if (window.opener) {
-          // Находим карточку лида на главной странице и обновляем её
-          const leadId = document.getElementById('leadId').value;
-          const openerWindow = window.opener;
-          
-          // Убираем классы лимита и добавляем класс обработанной карточки
-          const leadCard = openerWindow.document.querySelector(`[data-lead-id="${leadId}"]`);
-          if (leadCard) {
-            leadCard.classList.remove('call-limit-expired', 'no-access-card');
-            leadCard.classList.add('call-completed');
-            
-            // Обновляем стили карточки
-            leadCard.style.border = '2px solid #10b981';
-            leadCard.style.backgroundColor = '#f0fdf4';
-            leadCard.style.opacity = '1';
-            
-            // Убираем предупреждение о лимите
-            const warning = leadCard.querySelector('.call-limit-warning');
-            if (warning) {
-              warning.remove();
-            }
-            
-            // Убираем напоминание
-            const allDivs = leadCard.querySelectorAll('div');
-            allDivs.forEach(div => {
-              if (div.textContent.includes('Напоминание:')) {
-                div.remove();
-              }
-            });
-            
-            // Обновляем кнопку
-            const openButton = leadCard.querySelector('.open-card');
-            if (openButton) {
-              openButton.textContent = 'Карточка обработана';
-              openButton.classList.add('processed-card');
-              openButton.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-              openButton.style.color = 'white';
-              openButton.style.fontWeight = 'bold';
-            }
-          }
-          
-          // Принудительно обновляем данные на главной странице
-          setTimeout(() => {
-            if (openerWindow.loadLeads) {
-              openerWindow.loadLeads();
-            }
-          }, 1000);
-        }
-        
-      } else {
-        const errorData = await response.json();
-        showNotification('Ошибка при отметке созвона: ' + (errorData.detail || 'Неизвестная ошибка'), 'error');
-      }
-    } catch (error) {
-      console.error('Ошибка при отметке созвона:', error);
-      showNotification('Ошибка сети при отметке созвона', 'error');
-    }
   });
+
+  // Обработчик для кнопки статуса
+  const statusBtn = document.getElementById('statusButton');
+  statusBtn.addEventListener('click', function() {
+    document.getElementById('statusModal').style.display = 'block';
   });
 
   // Обработчик для кнопки фиксации клиента
@@ -1420,6 +1552,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         showNotification('Созвон успешно запланирован!', 'success');
         closeScheduleCallbackModal();
         
+        // После планирования созвона переводим лид в состояние "В работе"
+        await fetch(`/api/leads/${leadId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ state: 'IN_WORK' })
+        });
         // Обновляем данные на главной странице
         setTimeout(() => {
           if (window.opener && window.opener.loadLeads) {
@@ -1441,6 +1581,71 @@ document.addEventListener('DOMContentLoaded', async function() {
   function closeScheduleCallbackModal() {
     document.getElementById('scheduleCallbackModal').style.display = 'none';
     document.getElementById('scheduleCallbackForm').reset();
+  }
+
+  // Функция закрытия модального окна статуса
+  function closeStatusModal() {
+    document.getElementById('statusModal').style.display = 'none';
+  }
+
+  // Обработчики для выбора статуса
+  document.addEventListener('DOMContentLoaded', function() {
+    const statusOptions = document.querySelectorAll('.status-option');
+    statusOptions.forEach(option => {
+      option.addEventListener('click', async function() {
+        const status = this.getAttribute('data-status');
+        await updateLeadStatus(status);
+        closeStatusModal();
+      });
+    });
+  });
+
+
+
+
+
+  
+  async function updateLeadStatus(status) {
+    try {
+      const leadId = document.getElementById('leadId').value;
+      const response = await fetch(`/api/leads/${leadId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          state: status,
+
+          callbacks: []
+        })
+      });
+
+      if (response.ok) {
+        const statusNames = {
+          'NEW': 'Новый',
+          'IN_WORK': 'В работе',
+          'PROCESSED': 'Обработан',
+          'SENT': 'Отправлен',
+          'WAITING_RESPONSE': 'Ожидает ответа',
+          'CLOSED': 'Закрыт',
+          'INACTIVE': 'Неактивен'
+        };
+        showNotification(`Статус изменен на: ${statusNames[status]} (запланированные созвоны очищены)`, 'success');
+        
+        // Обновляем данные на главной странице
+        setTimeout(() => {
+          if (window.opener && window.opener.loadLeads) {
+            window.opener.loadLeads();
+          }
+        }, 1000);
+      } else {
+        const errorData = await response.json();
+        showNotification('Ошибка при изменении статуса: ' + (errorData.detail || 'Неизвестная ошибка'), 'error');
+      }
+    } catch (error) {
+      console.error('Ошибка при изменении статуса:', error);
+      showNotification('Ошибка сети при изменении статуса', 'error');
+    }
   }
 
     function closeModal(){
@@ -1511,6 +1716,114 @@ document.addEventListener('DOMContentLoaded', async function() {
     priceInput.addEventListener('input', updateTotal);
     totalInput.addEventListener('input', updatePrice);
   });
+
+  // Функции для редактирования клиента
+  function editClientName() {
+    const nameElement = document.getElementById('client-name');
+    const currentName = nameElement.textContent.trim();
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentName;
+    input.className = 'edit-input';
+    input.style.fontSize = '2.5rem';
+    input.style.fontWeight = '400';
+    input.style.fontFamily = '"Vela Sans GX"';
+    input.style.border = '2px solid #3b82f6';
+    input.style.borderRadius = '8px';
+    input.style.padding = '8px 12px';
+    
+    nameElement.innerHTML = '';
+    nameElement.appendChild(input);
+    input.focus();
+    input.select();
+    
+    function saveName() {
+      const newName = input.value.trim();
+      if (newName && newName !== currentName) {
+        updateClientField('full_name', newName);
+      }
+      nameElement.textContent = newName || currentName;
+    }
+    
+    function cancelEdit() {
+      nameElement.textContent = currentName;
+    }
+    
+    input.addEventListener('blur', saveName);
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        saveName();
+      } else if (e.key === 'Escape') {
+        cancelEdit();
+      }
+    });
+  }
+
+  function editClientPhone() {
+    const phoneElement = document.getElementById('client-phone');
+    const currentPhone = phoneElement.textContent.trim();
+    
+    const input = document.createElement('input');
+    input.type = 'tel';
+    input.value = currentPhone;
+    input.className = 'edit-input';
+    input.style.fontSize = '1rem';
+    input.style.fontWeight = '500';
+    input.style.border = '2px solid #3b82f6';
+    input.style.borderRadius = '8px';
+    input.style.padding = '4px 8px';
+    input.style.width = '100%';
+    
+    phoneElement.innerHTML = '';
+    phoneElement.appendChild(input);
+    input.focus();
+    input.select();
+    
+    function savePhone() {
+      const newPhone = input.value.trim();
+      if (newPhone && newPhone !== currentPhone) {
+        updateClientField('phone', newPhone);
+      }
+      phoneElement.textContent = newPhone || currentPhone;
+    }
+    
+    function cancelEdit() {
+      phoneElement.textContent = currentPhone;
+    }
+    
+    input.addEventListener('blur', savePhone);
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        savePhone();
+      } else if (e.key === 'Escape') {
+        cancelEdit();
+      }
+    });
+  }
+
+  async function updateClientField(field, value) {
+    try {
+      const leadId = document.getElementById('leadId').value;
+      const response = await fetch(`/api/leads/${leadId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [field]: value })
+      });
+
+      if (response.ok) {
+        showNotification(`${field === 'full_name' ? 'Имя' : 'Телефон'} успешно обновлен!`, 'success');
+      } else {
+        const errorData = await response.json();
+        showNotification('Ошибка при обновлении: ' + (errorData.detail || 'Неизвестная ошибка'), 'error');
+      }
+    } catch (error) {
+      console.error('Ошибка при обновлении клиента:', error);
+      showNotification('Ошибка сети при обновлении', 'error');
+    }
+  }
   </script>
 </body>
 

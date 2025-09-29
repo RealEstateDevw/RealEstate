@@ -138,7 +138,8 @@ def get_all_users() -> List[dict]:
                          "work_status": "Выходной" if is_work_day(user) else "Рабочий",
                          "checkin_time": is_user_at_w,
                          "registration_date": user.reg_date.strftime("%d.%m.%Y"),
-                         "background_theme": user.background_theme
+                         "background_theme": user.background_theme,
+                         "password": "qwerty123"  # Показываем дефолтный пароль для админки
                          }
             # Вычисляем статус
             users_data.append(user_dict)
@@ -154,6 +155,10 @@ def update_user(user_id: int, user_data: UserUpdate) -> bool:
 
         # Получаем только те поля, которые были переданы в запросе
         update_data = user_data.dict(exclude_unset=True)
+
+        # Если обновляется пароль, нужно использовать правильное поле
+        if "password" in update_data and update_data["password"] is not None:
+            update_data["hashed_password"] = update_data.pop("password")
 
         # # Если обновляется поле work_days и элементы – это объекты WorkDay, то преобразуем их в список словарей
         # if "work_days" in update_data and update_data["work_days"] is not None:

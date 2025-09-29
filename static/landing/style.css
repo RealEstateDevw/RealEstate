@@ -1460,7 +1460,7 @@ backdrop-filter: blur(50px); /* Серо-голубой полупрозрачн
 }
 
 .contacts-content {
-    display: grid;
+
     grid-template-columns: 1fr 1fr;
     gap: 60px;
     align-items: start;
@@ -3368,5 +3368,105 @@ body .mobile-menu-btn {
     .price-value,
     .deadline-value {
         font-size: 1.1rem;
+    }
+}
+
+
+/* --- Стили Бронирования --- */
+.booking {
+     background-color: #f8f9fa; /* Светло-серый фон */
+}
+
+.booking__grid {
+    display: grid;
+    grid-template-columns: 1fr; /* 1 колонка на мобильных */
+    gap: 30px;
+    align-items: center; /* Выравнивание по центру по вертикали на десктопе */
+}
+
+.booking__jk-name {
+    display: block;
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.booking__title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #222;
+}
+
+.booking__text {
+    font-size: 1rem;
+    margin-bottom: 25px;
+    color: #555;
+    line-height: 1.7;
+}
+
+.booking__shahmatka {
+    /* Стили для контейнера шахматки, если нужно */
+    border-radius: 8px;
+    overflow: hidden; /* Скрыть вылезающее содержимое плейсхолдера */
+    border: 1px solid #e0e0e0; /* Небольшая рамка для плейсхолдера */
+}
+
+.shahmatka-placeholder img {
+    width: 100%;
+    height: auto;
+}
+
+/* Стили кнопок */
+.btn {
+    display: inline-flex; /* Используем inline-flex для иконки */
+    align-items: center;
+    gap: 8px; /* Расстояние между иконкой и текстом */
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    text-align: center;
+}
+
+.btn--primary {
+    background-color: #0d6efd; /* Пример синего цвета */
+    color: #fff;
+    text-decoration: none;
+}
+
+.btn--primary:hover {
+    background-color: #0b5ed7;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+/* Адаптивные стили для секции booking */
+
+/* Планшеты и небольшие десктопы */
+@media (min-width: 768px) {
+    /* 2 колонки для Бронирования */
+    .booking__grid {
+        grid-template-columns: 1fr 1fr; /* Две равные колонки */
+        gap: 40px;
+    }
+    .booking__title {
+        font-size: 2rem;
+    }
+}
+
+/* Большие десктопы */
+@media (min-width: 992px) {
+     .booking__grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Адаптивные колонки */
+        gap: 50px;
+     }
+     .booking__title {
+        font-size: 2.2rem;
     }
 }

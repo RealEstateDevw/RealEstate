@@ -2941,6 +2941,22 @@
             border: 1px solid rgba(29, 78, 216, 0.3);
         }
 
+        .action-btn.secondary:hover {
+            background: #f8fafc;
+            border-color: #1d4ed8;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .form-buttons .action-btn {
+            flex: 1;
+            padding: 12px 20px;
+        }
+
         .reserve-form {
             display: flex;
             flex-direction: column;
@@ -3237,10 +3253,10 @@
             const savedBlock = currentBlockName;
             const savedJK = currentJKName;
 
-            if (mode === ViewModes.FACADES) {
-                showComplexes();
-                return;
-            }
+            // if (mode === ViewModes.FACADES) {
+            //     showComplexes();
+            //     return;
+            // }
 
             if (globalShaxmatkaData && savedJK) {
                 const options = {};
@@ -5122,12 +5138,26 @@
                             <input type="text" id="reserve_name" name="name" placeholder="Введите ваше имя" required>
                             <label for="reserve_phone"><strong>Телефон</strong></label>
                             <input type="tel" id="reserve_phone" name="phone" placeholder="+998 XX XXX XX XX" required>
-                            <button type="submit" class="action-btn primary">Отправить заявку</button>
+                            <div class="form-buttons">
+                                <button type="button" class="action-btn secondary cancel-form-btn">Отмена</button>
+                                <button type="submit" class="action-btn primary">Отправить заявку</button>
+                            </div>
                         </form>
                     `;
 
                             requestButton.addEventListener("click", () => {
-                                reserveFormContainer.style.display = reserveFormContainer.style.display === "none" ? "block" : "none";
+                                reserveFormContainer.style.display = "block";
+                                requestButton.style.display = "none"; // Скрываем кнопку "Оставить заявку"
+                            });
+
+                            // Обработчик кнопки "Отмена"
+                            const cancelButton = reserveFormContainer.querySelector('.cancel-form-btn');
+                            cancelButton.addEventListener("click", () => {
+                                reserveFormContainer.style.display = "none";
+                                requestButton.style.display = "block"; // Показываем кнопку "Оставить заявку" обратно
+                                // Очищаем форму
+                                reserveFormContainer.querySelector("#reserve_name").value = "";
+                                reserveFormContainer.querySelector("#reserve_phone").value = "";
                             });
 
                             const reserveForm = reserveFormContainer.querySelector('.reserve-form');

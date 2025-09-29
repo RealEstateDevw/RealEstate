@@ -7,6 +7,12 @@ document.addEventListener("DOMContentLoaded", function () {
     searchContainer = document.querySelector('.search-container');
     searchInput = document.getElementById('searchInput');
 
+    // Проверяем, что элементы существуют перед добавлением обработчиков
+    if (!searchInput || !searchResults) {
+        console.log('Элементы поиска не найдены на этой странице');
+        return;
+    }
+
 console.log('Элемент найден:', searchInput); 
 // Обработчик ввода текста
 searchInput.addEventListener('input', async () => {
@@ -99,6 +105,12 @@ function showNotification(message, type = "success") {
     const notification = document.getElementById("notification");
     const notificationMessage = document.getElementById("notification-message");
     const closeBtn = document.getElementById("close-notification");
+
+    // Проверяем, что элементы существуют
+    if (!notification || !notificationMessage) {
+        console.error('Элементы уведомления не найдены');
+        return;
+    }
 
     // Устанавливаем текст уведомления
     notificationMessage.textContent = message;

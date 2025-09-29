@@ -3,34 +3,593 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISMConstructions - Выберите свой ЖК</title>
+    <title>ISMConstructions — Жилые комплексы</title>
     <link rel="stylesheet" href="/static/landing/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .site-header {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 9999 !important;
+            background-color: #fff !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+            width: 100% !important;
+            display: block !important;
+            margin: 0 !important;
+            padding: 10px 0 !important;
+        }
+        .header-container {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            gap: 10px !important;
+            width: 100% !important;
+        }
+        .header-logo {
+            display: flex !important;
+            align-items: center !important;
+            margin-right: auto !important;
+            text-decoration: none !important;
+        }
+        .header-buttons {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+        }
+        @media (max-width: 768px) {
+            .header-buttons {
+                display: none !important;
+            }
+            .mobile-menu-btn {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+        }
+        .complex-toggle,
+        .section-complex-toggle {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 12px 30px rgba(14, 74, 183, 0.22);
+            backdrop-filter: blur(20px);
+        }
+        .section-complex-toggle {
+            margin: 12px 0 32px;
+        }
+        .complex-toggle__btn {
+            border: none;
+            background: transparent;
+            padding: 8px 22px;
+            border-radius: 999px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #1f3b75;
+            cursor: pointer;
+            transition: color 0.25s ease, transform 0.25s ease, background 0.25s ease;
+        }
+        .complex-toggle__btn:hover {
+            color: #0f5ef0;
+            transform: translateY(-1px);
+        }
+        .complex-toggle__btn:not(.active) {
+            color: #34508b;
+            opacity: 0.8;
+        }
+        .complex-toggle__btn.active {
+            background: linear-gradient(135deg, #1f6bff 0%, #3d8bff 100%);
+            color: #fff;
+            box-shadow: 0 8px 16px rgba(33, 107, 244, 0.35);
+            opacity: 1;
+        }
+        @media (max-width: 1024px) {
+            .complex-toggle {
+                display: none;
+            }
+        }
+        .mobile-complex-toggle {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 20px 0;
+        }
+        .mobile-complex-toggle__label {
+            font-weight: 600;
+            color: #216BF4;
+        }
+        .mobile-complex-toggle__buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .mobile-complex-toggle__btn {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(33, 107, 244, 0.25);
+            background: #fff;
+            color: #216BF4;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .mobile-complex-toggle__btn.active,
+        .mobile-complex-toggle__btn:hover {
+            background: #216BF4;
+            color: #fff;
+        }
+        .blocks-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .blocks-section h3 {
+            margin: 0 0 20px;
+            color: #1f2937;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .blocks-grid {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .block-btn {
+            padding: 10px 20px;
+            border: 2px solid #e5e7eb;
+            background: #fff;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6B7280;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .block-btn:hover {
+            border-color: #216BF4;
+            color: #216BF4;
+        }
+        .block-btn.active {
+            background: #216BF4;
+            border-color: #216BF4;
+            color: #fff;
+        }
+        .hero {
+            position: relative;
+            overflow: hidden;
+        }
+        .hero__background {
+            transition: transform 0.9s ease, opacity 0.9s ease;
+        }
+        .hero__main-content-area {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .hero--fade .hero__background {
+            opacity: 0.35;
+            transform: scale(1.05);
+        }
+        .hero--fade .hero__main-content-area {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .hero-slider__nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(14, 38, 90, 0.45);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+            z-index: 4;
+        }
+        .hero-slider__nav:hover {
+            background: rgba(33, 107, 244, 0.75);
+            transform: translateY(-50%) scale(1.05);
+        }
+        .hero-slider__nav:active {
+            transform: translateY(-50%) scale(0.98);
+        }
+        .hero-slider__nav--prev {
+            left: 22px;
+        }
+        .hero-slider__nav--next {
+            right: 22px;
+        }
+        .hero-slider__nav svg {
+            pointer-events: none;
+        }
+        @media (max-width: 768px) {
+            .hero-slider__nav {
+                display: none;
+            }
+        }
+        
+        /* Social Links Styling */
+        .social-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .social-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .social-link:hover::before {
+            opacity: 1;
+        }
+        
+        .social-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .social-link--instagram {
+            background: linear-gradient(135deg, #E4405F 0%, #C13584 100%);
+            color: white;
+            border-color: #E4405F;
+        }
+        
+        .social-link--instagram:hover {
+            background: linear-gradient(135deg, #C13584 0%, #A02D6B 100%);
+            border-color: #C13584;
+        }
+        
+        .social-link--telegram {
+            background: linear-gradient(135deg, #0088CC 0%, #0066AA 100%);
+            color: white;
+            border-color: #0088CC;
+        }
+        
+        .social-link--telegram:hover {
+            background: linear-gradient(135deg, #0066AA 0%, #004488 100%);
+            border-color: #0066AA;
+        }
+        
+        .social-link svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 2;
+            transition: transform 0.3s ease;
+        }
+        
+        .social-link:hover svg {
+            transform: scale(1.1);
+        }
+        
+        /* Map Styling Improvements */
+        .contacts-map {
+            margin-top: 32px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: #fff;
+        }
+        
+        .map-placeholder {
+            position: relative;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 24px;
+            border-radius: 16px;
+        }
+        
+        .map-placeholder p {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 16px 0;
+            text-align: center;
+        }
+        
+        .map-links {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .map-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #216BF4 0%, #3d8bff 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(33, 107, 244, 0.3);
+        }
+        
+        .map-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(33, 107, 244, 0.4);
+            background: linear-gradient(135deg, #1d5bb8 0%, #2563eb 100%);
+        }
+        
+        .map-frame {
+            width: 100%;
+            height: 400px;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .map-frame:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Contact Item Improvements */
+        .contact-item {
+            margin-bottom: 24px;
+        }
+        
+        .contact-item h4 {
+            color: #1e293b;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .contact-item h4::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: #216BF4;
+            border-radius: 50%;
+        }
+        
+        .phone-link {
+            color: #216BF4;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            transition: color 0.3s ease;
+        }
+        
+        .phone-link:hover {
+            color: #1d5bb8;
+        }
+        
+        .working-hours p {
+            color: #64748b;
+            font-weight: 500;
+            margin: 0;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-radius: 8px;
+            border-left: 4px solid #216BF4;
+        }
+        
+        /* Central Office Styling */
+        .central-office {
+            margin-top: 32px;
+            padding: 24px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            border: 2px solid #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .central-office::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #216BF4 0%, #3d8bff 100%);
+        }
+        
+        .central-office h3 {
+            color: #1e293b;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .central-office h3::before {
+            content: '🏢';
+            font-size: 24px;
+        }
+        
+        .central-office .office-type {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0 0 16px 0;
+            padding: 4px 12px;
+            background: rgba(33, 107, 244, 0.1);
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .central-office .location-link {
+            color: #216BF4;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 16px;
+            line-height: 1.5;
+            transition: color 0.3s ease;
+        }
+        
+        .central-office .location-link:hover {
+            color: #1d5bb8;
+        }
+        
+        /* Office Location General Styling */
+        .office-location {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .office-location:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+        
+        .office-info h3 {
+            color: #1e293b;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+        
+        .office-type {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0 0 12px 0;
+        }
+        
+        .location-link {
+            color: #216BF4;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            line-height: 1.5;
+            transition: color 0.3s ease;
+        }
+        
+        .location-link:hover {
+            color: #1d5bb8;
+        }
+        
+        /* Mobile Center Alignment for Toggles */
+        @media (max-width: 768px) {
+            .section-complex-toggle {
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                margin: 12px auto 32px;
+            }
+            
+            .apartment-filter {
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                margin: 20px auto 40px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .apartment-filter__btn {
+                flex: 1;
+                min-width: 0;
+                padding: 10px 12px;
+                font-size: 14px;
+                text-align: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .apartment-filter {
+                gap: 6px;
+            }
+            
+            .apartment-filter__btn {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+            
+            .section-complex-toggle {
+                gap: 6px;
+            }
+            
+            .complex-toggle__btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
-<body>
+<body class="landing rassvet" data-current-complex="rassvet">
     <header class="site-header">
         <div class="container header-container">
-            <!-- Logo -->
             <a href="/" class="header-logo">
                 <span class="logo-text">ISMConstructions</span>
             </a>
-            
-            <!-- Header Buttons -->
             <div class="header-buttons">
-                <!-- Phone Button -->
                 <a href="#contacts" class="header-btn header-btn--phone">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                         <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="#216BF4"/>
                     </svg>
                     <span>Контакты</span>
                 </a>
-                
-                
-                
-                <!-- Language Button -->
-                <button class="header-btn header-btn--lang">
+                <a href="#conditions" class="header-btn header-btn--conditions">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#216BF4"/>
+                        <path d="M2 17L12 22L22 17" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Условия покупки</span>
+                </a>
+                <a href="#pricing" class="header-btn header-btn--pricing">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#216BF4"/>
+                    </svg>
+                    <span>Стоимость квартир</span>
+                </a>
+                <button class="header-btn header-btn--lang" type="button">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="10" stroke="#216BF4" stroke-width="2"/>
                         <path d="M2 12h20" stroke="#216BF4" stroke-width="2"/>
@@ -39,430 +598,1018 @@
                     <span>RU</span>
                 </button>
                 
-                <!-- CTA Button -->
-                <a href="#projects" class="header-btn header-btn--cta">
+                <a href="/complexes" class="header-btn header-btn--cta" data-role="cta-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                         <path fill-rule="evenodd" clip-rule="evenodd" d="M7 5H11C12.8856 5 13.8284 5 14.4142 5.58579C15 6.17157 15 7.11438 15 9V21.25H16.5H21H22C22.4142 21.25 22.75 21.5858 22.75 22C22.75 22.4142 22.4142 22.75 22 22.75H2C1.58579 22.75 1.25 22.4142 1.25 22C1.25 21.5858 1.58579 21.25 2 21.25H3V9C3 7.11438 3 6.17157 3.58579 5.58579C4.17157 5 5.11438 5 7 5ZM5.25 8C5.25 7.58579 5.58579 7.25 6 7.25H12C12.4142 7.25 12.75 7.58579 12.75 8C12.75 8.41421 12.4142 8.75 12 8.75H6C5.58579 8.75 5.25 8.41421 5.25 8ZM5.25 11C5.25 10.5858 5.58579 10.25 6 10.25H12C12.4142 10.25 12.75 10.5858 12.75 11C12.75 11.4142 12.4142 11.75 12 11.75H6C5.58579 11.75 5.25 11.4142 5.25 11ZM5.25 14C5.25 13.5858 5.58579 13.25 6 13.25H12C12.4142 13.25 12.75 13.5858 12.75 14C12.75 14.4142 12.4142 14.75 12 14.75H6C5.58579 14.75 5.25 14.4142 5.25 14ZM9 18.25C9.41421 18.25 9.75 18.5858 9.75 19V21.25H8.25V19C8.25 18.5858 8.58579 18.25 9 18.25Z" fill="white"/>
                         <path opacity="0.5" d="M15 2H17C18.8856 2 19.8284 2 20.4142 2.58579C21 3.17157 21 4.11438 21 6V21.25H15V9C15 7.11438 15 6.17157 14.4142 5.58579C13.8416 5.01319 12.9279 5.0003 11.126 5.00001V3.49999C11.2103 3.11275 11.351 2.82059 11.5858 2.58579C12.1715 2 13.1144 2 15 2Z" fill="white"/>
                     </svg>
-                    <span>Купить квартиру</span>
+                    <span>Выбрать квартиру</span>
                 </a>
             </div>
-    
-            <!-- Mobile Menu Button -->
-            <button class="mobile-menu-btn header-item--mobile" onclick="toggleMobileMenu()">
+            <button class="mobile-menu-btn header-item--mobile" onclick="toggleMobileMenu()" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
         </div>
-
-        <!-- Mobile Menu -->
         <div class="mobile-menu" id="mobileMenu">
             <div class="mobile-menu-content">
-                <!-- Close Button -->
-                <button class="mobile-menu-close" onclick="toggleMobileMenu()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <button class="mobile-menu-close" onclick="toggleMobileMenu()" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                         <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
-                
+                <div class="mobile-complex-toggle">
+                    <span class="mobile-complex-toggle__label">Выберите ЖК</span>
+                    <div class="mobile-complex-toggle__buttons">
+                        <button class="mobile-complex-toggle__btn active" data-role="complex-button" data-complex="rassvet" type="button">ЖК Рассвет</button>
+                        <button class="mobile-complex-toggle__btn" data-role="complex-button" data-complex="bahor" type="button">ЖК Бахор</button>
+                    </div>
+                </div>
                 <a href="#contacts" class="mobile-menu-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                         <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="#216BF4"/>
                     </svg>
                     <span>Контакты</span>
                 </a>
-                
-                <a href="#projects" class="mobile-menu-link mobile-menu-cta">
+                <a href="#conditions" class="mobile-menu-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#216BF4"/>
+                        <path d="M2 17L12 22L22 17" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="#216BF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Условия покупки</span>
+                </a>
+                <a href="#pricing" class="mobile-menu-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#216BF4"/>
+                    </svg>
+                    <span>Стоимость квартир</span>
+                </a>
+                <a href="/complexes" class="mobile-menu-link mobile-menu-cta" data-role="cta-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                         <path fill-rule="evenodd" clip-rule="evenodd" d="M7 5H11C12.8856 5 13.8284 5 14.4142 5.58579C15 6.17157 15 7.11438 15 9V21.25H16.5H21H22C22.4142 21.25 22.75 21.5858 22.75 22C22.75 22.4142 22.4142 22.75 22 22.75H2C1.58579 22.75 1.25 22.4142 1.25 22C1.25 21.5858 1.58579 21.25 2 21.25H3V9C3 7.11438 3 6.17157 3.58579 5.58579C4.17157 5 5.11438 5 7 5ZM5.25 8C5.25 7.58579 5.58579 7.25 6 7.25H12C12.4142 7.25 12.75 7.58579 12.75 8C12.75 8.41421 12.4142 8.75 12 8.75H6C5.58579 8.75 5.25 8.41421 5.25 8ZM5.25 11C5.25 10.5858 5.58579 10.25 6 10.25H12C12.4142 10.25 12.75 10.5858 12.75 11C12.75 11.4142 12.4142 11.75 12 11.75H6C5.58579 11.75 5.25 11.4142 5.25 11ZM5.25 14C5.25 13.5858 5.58579 13.25 6 13.25H12C12.4142 13.25 12.75 13.5858 12.75 14C12.75 14.4142 12.4142 14.75 12 14.75H6C5.58579 14.75 5.25 14.4142 5.25 14ZM9 18.25C9.41421 18.25 9.75 18.5858 9.75 19V21.25H8.25V19C8.25 18.5858 8.58579 18.25 9 18.25Z" fill="white"/>
                         <path opacity="0.5" d="M15 2H17C18.8856 2 19.8284 2 20.4142 2.58579C21 3.17157 21 4.11438 21 6V21.25H15V9C15 7.11438 15 6.17157 14.4142 5.58579C13.8416 5.01319 12.9279 5.0003 11.126 5.00001V3.49999C11.2103 3.11275 11.351 2.82059 11.5858 2.58579C12.1715 2 13.1144 2 15 2Z" fill="white"/>
                     </svg>
-                    <span>Купить квартиру</span>
+                    <span>Выбрать квартиру</span>
                 </a>
             </div>
-    </div>
+        </div>
     </header>
 
-    <!-- Блок Hero -->
-    <section class="hero">
-        <!-- Слайдер рендеров -->
-        <div class="hero-slider">
-            <!-- Слайд ЖК Рассвет -->
-            <div class="hero-slide active" data-complex="rassvet">
-                <div class="hero__background" style="background-image: url('/static/Жилые_Комплексы/ЖК_Рассвет/render/2.jpeg');">
-             <div class="hero__overlay"></div>
-        </div>
-        <div class="hero__main-content-area">
-            <div class="container hero__content-container">
-                <div class="hero__content">
-                    <div class="hero__main">
-                                <span class="hero__jk-name">ЖК «Рассвет»</span>
-                         <h1 class="hero__title">Пространство<br>света и комфорта</h1>
-                    </div>
-                    <div class="hero__details">
-                        <ul class="hero__features">
-                            <li>24 уникальных планировки</li>
-                            <li>Площади от 40 м² до 93.04 м²</li>
-                                    <li>6 блоков с современной архитектурой</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-                <div class="hero__deadline-wrapper">
-            <div class="container">
-                <div class="hero__deadline">
-                    <span class="hero__deadline-label">Срок сдачи</span>
-                    <span class="hero__deadline-value">4 Квартал<br>2026 года</span>
-                </div>
-            </div>
-        </div>
-            </div>
+    <div class="overlay" id="overlay"></div>
 
-            <!-- Слайд ЖК Бахор -->
-            <div class="hero-slide" data-complex="bahor">
-                <div class="hero__background" style="background-image: url('/static/Жилые_Комплексы/ЖК_Бахор/render/01.png');">
-                    <div class="hero__overlay"></div>
-                </div>
-                <div class="hero__main-content-area">
-                    <div class="container hero__content-container">
-                        <div class="hero__content">
-                            <div class="hero__main">
-                                <span class="hero__jk-name">ЖК «Бахор»</span>
-                                <h1 class="hero__title">Пространство<br>света и комфорта</h1>
-                            </div>
-                            <div class="hero__details">
-                                <ul class="hero__features">
-                                    <li>18 уникальных планировок</li>
-                                    <li>Площади от 35 м² до 85 м²</li>
-                                    <li>4 блока с современной архитектурой</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="hero__deadline-wrapper">
-                    <div class="container">
-                        <div class="hero__deadline">
-             <span class="hero__deadline-label">Срок сдачи</span>
-                            <span class="hero__deadline-value">3 Квартал<br>2025 года</span>
-                        </div>
-                    </div>
-                </div>
+    <main>
+        <section class="hero" id="hero">
+            <div class="hero__background" data-role="hero-background">
+                <div class="hero__overlay"></div>
             </div>
-        </div>
-
-        <!-- Навигация слайдера -->
-        <div class="hero-slider-nav">
-            <button class="hero-slider-btn prev" onclick="changeSlide(-1)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <button class="hero-slider__nav hero-slider__nav--prev" type="button" data-role="hero-prev" aria-label="Предыдущий ЖК">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none">
                     <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
-            <button class="hero-slider-btn next" onclick="changeSlide(1)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <button class="hero-slider__nav hero-slider__nav--next" type="button" data-role="hero-next" aria-label="Следующий ЖК">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none">
                     <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
-        </div>
-
-        <!-- Индикаторы слайдера -->
-        <div class="hero-slider-dots">
-            <button class="hero-dot active" onclick="currentSlide(1)"></button>
-            <button class="hero-dot" onclick="currentSlide(2)"></button>
-        </div>
-    </section>
-
-
-
-    <!-- Блок Проекты -->
-    <section class="section projects" id="projects">
-        <div class="container">
-            <h2 class="section__title">Жилые комплексы</h2>
-            <div class="projects-grid">
-                <!-- ЖК Рассвет -->
-                <div class="project-card">
-                    <div class="project-card__image">
-                        <img src="/static/Жилые_Комплексы/ЖК_Рассвет/render/2.jpeg" alt="ЖК Рассвет" class="project-img">
-                        <div class="project-card__overlay">
-                            <a href="/rassvet" class="project-card__btn">Подробнее</a>
+            <div class="hero__main-content-area">
+                <div class="container hero__content-container">
+                    <div class="hero__content">
+                        <div class="hero__main">
+                           
+                            <span class="hero__jk-name" data-role="hero-name"></span>
+                            <h1 class="hero__title" data-role="hero-title"></h1>
                         </div>
-                    </div>
-                    <div class="project-card__content">
-                        <h3 class="project-card__title">ЖК «Рассвет»</h3>
-                        <p class="project-card__description">Пространство света и комфорта</p>
-                        <div class="project-card__features">
-                            <div class="project-feature">
-                                <span class="project-feature__icon">🏢</span>
-                                <span class="project-feature__text">6 блоков</span>
-                            </div>
-                            <div class="project-feature">
-                                <span class="project-feature__icon">🏠</span>
-                                <span class="project-feature__text">24 планировки</span>
-                            </div>
-                            <div class="project-feature">
-                                <span class="project-feature__icon">📏</span>
-                                <span class="project-feature__text">40-93 м²</span>
-                            </div>
-                        </div>
-                        <div class="project-card__pricing">
-                            <span class="project-card__price">от 6 400 000 сум/м²</span>
-                            <span class="project-card__deadline">Сдача: 4 кв. 2026</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ЖК Бахор -->
-                <div class="project-card">
-                    <div class="project-card__image">
-                        <img src="/static/Жилые_Комплексы/ЖК_Бахор/render/01.png" alt="ЖК Бахор" class="project-img">
-                        <div class="project-card__overlay">
-                            <a href="/bahor" class="project-card__btn">Подробнее</a>
-                        </div>
-                    </div>
-                    <div class="project-card__content">
-                        <h3 class="project-card__title">ЖК «Бахор»</h3>
-                        <p class="project-card__description">Уют и комфорт в центре города</p>
-                        <div class="project-card__features">
-                            <div class="project-feature">
-                                <span class="project-feature__icon">🏢</span>
-                                <span class="project-feature__text">4 блока</span>
-                            </div>
-                            <div class="project-feature">
-                                <span class="project-feature__icon">🏠</span>
-                                <span class="project-feature__text">18 планировок</span>
-                            </div>
-                            <div class="project-feature">
-                                <span class="project-feature__icon">📏</span>
-                                <span class="project-feature__text">35-85 м²</span>
-                            </div>
-                        </div>
-                        <div class="project-card__pricing">
-                            <span class="project-card__price">от 5 000 000 сум/м²</span>
-                            <span class="project-card__deadline">Сдача: 3 кв. 2025</span>
+                        <div class="hero__details">
+                            <ul class="hero__features" data-role="hero-features"></ul>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+            <div class="hero__deadline-wrapper">
+                <div class="container">
+                    <div class="hero__deadline">
+                        <span class="hero__deadline-label">Срок сдачи</span>
+                        <span class="hero__deadline-value" data-role="hero-deadline"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <!-- Блок Контакты -->
-    <section class="contacts-section" id="contacts">
-        <div class="container">
-            <div class="contacts-content">
-                <div class="office-locations">
-                    <h2 class="contacts-title">Контакты</h2>
-                    <div class="office-location">
-                        <div class="office-info">
-                            <h3>ISMConstructions</h3>
-                            <p class="office-type">Главный офис</p>
-                            <a href="#" class="location-link">📍 ул. Навои, 15, Ташкент</a>
-                        </div>
-                        <div class="contact-details">
-                            <div class="contact-item">
-                                <h4>Телефон</h4>
-                                <a href="tel:+998901234567" class="phone-link">+998 90 123 45 67</a>
+        <section class="section pricing" id="pricing">
+            <div class="container">
+                <h2 class="section__title">Стоимость квартир</h2>
+                <div class="section-complex-toggle" data-role="section-toggle">
+                    <button class="complex-toggle__btn active" data-role="complex-button" data-complex="rassvet" type="button">ЖК Рассвет</button>
+                    <button class="complex-toggle__btn" data-role="complex-button" data-complex="bahor" type="button">ЖК Бахор</button>
+                </div>
+
+
+
+                <div class="apartment-filter">
+                    <button class="apartment-filter__btn active" data-rooms="all" type="button">Все квартиры</button>
+                    <button class="apartment-filter__btn" data-rooms="1" type="button">1 комната</button>
+                    <button class="apartment-filter__btn" data-rooms="2" type="button">2 комнаты</button>
+                    <button class="apartment-filter__btn" data-rooms="3" type="button">3 комнаты</button>
+                    <button class="apartment-filter__btn" data-rooms="4" type="button">4+ комнат</button>
+                </div>
+                <div class="apartments-grid" data-role="apartments-grid"></div>
+            </div>
+        </section>
+
+        <section class="section conditions" id="conditions">
+            <div class="container">
+                <h2 class="section__title">Условия покупки — удобно и с выгодой</h2>
+                <div class="section-complex-toggle" data-role="section-toggle">
+                    <button class="complex-toggle__btn active" data-role="complex-button" data-complex="rassvet" type="button">ЖК Рассвет</button>
+                    <button class="complex-toggle__btn" data-role="complex-button" data-complex="bahor" type="button">ЖК Бахор</button>
+                </div>
+                <div class="conditions-content">
+                    <div class="conditions-left">
+                        <div class="condition-card active" data-condition="installment">
+                            <div class="condition-card__icon">
+                                <div class="condition-card__icon-circle">0%</div>
                             </div>
-                            <div class="contact-item">
-                                <h4>Социальные сети</h4>
-                                <div class="social-links">
-                                    <a href="#" class="social-link">Instagram</a>
-                                    <a href="#" class="social-link">Telegram</a>
+                            <div class="condition-card__content">
+                                <h3 class="condition-card__title">Рассрочка</h3>
+                                <p class="condition-card__description" data-role="condition-description" data-condition="installment"></p>
+                            </div>
+                            <div class="condition-card__arrow">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="condition-card" data-condition="hybrid">
+                            <div class="condition-card__icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="condition-card__content">
+                                <h3 class="condition-card__title">Гибридная рассрочка</h3>
+                                <p class="condition-card__description" data-role="condition-description" data-condition="hybrid"></p>
+                            </div>
+                            <div class="condition-card__arrow">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="condition-card" data-condition="mortgage">
+                            <div class="condition-card__icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                    <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2"/>
+                                    <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <div class="condition-card__content">
+                                <h3 class="condition-card__title">Переход на ипотеку</h3>
+                                <p class="condition-card__description" data-role="condition-description" data-condition="mortgage"></p>
+                            </div>
+                            <div class="condition-card__arrow">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="conditions-right">
+                        <div class="apartment-info">
+                            <div class="apartment-size" data-role="apartment-size"></div>
+                            <div class="apartment-details">
+                                <div class="apartment-rooms" data-role="apartment-rooms"></div>
+                                <div class="apartment-block" data-role="apartment-block"></div>
+                            </div>
+                        </div>
+                        <div class="condition-details" data-role="condition-details" data-condition="installment">
+                            <h3 data-role="condition-details-title" data-condition="installment"></h3>
+                            <div class="condition-details__options" data-role="condition-details-body" data-condition="installment"></div>
+                        </div>
+                        <div class="condition-details" data-role="condition-details" data-condition="hybrid" style="display: none;">
+                            <h3 data-role="condition-details-title" data-condition="hybrid"></h3>
+                            <div class="condition-details__options" data-role="condition-details-body" data-condition="hybrid"></div>
+                        </div>
+                        <div class="condition-details" data-role="condition-details" data-condition="mortgage" style="display: none;">
+                            <h3 data-role="condition-details-title" data-condition="mortgage"></h3>
+                            <div class="condition-details__options" data-role="condition-details-body" data-condition="mortgage"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section booking">
+            <div class="container booking__grid">
+                <div class="booking__info">
+                    <h2 class="booking__title">Забронируйте свою квартиру уже сегодня</h2>
+                    <p class="booking__text">Выберите подходящий вариант, узнайте все детали и оформите бронь онлайн — просто и удобно</p>
+                    <a href="/complexes" class="btn btn--primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M7 5H11C12.8856 5 13.8284 5 14.4142 5.58579C15 6.17157 15 7.11438 15 9V21.25H16.5H21H22C22.4142 21.25 22.75 21.5858 22.75 22C22.75 22.4142 22.4142 22.75 22 22.75H2C1.58579 22.75 1.25 22.4142 1.25 22C1.25 21.5858 1.58579 21.25 2 21.25H3V9C3 7.11438 3 6.17157 3.58579 5.58579C4.17157 5 5.11438 5 7 5ZM5.25 8C5.25 7.58579 5.58579 7.25 6 7.25H12C12.4142 7.25 12.75 7.58579 12.75 8C12.75 8.41421 12.4142 8.75 12 8.75H6C5.58579 8.75 5.25 8.41421 5.25 8ZM5.25 11C5.25 10.5858 5.58579 10.25 6 10.25H12C12.4142 10.25 12.75 10.5858 12.75 11C12.75 11.4142 12.4142 11.75 12 11.75H6C5.58579 11.75 5.25 11.4142 5.25 11ZM5.25 14C5.25 13.5858 5.58579 13.25 6 13.25H12C12.4142 13.25 12.75 13.5858 12.75 14C12.75 14.4142 12.4142 14.75 12 14.75H6C5.58579 14.75 5.25 14.4142 5.25 14ZM9 18.25C9.41421 18.25 9.75 18.5858 9.75 19V21.25H8.25V19C8.25 18.5858 8.58579 18.25 9 18.25Z" fill="white"/>
+                            <path opacity="0.5" d="M15 2H17C18.8856 2 19.8284 2 20.4142 2.58579C21 3.17157 21 4.11438 21 6V21.25H15V9C15 7.11438 15 6.17157 14.4142 5.58579C13.8416 5.01319 12.9279 5.0003 11.126 5.00001V3.49999C11.2103 3.11275 11.351 2.82059 11.5858 2.58579C12.1715 2 13.1144 2 15 2Z" fill="white"/>
+                          </svg> Выбрать квартиру
+                    </a>
+                </div>
+                <div class="booking__shahmatka">
+                    <!-- Сюда будет вставлен или загружен компонент "Шахматка" -->
+                    <div class="shahmatka-placeholder">
+                         <img src="/static/images/шахматка.png" alt="Шахматка квартир">
+                         <p style="text-align: center; color: #888; margin-top: 10px;">Компонент "Шахматка"</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="contacts-section" id="contacts">
+            <div class="container">
+                <div class="contacts-content">
+                    <div class="office-locations">
+                        <h2 class="contacts-title">Контакты</h2>
+                        <div class="section-complex-toggle" data-role="section-toggle">
+                            <button class="complex-toggle__btn active" data-role="complex-button" data-complex="rassvet" type="button">ЖК Рассвет</button>
+                            <button class="complex-toggle__btn" data-role="complex-button" data-complex="bahor" type="button">ЖК Бахор</button>
+                        </div>
+                        <div class="office-location">
+                            <div class="office-info">
+                                <h3 data-role="contacts-heading"></h3>
+                                <p class="office-type">Главный офис</p>
+                                <a href="#" class="location-link" data-role="contact-location"></a>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-item">
+                                    <h4>Телефон</h4>
+                                    <a href="tel:+998971234567" class="phone-link">+998 97 123 45 67</a>
+                                </div>
+                                <div class="contact-item">
+                                    <h4>Социальные сети</h4>
+                                    <div class="social-links">
+                                        <a href="https://www.instagram.com/ism_construction?igsh=MW96amh6bnpzcTFpdw==" target="_blank" class="social-link social-link--instagram" title="Instagram">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" stroke-width="2"/>
+                                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="currentColor" stroke-width="2"/>
+                                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="currentColor" stroke-width="2"/>
+                                            </svg>
+                                        </a>
+                                        <a href="https://t.me/ISMRASSVET" target="_blank" class="social-link social-link--telegram" title="Telegram">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                <path d="M22 2L2 10L8 13L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M22 2L15 22L8 13L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="contact-item">
+                                    <h4>График работы</h4>
+                                    <div class="working-hours">
+                                        <p>Пн-Вс: 10:00 - 19:00</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="contact-item">
-                                <h4>График работы</h4>
-                                <div class="working-hours">
-                                    <p>Пн-Пт: 9:00 - 18:00</p>
-                                    <p>Сб-Вс: 10:00 - 16:00</p>
+                        </div>
+                        
+                        <!-- Central Office Section -->
+                        <div class="office-location central-office">
+                            <div class="office-info">
+                                <h3>Центральный офис продаж</h3>
+                                <p class="office-type">Главный офис</p>
+                                <a href="#" class="location-link">📍 Ташкентская область, г. Чирчик, Кимёгарлар МСГ, Амир Темур дом №125</a>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-item">
+                                    <h4>Телефон</h4>
+                                    <a href="tel:+998971234567" class="phone-link">+998 97 123 45 67</a>
+                                </div>
+                                <div class="contact-item">
+                                    <h4>Социальные сети</h4>
+                                    <div class="social-links">
+                                        <a href="https://www.instagram.com/ism_construction?igsh=MW96amh6bnpzcTFpdw==" target="_blank" class="social-link social-link--instagram" title="Instagram">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" stroke-width="2"/>
+                                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="currentColor" stroke-width="2"/>
+                                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="currentColor" stroke-width="2"/>
+                                            </svg>
+                                        </a>
+                                        <a href="https://t.me/ISMRASSVET" target="_blank" class="social-link social-link--telegram" title="Telegram">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                <path d="M22 2L2 10L8 13L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M22 2L15 22L8 13L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="contact-item">
+                                    <h4>График работы</h4>
+                                    <div class="working-hours">
+                                        <p>Пн-Вс: 10:00 - 19:00</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="contacts-map">
-                    <div class="map-placeholder">
-                        <p>Карта расположения офиса</p>
-                        <div class="map-links">
-                            <a href="#" class="map-link">Открыть в Google Maps</a>
-                            <a href="#" class="map-link">Открыть в Яндекс.Картах</a>
+                        
+                        <div class="contacts-map">
+                            <div class="map-placeholder">
+                                <p data-role="contact-map-label"></p>
+                                <div class="map-links">
+                                    <a href="#" class="map-link" data-role="contact-map-link" data-map="google">Открыть в Google Maps</a>
+                                    <a href="#" class="map-link" data-role="contact-map-link" data-map="yandex">Открыть в Яндекс.Картах</a>
+                                </div>
+                                <iframe class="map-frame" data-role="map-frame" src="" allowfullscreen loading="lazy"></iframe>
+                            </div>
                         </div>
-            </div>
+                    </div>
+                    
+                </div>
+                <div class="trust-line">
+                    <p>Доверьте нам свою мечту о новом доме</p>
+                </div>
+                <div class="copyright">
+                    <p>© 2025 Buildings. Все права защищены.</p>
                 </div>
             </div>
-            <div class="trust-line">
-                <p>Доверьте нам свою мечту о новом доме</p>
-            </div>
-            <div class="copyright">
-                <p>© 2025 Buildings. Все права защищены.</p>
-            </div>
+        </section>
+    </main>
+
+    <div id="conditionModal" class="condition-modal" style="display: none;">
+        <div class="condition-modal-content">
+            <span class="condition-modal-close" onclick="closeConditionModal()">&times;</span>
+            <div id="conditionExample" class="condition-example"></div>
         </div>
-    </section>
+    </div>
 
-<script>
-        // Плавная прокрутка к якорям
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Слайдер hero секции
-        let currentSlideIndex = 0;
-        const slides = document.querySelectorAll('.hero-slide');
-        const dots = document.querySelectorAll('.hero-dot');
-        let slideInterval;
-
-        // Инициализация слайдера
-        function initHeroSlider() {
-            if (slides.length === 0) return;
-            
-            showSlide(0);
-            startAutoSlide();
-            
-            // Остановка автопрокрутки при наведении
-            const heroSection = document.querySelector('.hero');
-            if (heroSection) {
-                heroSection.addEventListener('mouseenter', stopAutoSlide);
-                heroSection.addEventListener('mouseleave', startAutoSlide);
-            }
-        }
-
-        // Показать слайд
-        function showSlide(index) {
-            // Скрываем все слайды
-            slides.forEach(slide => {
-                slide.classList.remove('active');
-            });
-            
-            // Убираем активный класс с всех точек
-            dots.forEach(dot => {
-                dot.classList.remove('active');
-            });
-            
-            // Показываем нужный слайд
-            if (slides[index]) {
-                slides[index].classList.add('active');
-            }
-            
-            // Активируем соответствующую точку
-            if (dots[index]) {
-                dots[index].classList.add('active');
-            }
-            
-            currentSlideIndex = index;
-        }
-
-        // Следующий/предыдущий слайд
-        function changeSlide(direction) {
-            stopAutoSlide();
-            
-            let newIndex = currentSlideIndex + direction;
-            
-            if (newIndex >= slides.length) {
-                newIndex = 0;
-            } else if (newIndex < 0) {
-                newIndex = slides.length - 1;
-            }
-            
-            showSlide(newIndex);
-            startAutoSlide();
-        }
-
-        // Переход к конкретному слайду
-        function currentSlide(index) {
-            stopAutoSlide();
-            showSlide(index - 1); // Индексы с 0, а кнопки с 1
-            startAutoSlide();
-        }
-
-        // Автопрокрутка
-        function startAutoSlide() {
-            stopAutoSlide(); // Останавливаем предыдущий интервал
-            slideInterval = setInterval(() => {
-                changeSlide(1);
-            }, 15000); // 15 секунд
-        }
-
-        function stopAutoSlide() {
-            if (slideInterval) {
-                clearInterval(slideInterval);
-                slideInterval = null;
-            }
-        }
-
-        // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            initHeroSlider();
-            
-            // Плавная прокрутка для кнопки "Выбрать ЖК"
-            const selectComplexBtn = document.querySelector('a[href="#projects"]');
-            if (selectComplexBtn) {
-                selectComplexBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const projectsSection = document.getElementById('projects');
-                    if (projectsSection) {
-                        projectsSection.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
+    <script>
+        const COMPLEXES = {
+            rassvet: {
+                key: 'rassvet',
+                bodyClass: 'rassvet',
+                hero: {
+                    name: 'ЖК «Рассвет»',
+                    title: 'Пространство<br>света и комфорта',
+                    features: [
+                        '24 уникальных планировки',
+                        'Площади от 40 м² до 93.04 м²',
+                        '6 блоков с современной архитектурой'
+                    ],
+                    backgroundImage: '/static/Жилые_Комплексы/ЖК_Рассвет/render/2.jpeg',
+                    deadline: '4 Квартал<br>2026 года'
+                },
+                ctaLink: '/complexes',
+                conditions: {
+                    descriptions: {
+                        installment: 'До 24 месяцев',
+                        hybrid: 'С отложенным платежом до 30%',
+                        mortgage: 'В удобный момент без потерь'
+                    },
+                    details: {
+                        installment: {
+                            title: 'Рассрочка — удобно и без переплат.',
+                            lines: [
+                                '<strong>Варианты:</strong> 70%, 50% или 30%',
+                                '<strong>Первоначальный взнос</strong> — 55 000 000 сум',
+                                '<strong>Ежемесячная оплата</strong> — 9 166 667 сум (24 месяца, без переплат)'
+                            ]
+                        },
+                        hybrid: {
+                            title: 'Ваш комфорт в приоритете:',
+                            lines: [
+                                '<strong>Первоначальный взнос</strong> — 82 500 000 сум',
+                                '<strong>Ежемесячный платёж</strong> — 6 111 111 сум',
+                                '<strong>До 30% суммы</strong> можно отложить на удобный момент'
+                            ]
+                        },
+                        mortgage: {
+                            title: '30% оплачиваются при сдаче объекта.',
+                            lines: [
+                                '<strong>Стоимость квартиры</strong> — 275 000 000 сум',
+                                '<strong>Сумма ипотеки</strong> — 220 000 000 сум',
+                                'Если к этому моменту будет удобнее — вы сможете оформить ипотеку и рассчитаться комфортно, без лишних забот.'
+                            ]
+                        }
                     }
-                });
+                },
+                modals: {
+                    installment: `<h3>Пример рассрочки</h3>
+                        <p><strong>Стоимость квартиры:</strong> 275 000 000 сум</p>
+                        <p><strong>Первоначальный взнос:</strong> 55 000 000 сум (20%)</p>
+                        <p><strong>Ежемесячный платеж:</strong> 9 166 667 сум</p>
+                        <p><strong>Срок рассрочки:</strong> 24 месяца</p>
+                        <p><strong>Переплата:</strong> 0 сум</p>`,
+                    hybrid: `<h3>Пример гибридной рассрочки</h3>
+                        <p><strong>Стоимость квартиры:</strong> 275 000 000 сум</p>
+                        <p><strong>Первоначальный взнос (30%):</strong> 82 500 000 сум</p>
+                        <p><strong>Ежемесячная оплата (18 мес., 40%):</strong> 6 111 111 сум</p>
+                        <p><strong>Последний платёж (19-й месяц, 30%):</strong> 82 500 000 сум</p>`,
+                    mortgage: `<h3>Переход на ипотеку</h3>
+                        <p><strong>Стоимость квартиры:</strong> 275 000 000 сум</p>
+                        <p><strong>Первоначальный взнос:</strong> 55 000 000 сум (20%)</p>
+                        <p><strong>Сумма ипотеки:</strong> 220 000 000 сум</p>
+                        <p><strong>Ставка:</strong> от 18% годовых</p>
+                        <p><strong>Срок:</strong> до 20 лет</p>
+                        <p><strong>Ежемесячный платеж:</strong> от 2 200 000 сум</p>`
+                },
+                apartmentInfo: {
+                    size: '65.38 м²',
+                    rooms: [
+                        { name: 'Гостиная', size: '15.90 м²' },
+                        { name: 'Спальня', size: '12.48 м²' },
+                        { name: 'Балкон', size: '3.84 м²' }
+                    ],
+                    block: 'Блок Д. Этажи 2-12'
+                },
+                contact: {
+                    heading: 'Отдел продаж ЖК «Рассвет»',
+                    location: '📍 Ташкентская область, г. Чирчик, Кимёгарлар МСГ, Амир Темур дом №125',
+                    mapLabel: 'Карта расположения ЖК «Рассвет»',
+                    mapEmbed: 'https://yandex.uz/map-widget/v1/?ll=69.571266%2C41.466346&mode=whatshere&whatshere%5Bpoint%5D=69.570498%2C41.467903&whatshere%5Bzoom%5D=20&z=17.34',
+                    mapLinks: {
+                        google: '#',
+                        yandex: 'https://yandex.uz/maps/114900/chirchiq/?ll=69.571266%2C41.466346&mode=whatshere&whatshere%5Bpoint%5D=69.570498%2C41.467903&whatshere%5Bzoom%5D=20&z=17.34'
+                    }
+                },
+                jkName: 'ЖК_Рассвет',
+                blocks: {
+                    enabled: false
+                }
+            },
+            bahor: {
+                key: 'bahor',
+                bodyClass: 'bahor',
+                hero: {
+                    name: 'ЖК «Бахор»',
+                    title: 'Пространство<br>света и комфорта',
+                    features: [
+                        '18 уникальных планировок',
+                        'Площади от 35 м² до 85 м²',
+                        '4 блока с современной архитектурой'
+                    ],
+                    backgroundImage: '/static/Жилые_Комплексы/ЖК_Бахор/render/01.png',
+                    deadline: '3 Квартал<br>2025 года'
+                },
+                ctaLink: '/shaxmatki/complexes.html?complex=bahor',
+                conditions: {
+                    descriptions: {
+                        installment: 'До 18 месяцев',
+                        hybrid: 'С отложенным платежом до 25%',
+                        mortgage: 'В удобный момент без потерь'
+                    },
+                    details: {
+                        installment: {
+                            title: 'Рассрочка — удобно и без переплат.',
+                            lines: [
+                                '<strong>Варианты:</strong> 70%, 50% или 30%',
+                                '<strong>Первоначальный взнос</strong> — 40 000 000 сум',
+                                '<strong>Ежемесячная оплата</strong> — 8 888 889 сум (18 месяцев, без переплат)'
+                            ]
+                        },
+                        hybrid: {
+                            title: 'Ваш комфорт в приоритете:',
+                            lines: [
+                                '<strong>Первоначальный взнос</strong> — 50 000 000 сум',
+                                '<strong>Ежемесячный платёж</strong> — 8 333 333 сум',
+                                '<strong>До 25% суммы</strong> можно отложить на удобный момент'
+                            ]
+                        },
+                        mortgage: {
+                            title: '30% оплачиваются при сдаче объекта.',
+                            lines: [
+                                '<strong>Стоимость квартиры</strong> — 200 000 000 сум',
+                                '<strong>Сумма ипотеки</strong> — 160 000 000 сум',
+                                'Если к этому моменту будет удобнее — вы сможете оформить ипотеку и рассчитаться комфортно, без лишних забот.'
+                            ]
+                        }
+                    }
+                },
+                modals: {
+                    installment: `<h3>Пример рассрочки</h3>
+                        <p><strong>Стоимость квартиры:</strong> 200 000 000 сум</p>
+                        <p><strong>Первоначальный взнос:</strong> 40 000 000 сум (20%)</p>
+                        <p><strong>Ежемесячный платеж:</strong> 8 888 889 сум</p>
+                        <p><strong>Срок рассрочки:</strong> 18 месяцев</p>
+                        <p><strong>Переплата:</strong> 0 сум</p>`,
+                    hybrid: `<h3>Пример гибридной рассрочки</h3>
+                        <p><strong>Стоимость квартиры:</strong> 200 000 000 сум</p>
+                        <p><strong>Первоначальный взнос (25%):</strong> 50 000 000 сум</p>
+                        <p><strong>Ежемесячная оплата (12 мес., 50%):</strong> 8 333 333 сум</p>
+                        <p><strong>Последний платёж (13-й месяц, 25%):</strong> 50 000 000 сум</p>`,
+                    mortgage: `<h3>Переход на ипотеку</h3>
+                        <p><strong>Стоимость квартиры:</strong> 200 000 000 сум</p>
+                        <p><strong>Первоначальный взнос:</strong> 40 000 000 сум (20%)</p>
+                        <p><strong>Сумма ипотеки:</strong> 160 000 000 сум</p>
+                        <p><strong>Ставка:</strong> от 18% годовых</p>
+                        <p><strong>Срок:</strong> до 20 лет</p>
+                        <p><strong>Ежемесячный платеж:</strong> от 1 600 000 сум</p>`
+                },
+                apartmentInfo: {
+                    size: '58.25 м²',
+                    rooms: [
+                        { name: 'Гостиная', size: '18.50 м²' },
+                        { name: 'Спальня', size: '14.20 м²' },
+                        { name: 'Балкон', size: '4.15 м²' }
+                    ],
+                    block: 'Блок А. Этажи 3-15'
+                },
+                contact: {
+                    heading: 'Отдел продаж ЖК «Бахор»',
+                    location: '📍 Ташкентская область, город Чирчик, Хумо МСГ 8 микрорайон дом 36А',
+                    mapLabel: 'Карта расположения ЖК «Бахор»',
+                    mapEmbed: 'https://yandex.uz/map-widget/v1/?ll=69.548823%2C41.461406&mode=whatshere&whatshere%5Bpoint%5D=69.549232%2C41.461742&whatshere%5Bzoom%5D=18.22&z=17.6',
+                    mapLinks: {
+                        google: '#',
+                        yandex: 'https://yandex.uz/maps/114900/chirchiq/?ll=69.548823%2C41.461406&mode=whatshere&whatshere%5Bpoint%5D=69.549232%2C41.461742&whatshere%5Bzoom%5D=18.22&z=17.6'
+                    }
+                },
+                jkName: 'ЖК_Бахор',
+                blocks: {
+                    enabled: true
+                }
             }
-        });
+        };
 
-        // Мобильное меню
+        const COMPLEX_KEYS = Object.keys(COMPLEXES);
+        const DEFAULT_COMPLEX = 'rassvet';
+        let currentComplexKey = DEFAULT_COMPLEX;
+        let currentRoomsFilter = null;
+        let currentBlockFilter = null;
+        let previousBodyClass = 'rassvet';
+
+        function getComplexFromHash() {
+            const hash = window.location.hash.replace('#', '').toLowerCase();
+            return hash === 'bahor' ? 'bahor' : 'rassvet';
+        }
+
         function toggleMobileMenu() {
             const mobileMenu = document.getElementById('mobileMenu');
             const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-            
-            if (mobileMenu.classList.contains('active')) {
-                mobileMenu.classList.remove('active');
-                mobileMenuBtn.classList.remove('active');
-                document.body.style.overflow = '';
-    } else {
-                mobileMenu.classList.add('active');
-                mobileMenuBtn.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
+            if (!mobileMenu || !mobileMenuBtn) return;
+            mobileMenu.classList.toggle('active');
+            mobileMenuBtn.classList.toggle('active');
+            document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
         }
 
-        // Закрытие мобильного меню при клике на ссылку
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuLinks = document.querySelectorAll('.mobile-menu-link');
-            mobileMenuLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    const mobileMenu = document.getElementById('mobileMenu');
-                    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-                    mobileMenu.classList.remove('active');
-                    mobileMenuBtn.classList.remove('active');
-                    document.body.style.overflow = '';
-                    
-                    // Плавная прокрутка для кнопки "Выбрать ЖК" в мобильном меню
-                    if (this.getAttribute('href') === '#projects') {
-                        const projectsSection = document.getElementById('projects');
-                        if (projectsSection) {
-                            setTimeout(() => {
-                                projectsSection.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'start'
-                                });
-                            }, 300); // Задержка для закрытия меню
+        function closeConditionModal() {
+            const modal = document.getElementById('conditionModal');
+            if (modal) modal.style.display = 'none';
+        }
+        window.closeConditionModal = closeConditionModal;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const heroBackgroundEl = document.querySelector('[data-role="hero-background"]');
+            const heroNameEl = document.querySelector('[data-role="hero-name"]');
+            const heroTitleEl = document.querySelector('[data-role="hero-title"]');
+            const heroFeaturesEl = document.querySelector('[data-role="hero-features"]');
+            const heroDeadlineEl = document.querySelector('[data-role="hero-deadline"]');
+            const heroSection = document.getElementById('hero');
+            const heroPrevBtn = document.querySelector('[data-role="hero-prev"]');
+            const heroNextBtn = document.querySelector('[data-role="hero-next"]');
+            const conditionDescEls = document.querySelectorAll('[data-role="condition-description"]');
+            const conditionTitleEls = document.querySelectorAll('[data-role="condition-details-title"]');
+            const conditionBodyEls = document.querySelectorAll('[data-role="condition-details-body"]');
+            const conditionDetailBlocks = document.querySelectorAll('[data-role="condition-details"]');
+            const conditionCards = document.querySelectorAll('.condition-card');
+            const apartmentSizeEl = document.querySelector('[data-role="apartment-size"]');
+            const apartmentRoomsEl = document.querySelector('[data-role="apartment-rooms"]');
+            const apartmentBlockEl = document.querySelector('[data-role="apartment-block"]');
+            const contactHeadingEl = document.querySelector('[data-role="contacts-heading"]');
+            const contactLocationEl = document.querySelector('[data-role="contact-location"]');
+            const contactMapLabelEl = document.querySelector('[data-role="contact-map-label"]');
+            const contactMapLinks = document.querySelectorAll('[data-role="contact-map-link"]');
+            const mapFrameEl = document.querySelector('[data-role="map-frame"]');
+            const ctaLinks = document.querySelectorAll('[data-role="cta-link"]');
+            const apartmentsGridEl = document.querySelector('[data-role="apartments-grid"]');
+            const blocksContainer = document.getElementById('blocksContainer');
+            const roomsFilterButtons = document.querySelectorAll('.apartment-filter__btn');
+            const complexButtons = document.querySelectorAll('[data-role="complex-button"]');
+            const toggleGroups = document.querySelectorAll('[data-role="section-toggle"]');
+            let isSwitching = false;
+            function cycleComplex(direction) {
+                const currentIndex = COMPLEX_KEYS.indexOf(currentComplexKey);
+                const nextIndex = (currentIndex + direction + COMPLEX_KEYS.length) % COMPLEX_KEYS.length;
+                const nextKey = COMPLEX_KEYS[nextIndex];
+                applyComplex(nextKey);
+            }
+
+            if (heroPrevBtn) {
+                heroPrevBtn.addEventListener('click', () => cycleComplex(-1));
+            }
+            if (heroNextBtn) {
+                heroNextBtn.addEventListener('click', () => cycleComplex(1));
+            }
+
+            function setActiveCondition(conditionKey) {
+                conditionCards.forEach(card => {
+                    card.classList.toggle('active', card.dataset.condition === conditionKey);
+                });
+                conditionDetailBlocks.forEach(block => {
+                    block.style.display = block.dataset.condition === conditionKey ? 'block' : 'none';
+                });
+            }
+
+            function updateConditionContent(config) {
+                conditionDescEls.forEach(descEl => {
+                    const key = descEl.dataset.condition;
+                    descEl.textContent = config.conditions.descriptions[key] || '';
+                });
+                conditionTitleEls.forEach(titleEl => {
+                    const key = titleEl.dataset.condition;
+                    titleEl.textContent = config.conditions.details[key]?.title || '';
+                });
+                conditionBodyEls.forEach(bodyEl => {
+                    const key = bodyEl.dataset.condition;
+                    const lines = config.conditions.details[key]?.lines || [];
+                    bodyEl.innerHTML = lines.map(line => `<p>${line}</p>`).join('');
+                });
+                setActiveCondition('installment');
+            }
+
+            function updateApartmentInfo(config) {
+                if (apartmentSizeEl) apartmentSizeEl.textContent = config.apartmentInfo.size;
+                if (apartmentRoomsEl) {
+                    apartmentRoomsEl.innerHTML = config.apartmentInfo.rooms.map(room => `
+                        <div class="room-item">
+                            <span class="room-name">${room.name}</span>
+                            <span class="room-size">${room.size}</span>
+                        </div>
+                    `).join('');
+                }
+                if (apartmentBlockEl) apartmentBlockEl.textContent = config.apartmentInfo.block;
+            }
+
+            function updateContacts(config) {
+                if (contactHeadingEl) contactHeadingEl.textContent = config.contact.heading;
+                if (contactLocationEl) contactLocationEl.textContent = config.contact.location;
+                if (contactMapLabelEl) contactMapLabelEl.textContent = config.contact.mapLabel;
+                contactMapLinks.forEach(link => {
+                    const mapType = link.dataset.map;
+                    const href = config.contact.mapLinks?.[mapType] || '#';
+                    link.setAttribute('href', href);
+                });
+                if (mapFrameEl) {
+                    const src = config.contact.mapEmbed || '';
+                    if (src && mapFrameEl.src !== src) {
+                        mapFrameEl.src = src;
+                    }
+                }
+            }
+
+            function updateHero(config) {
+                if (heroBackgroundEl) {
+                    heroBackgroundEl.style.backgroundImage = `url('${config.hero.backgroundImage}')`;
+                }
+                if (heroNameEl) heroNameEl.textContent = config.hero.name;
+                if (heroTitleEl) heroTitleEl.innerHTML = config.hero.title;
+                if (heroFeaturesEl) {
+                    heroFeaturesEl.innerHTML = config.hero.features.map(item => `<li>${item}</li>`).join('');
+                }
+                if (heroDeadlineEl) heroDeadlineEl.innerHTML = config.hero.deadline;
+            }
+
+            function updateCTALinks(config) {
+                ctaLinks.forEach(link => {
+                    link.setAttribute('href', config.ctaLink || '/complexes');
+                });
+            }
+
+            function updateComplexButtons(activeKey) {
+                complexButtons.forEach(button => {
+                    const isActive = button.dataset.complex === activeKey;
+                    button.classList.toggle('active', isActive);
+                    if (isActive) {
+                        const group = button.closest('[data-role="section-toggle"]');
+                        if (group) {
+                            group.dataset.active = activeKey;
                         }
                     }
                 });
+
+                toggleGroups.forEach(group => {
+                    if (!group.dataset.active) {
+                        group.dataset.active = activeKey;
+                    }
+                });
+            }
+
+            function showConditionExample(conditionKey) {
+                if (!modalContainer || !modalContentEl) return;
+                const config = COMPLEXES[currentComplexKey];
+                const html = config.modals?.[conditionKey];
+                if (!html) return;
+                modalContentEl.innerHTML = html;
+                modalContainer.style.display = 'block';
+            }
+
+            conditionCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const condition = card.dataset.condition;
+                    setActiveCondition(condition);
+                });
+                const trigger = card.querySelector('.condition-card__icon');
+                if (trigger) {
+                    trigger.addEventListener('dblclick', () => {
+                        showConditionExample(card.dataset.condition);
+                    });
+                }
             });
-});
-</script>
+
+            roomsFilterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    roomsFilterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    const rooms = button.dataset.rooms;
+                    currentRoomsFilter = rooms === 'all' ? null : parseInt(rooms, 10);
+                    renderApartmentsForCurrent();
+                });
+            });
+
+            complexButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const target = button.dataset.complex;
+                    if (!target || target === currentComplexKey) return;
+                    applyComplex(target);
+                    const mobileMenu = document.getElementById('mobileMenu');
+                    if (mobileMenu?.classList.contains('active')) {
+                        toggleMobileMenu();
+                    }
+                });
+            });
+
+            async function applyComplex(key, options = {}) {
+                const config = COMPLEXES[key];
+                if (!config) return;
+                if (isSwitching) return;
+                isSwitching = true;
+
+                const runUpdates = async () => {
+                    currentComplexKey = key;
+
+                    document.body.dataset.currentComplex = key;
+                    if (previousBodyClass) {
+                        document.body.classList.remove(previousBodyClass);
+                    }
+                    document.body.classList.add(config.bodyClass);
+                    previousBodyClass = config.bodyClass;
+
+                    updateComplexButtons(key);
+                    updateHero(config);
+                    updateConditionContent(config);
+                    updateApartmentInfo(config);
+                    updateContacts(config);
+                    updateCTALinks(config);
+
+                    if (!options.preserveRoomFilter) {
+                        currentRoomsFilter = null;
+                        roomsFilterButtons.forEach(btn => {
+                            btn.classList.toggle('active', btn.dataset.rooms === 'all');
+                        });
+                    }
+                    currentBlockFilter = null;
+
+                    await loadBlocks(config);
+
+                    if (!options.fromHash) {
+                        const { pathname, search } = window.location;
+                        const newUrl = `${pathname}${search}#${key}`;
+                        history.replaceState(null, '', newUrl);
+                    }
+                };
+
+                try {
+                    if (heroSection) {
+                        heroSection.classList.add('hero--fade');
+                        await new Promise(resolve => setTimeout(resolve, 160));
+                        await runUpdates();
+                        setTimeout(() => heroSection.classList.remove('hero--fade'), 220);
+                    } else {
+                        await runUpdates();
+                    }
+                } finally {
+                    isSwitching = false;
+                }
+            }
+
+            async function loadBlocks(config) {
+                if (!blocksContainer) {
+                    await renderApartmentsForCurrent();
+                    return;
+                }
+
+                blocksContainer.hidden = true;
+                blocksContainer.innerHTML = '';
+
+                if (!config.blocks?.enabled) {
+                    await renderApartmentsForCurrent();
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/complexes/blocks/${config.jkName}`);
+                    const data = await response.json();
+                    if (data.status === 'success' && Array.isArray(data.blocks) && data.blocks.length) {
+                        blocksContainer.innerHTML = `
+                            <h3>Выберите блок:</h3>
+                            <div class="blocks-grid">
+                                ${data.blocks.map(block => `<button class="block-btn" type="button" data-block="${block}">${block}</button>`).join('')}
+                            </div>
+                        `;
+                        blocksContainer.hidden = false;
+                        const blockButtons = blocksContainer.querySelectorAll('.block-btn');
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const requestedBlock = urlParams.get('block');
+                        const validBlocks = data.blocks.filter(Boolean);
+                        const initialBlock = requestedBlock && validBlocks.includes(requestedBlock) ? requestedBlock : validBlocks[0];
+
+                        blockButtons.forEach(button => {
+                            button.addEventListener('click', () => {
+                                blockButtons.forEach(btn => btn.classList.remove('active'));
+                                button.classList.add('active');
+                                currentBlockFilter = button.dataset.block;
+                                renderApartmentsForCurrent();
+                            });
+                        });
+
+                        const initialButton = blocksContainer.querySelector(`.block-btn[data-block="${initialBlock}"]`) || blockButtons[0];
+                        if (initialButton) {
+                            blockButtons.forEach(btn => btn.classList.remove('active'));
+                            initialButton.classList.add('active');
+                            currentBlockFilter = initialButton.dataset.block;
+                        }
+
+                        await renderApartmentsForCurrent();
+                    } else {
+                        await renderApartmentsForCurrent();
+                    }
+                } catch (error) {
+                    console.error('Ошибка при загрузке блоков:', error);
+                    await renderApartmentsForCurrent();
+                }
+            }
+
+            async function renderApartmentsForCurrent() {
+                const config = COMPLEXES[currentComplexKey];
+                if (!config) return;
+                await renderApartments(config.jkName, currentRoomsFilter, currentBlockFilter);
+            }
+
+            async function renderApartments(jkName, roomsFilter = null, blockFilter = null) {
+                if (!apartmentsGridEl) return;
+                apartmentsGridEl.innerHTML = '<div class="loading">Загрузка квартир...</div>';
+                try {
+                    const apartments = await loadApartments(jkName, roomsFilter);
+                    let filtered = apartments;
+                    if (blockFilter) {
+                        filtered = apartments.filter(apartment => apartment.blockName && apartment.blockName.toLowerCase() === blockFilter.toLowerCase());
+                    }
+                    if (!filtered.length) {
+                        apartmentsGridEl.innerHTML = '<div class="no-apartments">Квартиры не найдены</div>';
+                        return;
+                    }
+                    const display = filtered.slice(0, 6);
+                    apartmentsGridEl.innerHTML = '';
+                    for (const apartment of display) {
+                        const details = await loadApartmentDetails(jkName, apartment);
+                        const remainingCount = Math.floor(Math.random() * 5) + 1;
+                        const card = document.createElement('div');
+                        card.className = 'apartment-card';
+                        card.innerHTML = `
+                            <div class="apartment-card__header">
+                                <span class="apartment-card__remaining">Осталось всего ${remainingCount} квартир</span>
+                                <button class="apartment-card__favorite" type="button">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20.84 4.61C20.3292 4.099 19.7228 3.69364 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69364 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.5783 8.50903 2.9987 7.05 2.9987C5.59096 2.9987 4.19169 3.5783 3.16 4.61C2.1283 5.6417 1.5487 7.04097 1.5487 8.5C1.5487 9.95903 2.1283 11.3583 3.16 12.39L12 21.23L20.84 12.39C21.351 11.8792 21.7563 11.2728 22.0329 10.6053C22.3095 9.93789 22.4518 9.22248 22.4518 8.5C22.4518 7.77752 22.3095 7.06211 22.0329 6.39465C21.7563 5.72719 21.351 5.1208 20.84 4.61Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="apartment-card__floorplan">
+                                <img src="/api/complexes/plan-image?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(apartment.blockName ?? '')}&apartmentSize=${apartment.size}" alt="План квартиры" class="apartment-card__image">
+                            </div>
+                            <div class="apartment-card__details">
+                                <div class="apartment-detail">
+                                    <span class="apartment-detail__label">Номер квартиры</span>
+                                    <span class="apartment-detail__value">${apartment.apartmentNumber}</span>
+                                </div>
+                                <div class="apartment-detail">
+                                    <span class="apartment-detail__label">Площадь</span>
+                                    <span class="apartment-detail__value">${apartment.size} м²</span>
+                                </div>
+                                <div class="apartment-detail">
+                                    <span class="apartment-detail__label">Комнат</span>
+                                    <span class="apartment-detail__value">${apartment.rooms}</span>
+                                </div>
+                                <div class="apartment-detail">
+                                    <span class="apartment-detail__label">Этаж</span>
+                                    <span class="apartment-detail__value">${apartment.floor}</span>
+                                </div>
+                                <div class="apartment-detail">
+                                    <span class="apartment-detail__label">Год сдачи</span>
+                                    <span class="apartment-detail__value">2026</span>
+                                </div>
+                                <div class="apartment-detail">
+                                    <span class="apartment-detail__label">Проект</span>
+                                    <span class="apartment-detail__value">${jkName.replace('ЖК_', '')}</span>
+                                </div>
+                                ${details && details.pricePerM2_30 != null ? `
+                                    <div class="apartment-detail">
+                                        <span class="apartment-detail__label">Цена за м²</span>
+                                        <span class="apartment-detail__value">${formatNumber(details.pricePerM2_30)} сум</span>
+                                    </div>
+                                ` : ''}
+                                ${details && details.total_price != null ? `
+                                    <div class="apartment-detail">
+                                        <span class="apartment-detail__label">Общая стоимость</span>
+                                        <span class="apartment-detail__value">${formatNumber(details.total_price)} сум</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <button class="apartment-card__button" type="button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Узнать подробнее
+                            </button>
+                        `;
+                        apartmentsGridEl.appendChild(card);
+                    }
+                } catch (error) {
+                    console.error('Ошибка при загрузке квартир:', error);
+                    apartmentsGridEl.innerHTML = '<div class="no-apartments">Не удалось загрузить квартиры</div>';
+                }
+            }
+
+            async function loadApartments(jkName, roomsFilter = null) {
+                try {
+                    const response = await fetch(`/api/complexes/jk/${jkName}`);
+                    const data = await response.json();
+                    if (data.status !== 'success') throw new Error('Ошибка загрузки данных ЖК');
+                    const shaxmatka = data.shaxmatka;
+                    const apartments = [];
+                    for (let i = 1; i < shaxmatka.length; i += 1) {
+                        const row = shaxmatka[i];
+                        if (!row || row.length < 7) continue;
+                        const blockName = row[0];
+                        const status = row[2];
+                        const apartmentNumber = row[4];
+                        const size = parseFloat(row[5]);
+                        const floor = parseInt(row[6], 10);
+                        if (Number.isNaN(size) || Number.isNaN(floor)) continue;
+                        if (roomsFilter) {
+                            const roomCount = getRoomCountFromSize(size);
+                            if (roomCount !== roomsFilter) continue;
+                        }
+                        if (typeof status === 'string' && status.toLowerCase().includes('занят')) continue;
+                        apartments.push({
+                            blockName,
+                            status,
+                            apartmentNumber,
+                            size,
+                            floor,
+                            rooms: getRoomCountFromSize(size)
+                        });
+                    }
+                    return apartments;
+                } catch (error) {
+                    console.error('Ошибка загрузки квартир:', error);
+                    return [];
+                }
+            }
+
+            function formatNumber(value) {
+                const locale = 'ru-RU';
+                if (value === null || value === undefined) return '';
+                if (typeof value === 'number' && Number.isFinite(value)) return value.toLocaleString(locale);
+                const num = Number(value);
+                return Number.isFinite(num) ? num.toLocaleString(locale) : String(value);
+            }
+
+            function getRoomCountFromSize(size) {
+                if (size <= 35) return 1;
+                if (size <= 50) return 2;
+                if (size <= 70) return 3;
+                return 4;
+            }
+
+            async function loadApartmentDetails(jkName, apartment) {
+                try {
+                    const response = await fetch(`/api/complexes/apartment-info?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(apartment.blockName ?? '')}&apartmentSize=${apartment.size}&floor=${apartment.floor}&apartmentNumber=${apartment.apartmentNumber}`);
+                    const data = await response.json();
+                    if (data.status === 'success') return data.data;
+                    return null;
+                } catch (error) {
+                    console.error('Ошибка загрузки деталей квартиры:', error);
+                    return null;
+                }
+            }
+
+            window.addEventListener('hashchange', () => {
+                const target = getComplexFromHash();
+                applyComplex(target, { fromHash: true, preserveRoomFilter: true });
+            });
+
+            const initialComplex = getComplexFromHash();
+            applyComplex(initialComplex, { fromHash: true, preserveRoomFilter: true });
+        });
+    </script>
 </body>
 </html>

@@ -127,9 +127,10 @@ background: #FFF;
 .payment-type {
     display: flex;
     align-items: center;
-padding: 10px;
-gap: 10px;
-align-self: stretch;
+    padding: 10px;
+    gap: 10px;
+    align-self: stretch;
+    flex-wrap: wrap;
 }
 
 .single-payment {
@@ -163,13 +164,13 @@ flex: 1 0 0;
 
 
 .installment-period-container {
+    margin-top: 20px;
     font-family: Arial, sans-serif;
     display: flex;
-
-
-gap: 10px;
-align-self: stretch;
-
+    gap: 20px;
+    align-items: center;
+    flex-wrap: nowrap;
+    width: 100%;
 }
 
 
@@ -181,47 +182,172 @@ align-self: stretch;
 
 .period-buttons {
     display: flex;
-    gap: 10px;
-
+    gap: 8px;
+    flex-wrap: nowrap;
+    flex: 1;
+    justify-content: flex-start;
 }
 
 .period-button {
     display: flex;
-padding: 17px 20px;
-justify-content: space-between;
-align-items: center;
-flex: 1 0 0;
-border-radius: 57px;
-background: #FEFEFE;
+    padding: 12px 16px;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #FEFEFE;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
+    border: 1px solid #E5E5E5;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
 }
 
 .period-button.active {
     background-color: #216BF4;
     color: #fff;
     border-color: #216BF4;
+    box-shadow: 0 2px 8px rgba(33, 107, 244, 0.3);
+}
+
+.period-button:hover {
+    background-color: #f0f0f0;
+    border-color: #d0d0d0;
+    transform: translateY(-1px);
+}
+
+.period-button.active:hover {
+    background-color: #1a5bb8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(33, 107, 244, 0.4);
 }
 
 .manual-input {
-width: 50%;
+    width: 50%;
+    min-width: 200px;
     gap: 10px;
     display: flex;
-padding: 17px 20px;
-justify-content: space-between;
-align-items: center;
-border-radius: 57px;
-background: #FEFEFE;
+    padding: 12px 16px;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 25px;
+    background: #FEFEFE;
+    border: 1px solid #E5E5E5;
+    flex-shrink: 0;
 }
 
 .manual-input input {
     border: none;
     border-radius: 5px;
     text-align: right;
+    background: transparent;
+    outline: none;
+    font-weight: 600;
+    font-size: 14px;
+    width: 60px;
 }
 
 .manual-input input:focus {
-    border-color: #ffffff;
+    background-color: #f8f9fa;
+}
+
+.manual-input label {
+    font-weight: 500;
+    font-size: 14px;
+    color: #666;
+    white-space: nowrap;
+}
+
+/* Стили для кнопки "Выбрать квартиру" */
+.attach-apartment-button {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(25px);
+    color: #216BF4;
+    border: 2px solid rgba(33, 107, 244, 0.3);
+    border-radius: 1rem;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: "Vela Sans GX", sans-serif;
+    box-shadow: 0 4px 15px rgba(33, 107, 244, 0.1);
+}
+
+.attach-apartment-button:hover {
+    background: rgba(33, 107, 244, 0.1);
+    border-color: #216BF4;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(33, 107, 244, 0.2);
+}
+
+.attach-apartment-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(33, 107, 244, 0.2);
+}
+
+/* Стили для модального окна выбора квартиры */
+.payment-option-btn {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(25px);
+    color: #374151;
+    border: 2px solid rgba(229, 231, 235, 0.5);
+    border-radius: 1rem;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: "Vela Sans GX", sans-serif;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin: 5px;
+}
+
+.payment-option-btn:hover {
+    background: rgba(33, 107, 244, 0.1);
+    border-color: #216BF4;
+    color: #216BF4;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(33, 107, 244, 0.2);
+}
+
+.payment-option-btn.active {
+    background: #216BF4;
+    color: white;
+    border-color: #216BF4;
+    box-shadow: 0 4px 20px rgba(33, 107, 244, 0.3);
+}
+
+.installment-percent-btn, .hybrid-percent-btn {
+    background: rgba(255, 255, 255, 0.9);
+    color: #374151;
+    border: 1px solid rgba(229, 231, 235, 0.5);
+    border-radius: 0.5rem;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: "Vela Sans GX", sans-serif;
+}
+
+.installment-percent-btn:hover, .hybrid-percent-btn:hover {
+    background: rgba(33, 107, 244, 0.1);
+    border-color: #216BF4;
+    color: #216BF4;
+}
+
+.installment-percent-btn.active, .hybrid-percent-btn.active {
+    background: #216BF4;
+    color: white;
+    border-color: #216BF4;
+}
+
+/* Стили для секции рассрочки */
+#installment-period-section {
+    width: 100%;
 }
 
 .previous-button, .register-lead-button{
@@ -254,4 +380,43 @@ background: rgba(245, 245, 245, 0.90);
 }
 .input-error{
     border: 1px solid red;
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+    .installment-period-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .period-buttons {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .period-button {
+        min-width: 45px;
+        height: 45px;
+        font-size: 13px;
+    }
+    
+    .manual-input {
+        margin-left: 0;
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .period-buttons {
+        gap: 4px;
+    }
+    
+    .period-button {
+        min-width: 40px;
+        height: 40px;
+        font-size: 12px;
+        padding: 8px 12px;
+    }
 }

@@ -210,7 +210,8 @@ background-color: #4338CA;      /* чуть более тёмный при на�
     font-size: 14px;
     color: #333;}
 
-    .installment-percent-btn {
+    .installment-percent-btn,
+    .hybrid-percent-btn {
         padding: 8px 16px;
         border: 1px solid #ccc;
         border-radius: 6px;
@@ -219,10 +220,12 @@ background-color: #4338CA;      /* чуть более тёмный при на�
         cursor: pointer;
         transition: background-color 0.3s, border-color 0.3s;
       }
-      .installment-percent-btn:hover {
+      .installment-percent-btn:hover,
+      .hybrid-percent-btn:hover {
         background-color: #f0f0f0;
       }
-      .installment-percent-btn.active {
+      .installment-percent-btn.active,
+      .hybrid-percent-btn.active {
         background-color: #28a745;
         border-color: #28a745;
         color: #fff;
@@ -231,6 +234,11 @@ background-color: #4338CA;      /* чуть более тёмный при на�
         display: flex;
         gap: 8px;
         margin-bottom: 16px;}
+      .hybrid-options {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
 
         /* --- Payment selection styling --- */
 .buttons-container {

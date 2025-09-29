@@ -1,3 +1,12 @@
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    // Показываем секцию рассрочки по умолчанию (так как "Рассрочка" активна)
+    const installmentSection = document.getElementById('installment-period-section');
+    if (installmentSection) {
+        installmentSection.style.display = 'block';
+    }
+});
+
 // Переключение валюты
 document.querySelectorAll('.currency-button').forEach(button => {
     button.addEventListener('click', () => {
@@ -16,7 +25,18 @@ document.querySelectorAll('.installment-button').forEach(button => {
         document.querySelectorAll('.installment-button').forEach(btn => btn.classList.remove('active'));
         // Добавляем активный класс к выбранной кнопке
         button.classList.add('active');
-        console.log(`Выбрана рассрочка: ${button.dataset.installment}`);
+        
+        // Показываем или скрываем секцию срока рассрочки
+        const installmentSection = document.getElementById('installment-period-section');
+        const paymentType = button.textContent.trim();
+        
+        if (paymentType === 'Единовременно') {
+            installmentSection.style.display = 'none';
+        } else {
+            installmentSection.style.display = 'block';
+        }
+        
+        console.log(`Выбран тип оплаты: ${paymentType}`);
     });
 });
 
@@ -179,8 +199,8 @@ monthly_payment = total_price * (1 + installment_markup / 100) / installment_per
 
         const leadId = leadResult.id; // Получаем ID созданного лида
 
-        // 2. Если это рассрочка, создаём план платежей и первоначальный платеж
-        if (leadData.payment_type === "Рассрочка" && leadData.installment_period) {
+        // 2. Если это рассрочка или гибридная, создаём план платежей и первоначальный платеж
+        if ((leadData.payment_type === "Рассрочка" || leadData.payment_type === "Гибридная") && leadData.installment_period) {
             // Создаём план рассрочки (если API поддерживает InstallmentPlan)
             const installmentPlanData = {
                 lead_id: leadId,

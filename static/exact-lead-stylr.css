@@ -479,17 +479,56 @@ border-radius: 57px;
     font-size: 1rem;
 }
 
-.info-box,
-.info-box-tag {
+.info-box {
     background-color: #fff;
     border-radius: 15px;
     padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    border: 1px solid transparent;
+}
+
+.info-box-tag{
+    background-color: #fff;
+    border-radius: 15px;
+    padding: 15px;
+    display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.info-box-tag{
-    display: flex;
+.info-box--interactive {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.info-box--interactive:hover,
+.info-box--interactive:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+    border: 1px solid rgba(37, 99, 235, 0.25);
+}
+
+.info-box--interactive:focus {
+    outline: none;
+}
+
+.info-action-hint {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #2563eb;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: none;
+}
+
+.info-action-hint::after {
+    content: '\2192';
+    font-size: 0.9rem;
 }
 
 .price-input{

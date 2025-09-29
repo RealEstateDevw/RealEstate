@@ -227,7 +227,7 @@ line-height: normal;
 
 /* Стили для карточек без доступа */
 .card.no-access-card {
-    opacity: 0.8;
+
     border-left: 4px solid #e5e7eb;
 }
 
@@ -346,6 +346,245 @@ line-height: normal;
     display: none;             /* Chrome, Safari, Opera */
 }
 
+/* Стили для зоны удаления */
+.delete-zone {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    animation: slideUp 0.3s ease-out;
+}
+
+.delete-button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(25px);
+    color: #dc2626;
+    padding: 16px 32px;
+    border-radius: 1.875rem;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(220, 38, 38, 0.15);
+    transition: all 0.3s ease;
+    border: 2px solid rgba(220, 38, 38, 0.2);
+    font-family: "Vela Sans GX", sans-serif;
+}
+
+.delete-button:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(220, 38, 38, 0.25);
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+/* Эффект при наведении перетаскиваемого элемента на кнопку удаления */
+.delete-zone.drag-over-delete .delete-button {
+    background: rgba(220, 38, 38, 0.1);
+    border-color: #dc2626;
+    color: #dc2626;
+    transform: scale(1.05);
+    box-shadow: 0 12px 40px rgba(220, 38, 38, 0.3);
+    animation: deletePulse 0.6s infinite;
+}
+
+@keyframes deletePulse {
+    0% { 
+        transform: scale(1.05);
+        box-shadow: 0 12px 40px rgba(220, 38, 38, 0.3);
+    }
+    50% { 
+        transform: scale(1.08);
+        box-shadow: 0 16px 50px rgba(220, 38, 38, 0.4);
+    }
+    100% { 
+        transform: scale(1.05);
+        box-shadow: 0 12px 40px rgba(220, 38, 38, 0.3);
+    }
+}
+
+.delete-button i {
+    font-size: 18px;
+    color: #dc2626;
+}
+
+/* Анимация появления кнопки */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Стили для модального окна */
+.delete-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.delete-modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(25px);
+    border-radius: 1.875rem;
+    padding: 0;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.3s ease-out;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.delete-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    border-bottom: 1px solid rgba(220, 38, 38, 0.1);
+    background: rgba(220, 38, 38, 0.05);
+    border-radius: 1.875rem 1.875rem 0 0;
+}
+
+.delete-modal-header h3 {
+    margin: 0;
+    color: #dc2626;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: "Vela Sans GX", sans-serif;
+}
+
+.close-modal {
+    background: rgba(220, 38, 38, 0.1);
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #dc2626;
+    padding: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    font-weight: bold;
+}
+
+.close-modal:hover {
+    background: rgba(220, 38, 38, 0.2);
+    transform: scale(1.1);
+}
+
+.delete-modal-body {
+    padding: 30px;
+}
+
+.delete-modal-body p {
+    margin: 0 0 20px 0;
+    color: #374151;
+    font-size: 16px;
+    font-family: "Vela Sans GX", sans-serif;
+    line-height: 1.5;
+}
+
+.lead-name {
+    font-weight: 700;
+    color: #1f2937;
+    background: rgba(220, 38, 38, 0.05);
+    padding: 15px;
+    border-radius: 1rem;
+    margin: 15px 0;
+    border: 1px solid rgba(220, 38, 38, 0.1);
+    font-family: "Vela Sans GX", sans-serif;
+}
+
+.warning-text {
+    color: #dc2626;
+    font-weight: 600;
+    font-size: 14px;
+    font-family: "Vela Sans GX", sans-serif;
+}
+
+.delete-modal-footer {
+    display: flex;
+    gap: 20px;
+    padding: 25px 30px;
+    border-top: 1px solid rgba(220, 38, 38, 0.1);
+    background: rgba(220, 38, 38, 0.02);
+    border-radius: 0 0 1.875rem 1.875rem;
+}
+
+.btn-cancel, .btn-delete {
+    flex: 1;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 1rem;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: "Vela Sans GX", sans-serif;
+}
+
+.btn-cancel {
+    background: rgba(245, 245, 245, 0.9);
+    color: #6b7280;
+    border: 2px solid rgba(229, 231, 235, 0.5);
+}
+
+.btn-cancel:hover {
+    background: rgba(229, 231, 235, 0.9);
+    border-color: rgba(156, 163, 175, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.btn-delete {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border: 2px solid rgba(220, 38, 38, 0.3);
+}
+
+.btn-delete:hover {
+    background: rgba(220, 38, 38, 0.15);
+    border-color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(220, 38, 38, 0.2);
+}
+
+/* Анимации для модального окна */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 /* Responsive layout: two columns on tablets, single column on phones */
 @media (max-width: 1024px) {
     .columns {
@@ -360,5 +599,39 @@ line-height: normal;
     .column {
         max-height: none;      /* Allow full vertical scrolling on mobile */
         margin-bottom: 1rem;   /* Space between stacked columns */
+    }
+    
+    .delete-button {
+        padding: 14px 28px;
+        font-size: 15px;
+        gap: 10px;
+    }
+    
+    .delete-modal-content {
+        width: 95%;
+        margin: 20px;
+        max-width: none;
+    }
+    
+    .delete-modal-header {
+        padding: 20px 25px;
+    }
+    
+    .delete-modal-header h3 {
+        font-size: 18px;
+    }
+    
+    .delete-modal-body {
+        padding: 25px;
+    }
+    
+    .delete-modal-footer {
+        padding: 20px 25px;
+        gap: 15px;
+    }
+    
+    .btn-cancel, .btn-delete {
+        padding: 12px 20px;
+        font-size: 15px;
     }
 }

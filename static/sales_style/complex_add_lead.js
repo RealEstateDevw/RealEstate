@@ -315,7 +315,74 @@ function showPaymentOptions(info) {
   });
   buttonsContainer.appendChild(installmentBtn);
 
-  // 3) Контрольные кнопки «Назад» и «Выбрать»
+  // 3) Кнопка Гибридная рассрочка
+  const hybridBtn = document.createElement('button');
+  hybridBtn.textContent = 'Гибридная';
+  hybridBtn.className = 'payment-option-btn';
+  hybridBtn.addEventListener('click', () => {
+    resultContainer.innerHTML = '';
+    const existingInstallments = buttonsContainer.querySelector('.installment-options');
+    if (existingInstallments) existingInstallments.remove();
+
+    const hybridOptions = document.createElement('div');
+    hybridOptions.className = 'hybrid-options';
+    hybridOptions.style.display = 'flex';
+    hybridOptions.style.gap = '5px';
+    hybridOptions.style.marginBottom = '10px';
+
+    const sizeNum = parseFloat(String(userSelection.apartmentSize).replace(',', '.')) || 0;
+
+    [30, 20].forEach(initialPct => {
+      const hybridPctBtn = document.createElement('button');
+      hybridPctBtn.textContent = `${initialPct}%`;
+      hybridPctBtn.className = 'hybrid-percent-btn';
+      hybridPctBtn.addEventListener('click', () => {
+        const totalPrice = pricePerM2_30 * sizeNum;
+        const initialPayment = totalPrice * (initialPct / 100);
+        const lastPaymentPercent = 30;
+        const lastPayment = totalPrice * (lastPaymentPercent / 100);
+        const months = months_left > 0 ? months_left : 1;
+        const middleMonths = months > 1 ? months - 1 : 1;
+        const middleTotal = totalPrice - initialPayment - lastPayment;
+        const monthlyPayment = middleMonths > 0 ? middleTotal / middleMonths : 0;
+
+        userSelection.paymentType = 'hybrid';
+        userSelection.pricePerM2 = pricePerM2_30;
+        userSelection.totalPrice = totalPrice;
+        userSelection.initialPayment = initialPayment;
+        userSelection.monthlyPayment = Math.round(monthlyPayment);
+        userSelection.hybridLastPayment = Math.round(lastPayment);
+        userSelection.termMonths = months;
+        userSelection.percent = `Гибридная ${initialPct}% + ${lastPaymentPercent}%`;
+        userSelection.paymentChoice = `hybrid-${initialPct}`;
+
+        const monthlyLabel = middleMonths > 0
+          ? `<p>Ежемесячно (первые ${middleMonths} мес.): ${Math.round(monthlyPayment).toLocaleString('ru-RU')} сум</p>`
+          : '<p>Ежемесячная оплата не требуется.</p>';
+
+        resultContainer.innerHTML = `
+          <p><strong>Гибридная рассрочка (${initialPct}% + ${lastPaymentPercent}%):</strong></p>
+          <p>Стоимость: ${Math.round(totalPrice).toLocaleString('ru-RU')} сум</p>
+          <p>Первоначальный взнос (${initialPct}%): ${Math.round(initialPayment).toLocaleString('ru-RU')} сум</p>
+          ${monthlyLabel}
+          <p>Последний платёж (${months}-й месяц, ${lastPaymentPercent}%): ${Math.round(lastPayment).toLocaleString('ru-RU')} сум</p>
+        `;
+
+        document.querySelectorAll('.hybrid-percent-btn').forEach(btn => btn.classList.remove('active'));
+        hybridPctBtn.classList.add('active');
+      });
+
+      hybridOptions.appendChild(hybridPctBtn);
+    });
+
+    resultContainer.appendChild(hybridOptions);
+    document.querySelectorAll('.payment-option-btn').forEach(b => b.classList.remove('active'));
+    hybridBtn.classList.add('active');
+  });
+
+  buttonsContainer.appendChild(hybridBtn);
+
+  // 4) Контрольные кнопки «Назад» и «Выбрать»
   const control = document.createElement('div');
   control.className = 'control-buttons';
   const backBtn = document.createElement('button');
@@ -362,6 +429,8 @@ function fillForm() {
     if (userSelection.paymentType === 'full' && text.includes('единовременно')) {
       btn.classList.add('active');
     } else if (userSelection.paymentType === 'installment' && text.includes('рассрочка')) {
+      btn.classList.add('active');
+    } else if (userSelection.paymentType === 'hybrid' && text.includes('гибридная')) {
       btn.classList.add('active');
     } else {
       btn.classList.remove('active');

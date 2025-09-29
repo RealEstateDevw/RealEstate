@@ -3,10 +3,12 @@ let currentShax = [];
 let currentJkName = '';
 let currentBlock = '';
 let userSelection = {};
+const allowedHybridProjects = ['ЖК_Рассвет', 'ЖК_Бахор'];
 
 
   // 1) Открыть модалку и загрузить список ЖК
   async function openAttachModal() {
+    userSelection = {};
     document.getElementById('attachModal').style.display = 'flex';
 
     // Сбросим предыдущие шаги
@@ -209,6 +211,26 @@ async function fetchAndShowPaymentOptions(r) {
  *   info.pricePerM2_100, info.pricePerM2_70, info.pricePerM2_50, info.pricePerM2_30,
  *   info.total_price, info.months_left
  */
+function initializeUserSelection(info) {
+  userSelection = {
+    jkName: currentJkName,
+    block: currentBlock,
+    floor: info.floor,
+    number: info.apartment_number,
+    apartmentSize: info.size,
+    roomsCount: info.roomsCount,
+    paymentType: null,
+    pricePerM2: null,
+    totalPrice: null,
+    percent: null,
+    initialPayment: null,
+    monthlyPayment: null,
+    hybridLastPayment: null,
+    termMonths: info.months_left || null,
+    currency: 'UZS'
+  };
+}
+
 function showPaymentOptions(info) {
   const container = document.getElementById('attach-apartments');
   container.innerHTML = '';
@@ -221,12 +243,7 @@ function showPaymentOptions(info) {
   const months_left = info.months_left;
 
   // Сохраняем базовые данные выбора
-  userSelection.jkName = currentJkName;
-  userSelection.block = currentBlock;
-  userSelection.floor = info.floor;
-  userSelection.number = info.apartment_number;
-  userSelection.apartmentSize = info.size;
-  userSelection.roomsCount = info.roomsCount;
+  initializeUserSelection(info);
 
   // Контейнеры для кнопок и результата
   const buttonsContainer = document.createElement('div');
@@ -243,6 +260,8 @@ function showPaymentOptions(info) {
     // Remove any existing installment options
     const existingPerc = buttonsContainer.querySelector('.installment-options');
     if (existingPerc) existingPerc.remove();
+    const existingHybrid = resultContainer.querySelector('.hybrid-options');
+    if (existingHybrid) existingHybrid.remove();
 
     // вычисляем стоимость при полной оплате
     const sizeNum = parseFloat(String(userSelection.apartmentSize).replace(',', '.')) || 0;
@@ -252,8 +271,11 @@ function showPaymentOptions(info) {
     userSelection.totalPrice = fullPrice;
     userSelection.pricePerM2 = pricePerM2_100;
     userSelection.percent = "100"
-    // updateInitialPayment(fullPrice); // Removed as per instructions
+    userSelection.initialPayment = fullPrice;
+    userSelection.monthlyPayment = 0;
     userSelection.termMonths = 0;
+    userSelection.hybridLastPayment = 0;
+    userSelection.paymentChoice = 100;
     resultContainer.innerHTML = `
       <p><strong>Стоимость (100%):</strong> ${fullPrice.toLocaleString('ru-RU')} сум</p>
       ${economy > 0 ? `<p><strong>Экономия:</strong> ${economy.toLocaleString('ru-RU')} сум</p>` : ''}
@@ -269,6 +291,10 @@ function showPaymentOptions(info) {
   installmentBtn.className = 'payment-option-btn';
   installmentBtn.addEventListener('click', () => {
     resultContainer.innerHTML = ''; // очищаем предыдущее
+    const existingPerc = buttonsContainer.querySelector('.installment-options');
+    if (existingPerc) existingPerc.remove();
+    const existingHybrid = resultContainer.querySelector('.hybrid-options');
+    if (existingHybrid) existingHybrid.remove();
     const percContainer = document.createElement('div');
     percContainer.className = 'installment-options';
     percContainer.style.display = 'flex';
@@ -297,7 +323,10 @@ function showPaymentOptions(info) {
         userSelection.pricePerM2 = priceM2;
         userSelection.totalPrice = totalR;
         userSelection.initialPayment = initial;
-        userSelection.termMonths = months_left;
+        userSelection.termMonths = months_left || months;
+        userSelection.monthlyPayment = Math.round(monthly);
+        userSelection.hybridLastPayment = null;
+        userSelection.paymentChoice = percent;
         resultContainer.innerHTML = `
           <p><strong>Рассрочка (${percent}%):</strong></p>
           <p>Стоимость: ${totalR.toLocaleString('ru-RU')} сум</p>
@@ -316,6 +345,75 @@ function showPaymentOptions(info) {
     installmentBtn.classList.add('active');
   });
   buttonsContainer.appendChild(installmentBtn);
+
+  // Показываем гибридную рассрочку для всех проектов
+  // if (allowedHybridProjects.includes(currentJkName)) {
+    const hybridButton = document.createElement('button');
+    hybridButton.textContent = 'Гибридная';
+    hybridButton.className = 'payment-option-btn';
+    hybridButton.addEventListener('click', () => {
+      resultContainer.innerHTML = '';
+      const existingInstallments = buttonsContainer.querySelector('.installment-options');
+      if (existingInstallments) existingInstallments.remove();
+
+      const hybridOptions = document.createElement('div');
+      hybridOptions.className = 'hybrid-options';
+      hybridOptions.style.display = 'flex';
+      hybridOptions.style.gap = '5px';
+      hybridOptions.style.marginBottom = '10px';
+
+      const sizeNum = parseFloat(String(userSelection.apartmentSize).replace(',', '.')) || 0;
+
+      [30, 20].forEach(initialPct => {
+        const hybridPctBtn = document.createElement('button');
+        hybridPctBtn.textContent = `${initialPct}%`;
+        hybridPctBtn.className = 'hybrid-percent-btn';
+        hybridPctBtn.addEventListener('click', () => {
+          const totalPrice = pricePerM2_30 * sizeNum;
+          const initialPayment = totalPrice * (initialPct / 100);
+          const lastPaymentPercent = 30;
+          const lastPayment = totalPrice * (lastPaymentPercent / 100);
+          const months = months_left > 0 ? months_left : 1;
+          const middleMonths = months > 1 ? months - 1 : 1;
+          const middleTotal = totalPrice - initialPayment - lastPayment;
+          const monthlyPayment = middleMonths > 0 ? middleTotal / middleMonths : 0;
+
+          userSelection.paymentType = 'hybrid';
+          userSelection.pricePerM2 = pricePerM2_30;
+          userSelection.totalPrice = totalPrice;
+          userSelection.initialPayment = initialPayment;
+          userSelection.monthlyPayment = Math.round(monthlyPayment);
+          userSelection.hybridLastPayment = Math.round(lastPayment);
+          userSelection.termMonths = months;
+          userSelection.percent = `Гибридная ${initialPct}% + ${lastPaymentPercent}%`;
+          userSelection.paymentChoice = `hybrid-${initialPct}`;
+
+          const monthlyLabel = middleMonths > 0
+            ? `<p>Ежемесячно (первые ${middleMonths} мес.): ${Math.round(monthlyPayment).toLocaleString('ru-RU')} сум</p>`
+            : '<p>Ежемесячная оплата не требуется.</p>';
+
+          resultContainer.innerHTML = `
+            <p><strong>Гибридная рассрочка (${initialPct}% + ${lastPaymentPercent}%):</strong></p>
+            <p>Стоимость: ${Math.round(totalPrice).toLocaleString('ru-RU')} сум</p>
+            <p>Первоначальный взнос (${initialPct}%): ${Math.round(initialPayment).toLocaleString('ru-RU')} сум</p>
+            ${monthlyLabel}
+            <p>Последний платёж (${months}-й месяц, ${lastPaymentPercent}%): ${Math.round(lastPayment).toLocaleString('ru-RU')} сум</p>
+          `;
+
+          document.querySelectorAll('.hybrid-percent-btn').forEach(btn => btn.classList.remove('active'));
+          hybridPctBtn.classList.add('active');
+        });
+
+        hybridOptions.appendChild(hybridPctBtn);
+      });
+
+      resultContainer.appendChild(hybridOptions);
+      document.querySelectorAll('.payment-option-btn').forEach(b => b.classList.remove('active'));
+      hybridButton.classList.add('active');
+    });
+
+    buttonsContainer.appendChild(hybridButton);
+  // }
 
   // 3) Контрольные кнопки «Назад» и «Выбрать»
   const control = document.createElement('div');
@@ -347,26 +445,74 @@ function showPaymentOptions(info) {
 
   // 5) Отправить запрос на привязку к лиду
   async function attachApartment() {
+    if (!userSelection.paymentType) {
+      alert('Пожалуйста, выберите способ оплаты перед закреплением квартиры.');
+      return;
+    }
     const leadId = document.getElementById('attach-lead-id').value;
-    const monthly_payment = (userSelection.totalPrice-userSelection.initialPayment)/23;
+    const squareMeters = parseFloat(String(userSelection.apartmentSize).replace(',', '.')) || null;
+    const roomsCount = userSelection.roomsCount || null;
+    const totalPrice = typeof userSelection.totalPrice === 'number' ? Math.round(userSelection.totalPrice) : null;
+    const pricePerM2 = typeof userSelection.pricePerM2 === 'number' ? Math.round(userSelection.pricePerM2) : null;
+    const downPayment = typeof userSelection.initialPayment === 'number' ? Math.round(userSelection.initialPayment) : null;
+
+    if (!totalPrice || !pricePerM2) {
+      alert('Не удалось определить стоимость квартиры. Повторите выбор квартиры.');
+      return;
+    }
+
+    let paymentTypeLabel = 'Единовременно';
+    let monthlyPaymentValue = null;
+    let installmentPeriodValue = null;
+
+    if (userSelection.paymentType === 'installment') {
+      if (downPayment === null) {
+        alert('Пожалуйста, выберите процент рассрочки.');
+        return;
+      }
+      paymentTypeLabel = 'Рассрочка';
+      installmentPeriodValue = userSelection.termMonths || null;
+      monthlyPaymentValue = typeof userSelection.monthlyPayment === 'number'
+        ? Math.round(userSelection.monthlyPayment)
+        : null;
+      if (monthlyPaymentValue === null) {
+        alert('Пожалуйста, выберите процент рассрочки.');
+        return;
+      }
+    } else if (userSelection.paymentType === 'hybrid') {
+      if (downPayment === null || typeof userSelection.hybridLastPayment !== 'number') {
+        alert('Пожалуйста, выберите параметры гибридной рассрочки.');
+        return;
+      }
+      paymentTypeLabel = 'Гибридная рассрочка';
+      installmentPeriodValue = userSelection.termMonths || null;
+      monthlyPaymentValue = typeof userSelection.monthlyPayment === 'number'
+        ? Math.round(userSelection.monthlyPayment)
+        : null;
+      if (monthlyPaymentValue === null) {
+        alert('Пожалуйста, выберите параметры гибридной рассрочки.');
+        return;
+      }
+    }
+
     try {
       const res = await fetch(`/api/leads/${leadId}/attach-apartment`, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
-            square_meters: userSelection.apartmentSize,
-            rooms: userSelection.roomsCount,
+            square_meters: squareMeters ?? userSelection.apartmentSize,
+            rooms: roomsCount ?? userSelection.roomsCount,
             floor: userSelection.floor,
-            total_price: userSelection.totalPrice,
+            total_price: totalPrice,
             currency: userSelection.currency || 'UZS',
-            payment_type: userSelection.paymentType === 'full' ? 'Единовременно' : 'Рассрочка',
-            monthly_payment,
-            installment_period: userSelection.termMonths || null,
+            payment_type: paymentTypeLabel,
+            monthly_payment: monthlyPaymentValue,
+            installment_period: installmentPeriodValue,
             complex_name: currentJkName,
             number_apartments: userSelection.number,
             block: currentBlock,
-            down_payment: userSelection.initialPayment,
-            square_meters_price:userSelection.pricePerM2 || null,
+            down_payment: downPayment,
+            square_meters_price: pricePerM2,
             down_payment_percent: userSelection.percent
           })
       });

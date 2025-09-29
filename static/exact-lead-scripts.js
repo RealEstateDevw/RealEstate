@@ -41,32 +41,34 @@ function displayResults(results) {
 
 document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.getElementById('searchInput');
-const searchResults = document.getElementById('searchResults');
+    const searchResults = document.getElementById('searchResults');
 
-console.log('Элемент найден:', searchInput); 
-// Обработчик ввода текста
-searchInput.addEventListener('input', async () => {
-    const query = searchInput.value.trim();
-
-    if (query === '') {
-        searchResults.style.display = 'none';
+    if (!searchInput || !searchResults) {
         return;
     }
 
-    try {
-        const response = await fetch(`${API_URL}/search?query=${encodeURIComponent(query)}`);
-        if (!response.ok) {
-            throw new Error('Ошибка при получении данных');
+    searchInput.addEventListener('input', async () => {
+        const query = searchInput.value.trim();
+
+        if (query === '') {
+            searchResults.style.display = 'none';
+            return;
         }
 
-        const results = await response.json();
-        displayResults(results);
-    } catch (error) {
-        console.error('Ошибка при поиске:', error);
-        searchResults.innerHTML = '<div class="no-results">Произошла ошибка при загрузке данных</div>';
-        searchResults.style.display = 'block';
-    }
-});
+        try {
+            const response = await fetch(`${API_URL}/search?query=${encodeURIComponent(query)}`);
+            if (!response.ok) {
+                throw new Error('Ошибка при получении данных');
+            }
+
+            const results = await response.json();
+            displayResults(results);
+        } catch (error) {
+            console.error('Ошибка при поиске:', error);
+            searchResults.innerHTML = '<div class="no-results">Произошла ошибка при загрузке данных</div>';
+            searchResults.style.display = 'block';
+        }
+    });
 });
 
 
@@ -133,6 +135,25 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (text) {
                 addComment(text, isInternal);
+            }
+        });
+    }
+
+    const attachTrigger = document.getElementById('lead-attach-trigger');
+    if (attachTrigger) {
+        const openAttach = () => {
+            if (typeof window.openAttachModal === 'function') {
+                window.openAttachModal();
+            } else if (typeof openAttachModal === 'function') {
+                openAttachModal();
+            }
+        };
+
+        attachTrigger.addEventListener('click', openAttach);
+        attachTrigger.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openAttach();
             }
         });
     }
@@ -229,5 +250,4 @@ if (fixClientButton) {
 
 // Initial load
 fetchComments();
-
 

@@ -11,7 +11,6 @@ from jose import JWTError
 from sqlalchemy.orm import Session
 from starlette import status
 from starlette.responses import RedirectResponse
-from starlette.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend import init_roles
@@ -35,10 +34,11 @@ from backend.core.exceptions import (
     general_exception_handler
 )
 from backend.core.middleware import (
-    LoggingMiddleware, 
-    SecurityHeadersMiddleware, 
+    LoggingMiddleware,
+    SecurityHeadersMiddleware,
     DatabaseConnectionMiddleware
 )
+from backend.core.static import CachedStaticFiles
 from backend.core.rate_limiter import RateLimitMiddleware
 from backend.core.logging_config import setup_logging
 from backend.database.userservice import get_user_by_login, get_all_users
@@ -95,8 +95,16 @@ app.include_router(draw_users_router)
 # app.include_router(excel_router)
 app.include_router(test_excel)
 
-app.mount("/media", StaticFiles(directory="media"), name="media")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount(
+    "/media",
+    CachedStaticFiles(directory="media", cache_control="public, max-age=604800"),
+    name="media"
+)
+app.mount(
+    "/static",
+    CachedStaticFiles(directory="static", cache_control="public, max-age=31536000, immutable"),
+    name="static"
+)
 
 app.add_middleware(
     CORSMiddleware,

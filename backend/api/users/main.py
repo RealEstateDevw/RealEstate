@@ -13,7 +13,7 @@ from backend.database.models import User, TelegramAccount, TelegramRole
 from backend.database.sales_service.crud import SalesLeadsService
 from backend.database.userservice import add_user, get_user_by_login, add_role, get_user_by_id, get_all_users, \
     update_user, get_by_role_employees, get_all_roles, delete_user
-from backend.api.users.schemas import UserCreate, UserRead, Token, UserUpdate
+from backend.api.users.schemas import UserCreate, UserRead, Token, UserUpdate, PasswordChange
 from backend.core.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password, get_password_hash
 
 user_router = APIRouter(prefix="/api/users")
@@ -107,10 +107,72 @@ async def get_roles():
     return roles
 
 
+@user_router.post("/change-password")
+async def change_password(
+    password_data: PasswordChange,
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Эндпоинт для смены пароля пользователем.
+    Требует текущий пароль для подтверждения.
+    """
+    # Проверяем текущий пароль
+    if not verify_password(password_data.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Неверный текущий пароль"
+        )
+    
+    # Проверяем длину нового пароля
+    if len(password_data.new_password) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Новый пароль должен содержать минимум 6 символов"
+        )
+    
+    # Хешируем новый пароль
+    hashed_password = get_password_hash(password_data.new_password)
+    
+    # Обновляем пароль в базе данных
+    user_update = UserUpdate(password=hashed_password)
+    updated_user = update_user(current_user.id, user_update)
+    
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при обновлении пароля"
+        )
+    
+    return {"message": "Пароль успешно изменен"}
+
+
 @user_router.delete("/delete_user")
 async def delete_user_api(user_id: int):
     user = delete_user(user_id)
     return user
+
+
+@user_router.post("/reset_password")
+async def reset_password_api(user_id: int):
+    """
+    Эндпоинт для сброса пароля пользователя администратором.
+    Генерирует временный пароль.
+    """
+    import secrets
+    import string
+    
+    # Генерируем временный пароль
+    temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
+    hashed_password = get_password_hash(temp_password)
+    
+    # Обновляем пароль в базе данных
+    from backend.database.userservice import update_user
+    from backend.api.users.schemas import UserUpdate
+    
+    user_update = UserUpdate(password=hashed_password)
+    updated_user = update_user(user_id, user_update)
+    
+    return {"message": "Пароль успешно сброшен", "temporary_password": temp_password}
 
 
 @user_router.post("/reset_password")
