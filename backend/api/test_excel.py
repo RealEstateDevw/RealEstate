@@ -401,12 +401,12 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     contract_date = parse_date(data.contractDate)  # Предполагаем, что parse_date возвращает datetime объект
     print(data.contractDate)
     if data.jkName == "ЖК_Бахор":
-        start_date = datetime(2025, 7, 1)
-        end_date = start_date + relativedelta(months=22)
+        start_date = datetime(2025, 10, 1)
+        end_date = start_date + relativedelta(months=24)
 
     else:
-        start_date = datetime(2025, 8, 1)
-        end_date = start_date + relativedelta(months=23)
+        start_date = datetime(2025, 10, 1)
+        end_date = start_date + relativedelta(months=21)
 
     # Текущая дата (сегодня)
     today = datetime.today()

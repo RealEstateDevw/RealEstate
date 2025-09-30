@@ -14,9 +14,14 @@
 
     <style>
         body {
-            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            background: #ffffff;
             transition: background 0.5s ease;
         }
+        {% if user and user.background_theme %}
+        body {
+            background: url('{{ user.background_theme }}') lightgray 50% / cover no-repeat;
+        }
+        {% endif %}
     </style>
 </head>
 <body>
@@ -54,12 +59,14 @@
         <div class="info-grid">
             <div class="info-item">
                 <label class="info-label">Дата рождения</label>
-                <input type="datetime" class="info-input" placeholder="ДД.ММ.ГГГГ" onkeydown="this.style.width = ((this.value.length + 1) * 8) + 'px';" type="date" id="birthDate" required>
-                <svg xmlns="http://www.w3.org/2000/svg" onclick="openFlatpickr()" width="24" height="25" viewBox="0 0 24 25" fill="none">
-                    <path d="M6.96006 2.5C7.37758 2.5 7.71605 2.80996 7.71605 3.19231V4.58883C8.38663 4.57692 9.13829 4.57692 9.98402 4.57692H14.016C14.8617 4.57692 15.6134 4.57692 16.284 4.58883V3.19231C16.284 2.80996 16.6224 2.5 17.0399 2.5C17.4575 2.5 17.7959 2.80996 17.7959 3.19231V4.65008C19.2468 4.75647 20.1992 5.01758 20.899 5.65838C21.5987 6.29917 21.8838 7.17139 22 8.5V9.5H2V8.5C2.11618 7.17139 2.4013 6.29917 3.10104 5.65838C3.80079 5.01758 4.75323 4.75647 6.20406 4.65008V3.19231C6.20406 2.80996 6.54253 2.5 6.96006 2.5Z" fill="#216BF4"/>
-                    <path opacity="0.5" d="M21.9999 14.5V12.5C21.9999 11.661 21.9872 10.1653 21.9743 9.5H2.00579C1.99289 10.1653 2.00557 11.661 2.00557 12.5V14.5C2.00557 18.2712 2.00557 20.1569 3.17681 21.3284C4.34806 22.5 6.23314 22.5 10.0033 22.5H14.0022C17.7723 22.5 19.6574 22.5 20.8287 21.3284C21.9999 20.1569 21.9999 18.2712 21.9999 14.5Z" fill="#216BF4"/>
-                    <path d="M18 17C18 17.8284 17.3284 18.5 16.5 18.5C15.6716 18.5 15 17.8284 15 17C15 16.1716 15.6716 15.5 16.5 15.5C17.3284 15.5 18 16.1716 18 17Z" fill="#216BF4"/>
-                  </svg>
+                <div class="input-with-icon">
+                    <input type="datetime" class="info-input" placeholder="ДД.ММ.ГГГГ" onkeydown="this.style.width = ((this.value.length + 1) * 8) + 'px';" type="date" id="birthDate" required>
+                    <svg xmlns="http://www.w3.org/2000/svg" onclick="openFlatpickr()" width="24" height="25" viewBox="0 0 24 25" fill="none" class="calendar-icon">
+                        <path d="M6.96006 2.5C7.37758 2.5 7.71605 2.80996 7.71605 3.19231V4.58883C8.38663 4.57692 9.13829 4.57692 9.98402 4.57692H14.016C14.8617 4.57692 15.6134 4.57692 16.284 4.58883V3.19231C16.284 2.80996 16.6224 2.5 17.0399 2.5C17.4575 2.5 17.7959 2.80996 17.7959 3.19231V4.65008C19.2468 4.75647 20.1992 5.01758 20.899 5.65838C21.5987 6.29917 21.8838 7.17139 22 8.5V9.5H2V8.5C2.11618 7.17139 2.4013 6.29917 3.10104 5.65838C3.80079 5.01758 4.75323 4.75647 6.20406 4.65008V3.19231C6.20406 2.80996 6.54253 2.5 6.96006 2.5Z" fill="#216BF4"/>
+                        <path opacity="0.5" d="M21.9999 14.5V12.5C21.9999 11.661 21.9872 10.1653 21.9743 9.5H2.00579C1.99289 10.1653 2.00557 11.661 2.00557 12.5V14.5C2.00557 18.2712 2.00557 20.1569 3.17681 21.3284C4.34806 22.5 6.23314 22.5 10.0033 22.5H14.0022C17.7723 22.5 19.6574 22.5 20.8287 21.3284C21.9999 20.1569 21.9999 18.2712 21.9999 14.5Z" fill="#216BF4"/>
+                        <path d="M18 17C18 17.8284 17.3284 18.5 16.5 18.5C15.6716 18.5 15 17.8284 15 17C15 16.1716 15.6716 15.5 16.5 15.5C17.3284 15.5 18 16.1716 18 17Z" fill="#216BF4"/>
+                    </svg>
+                </div>
             </div>
             <div class="info-item">
                 <label class="info-label">Логин</label>

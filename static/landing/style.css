@@ -1329,6 +1329,20 @@ backdrop-filter: blur(50px); /* Серо-голубой полупрозрачн
     background: #f8fafc;
 }
 
+.apartment-card__placeholder {
+    width: 100%;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    color: #64748b;
+    font-size: 16px;
+    font-weight: 500;
+}
+
 /* Детали квартиры */
 .apartment-card__details {
     padding: 0 20px 20px;

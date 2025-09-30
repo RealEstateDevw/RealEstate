@@ -54,10 +54,12 @@ def add_user(user_data: UserCreate) -> User:
         except IntegrityError as e:
             logger.error(f"Ошибка целостности данных при добавлении пользователя: {str(e)}")
             db.rollback()
+            raise e
 
         except Exception as e:
             logger.error(f"Произошла ошибка при добавлении пользователя: {str(e)}")
             db.rollback()
+            raise e
 
 
 def get_user_by_id(user_id: int) -> User:

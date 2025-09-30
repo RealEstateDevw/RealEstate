@@ -53,6 +53,7 @@ from backend.api.rop.main import router as rop_api_router
 from backend.crm.shaxmatki.main import router as shaxmatki_router
 from backend.api.complexes.main import router as shaxmatki_api_router
 from backend.api.draws.main import router as draw_users_router
+from backend.api.payment_options.main import router as payment_options_router
 # from backend.api.excel_utils import router as excel_router
 from backend.api.test_excel import router as test_excel
 
@@ -92,6 +93,7 @@ app.include_router(rop_api_router)
 app.include_router(shaxmatki_router)
 app.include_router(shaxmatki_api_router)
 app.include_router(draw_users_router)
+app.include_router(payment_options_router)
 # app.include_router(excel_router)
 app.include_router(test_excel)
 
@@ -259,7 +261,7 @@ async def auth_middleware(request: Request, call_next):
     public_paths_startswith = {"/static", "/docs",
                                "/openapi.json", "/complexes", "/api/complexes",
                                "/excel", "/shaxmatki", "/api/shaxmatki",
-                               "/webhook"}  # Добавь сюда /docs и /openapi.json, если используешь Swagger/OpenAPI UI
+                               "/webhook", "/api/payment-options"}  # Добавь сюда /docs и /openapi.json, если используешь Swagger/OpenAPI UI
 
     is_public = False
     if path in public_paths_exact:

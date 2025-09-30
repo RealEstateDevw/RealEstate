@@ -429,32 +429,48 @@ ul#dropdownList {
 
 .info-item {
     display: flex;
-
-    gap: 10px;
-
-
-
+    gap: 15px;
     border-radius: 55px;
     background: #FFF;
-
     align-items: center;
     flex-shrink: 0;
-    justify-content: space-between;
+    justify-content: flex-start;
     padding: 17px 20px;
 }
 
 .info-label {
     color: #666;
+    font-weight: 500;
+    min-width: 80px;
+    flex-shrink: 0;
 }
 
 .info-input {
     background: transparent;
     border: none;
-    padding: 15px;
+    padding: 8px 12px;
     border-radius: 12px;
     font-size: 16px;
+    flex: 1;
     min-width: 100px;
     text-align: right;
+}
+
+.input-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.calendar-icon {
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.calendar-icon:hover {
+    transform: scale(1.1);
 }
 
 .section-title {

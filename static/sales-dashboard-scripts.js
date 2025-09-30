@@ -53,6 +53,15 @@ async function loadLeads() {
                 console.error(`Ошибка при обновлении колонки ${status}:`, error);
             }
         });
+        
+        // Если нет лидов вообще, показываем сообщение во всех колонках
+        if (leads.length === 0) {
+            const statuses = ['COLD', 'WARM', 'HOT'];
+            statuses.forEach(status => {
+                updateColumn(status, []);
+            });
+        }
+        
         console.log("Все колонки обновлены");
 
     } catch (error) {
@@ -90,6 +99,20 @@ function updateColumn(status, leads) {
 
     // Обновляем счётчик лидов
     leadCount.textContent = `${leads.length} ${getLeadWord(leads.length)}`;
+    
+    // Если лидов нет, показываем сообщение "Лидов нету"
+    if (leads.length === 0) {
+        const noLeadsMessage = document.createElement("div");
+        noLeadsMessage.classList.add("no-leads-message");
+        noLeadsMessage.innerHTML = `
+            <div style="text-align: center; padding: 20px; color: #666; font-style: italic;">
+                <i class="fas fa-inbox" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                Лидов нету
+            </div>
+        `;
+        column.appendChild(noLeadsMessage);
+        return;
+    }
     // leads.sort((a, b) => {
     //     // Приоритет 1: Карточки с истекшим лимитом созвона (24 часа)
     //     const aCallLimitExpired = isCallLimitExpired(a);

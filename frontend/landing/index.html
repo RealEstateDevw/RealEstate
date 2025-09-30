@@ -942,6 +942,111 @@
     </div>
 
     <script>
+        // Глобальная переменная для хранения данных о способах оплаты
+        let paymentOptionsData = null;
+
+        // Функция для загрузки данных о способах оплаты для конкретного ЖК
+        async function loadPaymentOptionsForComplex(jkName, floor = '5') {
+            try {
+                const response = await fetch(`/api/payment-options/${encodeURIComponent(jkName)}?floor=${encodeURIComponent(floor)}`);
+                if (!response.ok) throw new Error('Ошибка загрузки способов оплаты');
+                const data = await response.json();
+                // API одного комплекса возвращает объект без ключа комплекса
+                paymentOptionsData = paymentOptionsData || {};
+                paymentOptionsData[jkName] = data;
+                return data;
+            } catch (error) {
+                console.error('Ошибка при загрузке способов оплаты ЖК', jkName, error);
+                // Фоллбек на дефолтные
+                const defaults = getDefaultPaymentOptions();
+                paymentOptionsData = paymentOptionsData || {};
+                paymentOptionsData[jkName] = defaults[jkName] || null;
+                return paymentOptionsData[jkName];
+            }
+        }
+
+        // Функция для получения данных о способах оплаты по умолчанию
+        function getDefaultPaymentOptions() {
+            return {
+                "ЖК_Рассвет": {
+                    "descriptions": {
+                        "installment": "До 24 месяцев",
+                        "hybrid": "С отложенным платежом до 30%",
+                        "mortgage": "В удобный момент без потерь"
+                    },
+                    "details": {
+                        "installment": {
+                            "title": "Рассрочка — удобно и без переплат.",
+                            "lines": [
+                                "<strong>Варианты:</strong> 70%, 50% или 30%",
+                                "<strong>Первоначальный взнос</strong> — 55 000 000 сум",
+                                "<strong>Ежемесячная оплата</strong> — 9 166 667 сум (24 месяца, без переплат)"
+                            ]
+                        },
+                        "hybrid": {
+                            "title": "Ваш комфорт в приоритете:",
+                            "lines": [
+                                "<strong>Первоначальный взнос</strong> — 82 500 000 сум",
+                                "<strong>Ежемесячный платёж</strong> — 6 111 111 сум",
+                                "<strong>До 30% суммы</strong> можно отложить на удобный момент"
+                            ]
+                        },
+                        "mortgage": {
+                            "title": "30% оплачиваются при сдаче объекта.",
+                            "lines": [
+                                "<strong>Стоимость квартиры</strong> — 275 000 000 сум",
+                                "<strong>Сумма ипотеки</strong> — 220 000 000 сум",
+                                "Если к этому моменту будет удобнее — вы сможете оформить ипотеку и рассчитаться комфортно, без лишних забот."
+                            ]
+                        }
+                    },
+                    "modals": {
+                        "installment": "<h3>Пример рассрочки</h3><p><strong>Стоимость квартиры:</strong> 275 000 000 сум</p><p><strong>Первоначальный взнос:</strong> 55 000 000 сум (20%)</p><p><strong>Ежемесячный платеж:</strong> 9 166 667 сум</p><p><strong>Срок рассрочки:</strong> 24 месяца</p><p><strong>Переплата:</strong> 0 сум</p>",
+                        "hybrid": "<h3>Пример гибридной рассрочки</h3><p><strong>Стоимость квартиры:</strong> 275 000 000 сум</p><p><strong>Первоначальный взнос (30%):</strong> 82 500 000 сум</p><p><strong>Ежемесячная оплата (18 мес., 40%):</strong> 6 111 111 сум</p><p><strong>Последний платёж (19-й месяц, 30%):</strong> 82 500 000 сум</p>",
+                        "mortgage": "<h3>Переход на ипотеку</h3><p><strong>Стоимость квартиры:</strong> 275 000 000 сум</p><p><strong>Первоначальный взнос:</strong> 55 000 000 сум (20%)</p><p><strong>Сумма ипотеки:</strong> 220 000 000 сум</p><p><strong>Ставка:</strong> от 18% годовых</p><p><strong>Срок:</strong> до 20 лет</p><p><strong>Ежемесячный платеж:</strong> от 2 200 000 сум</p>"
+                    }
+                },
+                "ЖК_Бахор": {
+                    "descriptions": {
+                        "installment": "До 18 месяцев",
+                        "hybrid": "С отложенным платежом до 25%",
+                        "mortgage": "В удобный момент без потерь"
+                    },
+                    "details": {
+                        "installment": {
+                            "title": "Рассрочка — удобно и без переплат.",
+                            "lines": [
+                                "<strong>Варианты:</strong> 70%, 50% или 30%",
+                                "<strong>Первоначальный взнос</strong> — 40 000 000 сум",
+                                "<strong>Ежемесячная оплата</strong> — 8 888 889 сум (18 месяцев, без переплат)"
+                            ]
+                        },
+                        "hybrid": {
+                            "title": "Ваш комфорт в приоритете:",
+                            "lines": [
+                                "<strong>Первоначальный взнос</strong> — 50 000 000 сум",
+                                "<strong>Ежемесячный платёж</strong> — 8 333 333 сум",
+                                "<strong>До 25% суммы</strong> можно отложить на удобный момент"
+                            ]
+                        },
+                        "mortgage": {
+                            "title": "30% оплачиваются при сдаче объекта.",
+                            "lines": [
+                                "<strong>Стоимость квартиры</strong> — 200 000 000 сум",
+                                "<strong>Сумма ипотеки</strong> — 160 000 000 сум",
+                                "Если к этому моменту будет удобнее — вы сможете оформить ипотеку и рассчитаться комфортно, без лишних забот."
+                            ]
+                        }
+                    },
+                    "modals": {
+                        "installment": "<h3>Пример рассрочки</h3><p><strong>Стоимость квартиры:</strong> 200 000 000 сум</p><p><strong>Первоначальный взнос:</strong> 40 000 000 сум (20%)</p><p><strong>Ежемесячный платеж:</strong> 8 888 889 сум</p><p><strong>Срок рассрочки:</strong> 18 месяцев</p><p><strong>Переплата:</strong> 0 сум</p>",
+                        "hybrid": "<h3>Пример гибридной рассрочки</h3><p><strong>Стоимость квартиры:</strong> 200 000 000 сум</p><p><strong>Первоначальный взнос (25%):</strong> 50 000 000 сум</p><p><strong>Ежемесячная оплата (12 мес., 50%):</strong> 8 333 333 сум</p><p><strong>Последний платёж (13-й месяц, 25%):</strong> 50 000 000 сум</p>",
+                        "mortgage": "<h3>Переход на ипотеку</h3><p><strong>Стоимость квартиры:</strong> 200 000 000 сум</p><p><strong>Первоначальный взнос:</strong> 40 000 000 сум (20%)</p><p><strong>Сумма ипотеки:</strong> 160 000 000 сум</p><p><strong>Ставка:</strong> от 18% годовых</p><p><strong>Срок:</strong> до 20 лет</p><p><strong>Ежемесячный платеж:</strong> от 1 600 000 сум</p>"
+                    }
+                }
+            };
+        }
+
         const COMPLEXES = {
             rassvet: {
                 key: 'rassvet',
@@ -958,61 +1063,10 @@
                     deadline: '4 Квартал<br>2026 года'
                 },
                 ctaLink: '/complexes',
-                conditions: {
-                    descriptions: {
-                        installment: 'До 24 месяцев',
-                        hybrid: 'С отложенным платежом до 30%',
-                        mortgage: 'В удобный момент без потерь'
-                    },
-                    details: {
-                        installment: {
-                            title: 'Рассрочка — удобно и без переплат.',
-                            lines: [
-                                '<strong>Варианты:</strong> 70%, 50% или 30%',
-                                '<strong>Первоначальный взнос</strong> — 55 000 000 сум',
-                                '<strong>Ежемесячная оплата</strong> — 9 166 667 сум (24 месяца, без переплат)'
-                            ]
-                        },
-                        hybrid: {
-                            title: 'Ваш комфорт в приоритете:',
-                            lines: [
-                                '<strong>Первоначальный взнос</strong> — 82 500 000 сум',
-                                '<strong>Ежемесячный платёж</strong> — 6 111 111 сум',
-                                '<strong>До 30% суммы</strong> можно отложить на удобный момент'
-                            ]
-                        },
-                        mortgage: {
-                            title: '30% оплачиваются при сдаче объекта.',
-                            lines: [
-                                '<strong>Стоимость квартиры</strong> — 275 000 000 сум',
-                                '<strong>Сумма ипотеки</strong> — 220 000 000 сум',
-                                'Если к этому моменту будет удобнее — вы сможете оформить ипотеку и рассчитаться комфортно, без лишних забот.'
-                            ]
-                        }
-                    }
-                },
-                modals: {
-                    installment: `<h3>Пример рассрочки</h3>
-                        <p><strong>Стоимость квартиры:</strong> 275 000 000 сум</p>
-                        <p><strong>Первоначальный взнос:</strong> 55 000 000 сум (20%)</p>
-                        <p><strong>Ежемесячный платеж:</strong> 9 166 667 сум</p>
-                        <p><strong>Срок рассрочки:</strong> 24 месяца</p>
-                        <p><strong>Переплата:</strong> 0 сум</p>`,
-                    hybrid: `<h3>Пример гибридной рассрочки</h3>
-                        <p><strong>Стоимость квартиры:</strong> 275 000 000 сум</p>
-                        <p><strong>Первоначальный взнос (30%):</strong> 82 500 000 сум</p>
-                        <p><strong>Ежемесячная оплата (18 мес., 40%):</strong> 6 111 111 сум</p>
-                        <p><strong>Последний платёж (19-й месяц, 30%):</strong> 82 500 000 сум</p>`,
-                    mortgage: `<h3>Переход на ипотеку</h3>
-                        <p><strong>Стоимость квартиры:</strong> 275 000 000 сум</p>
-                        <p><strong>Первоначальный взнос:</strong> 55 000 000 сум (20%)</p>
-                        <p><strong>Сумма ипотеки:</strong> 220 000 000 сум</p>
-                        <p><strong>Ставка:</strong> от 18% годовых</p>
-                        <p><strong>Срок:</strong> до 20 лет</p>
-                        <p><strong>Ежемесячный платеж:</strong> от 2 200 000 сум</p>`
-                },
+                conditions: null, // Будет загружено динамически
+                modals: null, // Будет загружено динамически
                 apartmentInfo: {
-                    size: '65.38 м²',
+                    size: '76.95 м²',
                     rooms: [
                         { name: 'Гостиная', size: '15.90 м²' },
                         { name: 'Спальня', size: '12.48 м²' },
@@ -1049,68 +1103,17 @@
                     backgroundImage: '/static/Жилые_Комплексы/ЖК_Бахор/render/01.png',
                     deadline: '3 Квартал<br>2025 года'
                 },
-                ctaLink: '/shaxmatki/complexes.html?complex=bahor',
-                conditions: {
-                    descriptions: {
-                        installment: 'До 18 месяцев',
-                        hybrid: 'С отложенным платежом до 25%',
-                        mortgage: 'В удобный момент без потерь'
-                    },
-                    details: {
-                        installment: {
-                            title: 'Рассрочка — удобно и без переплат.',
-                            lines: [
-                                '<strong>Варианты:</strong> 70%, 50% или 30%',
-                                '<strong>Первоначальный взнос</strong> — 40 000 000 сум',
-                                '<strong>Ежемесячная оплата</strong> — 8 888 889 сум (18 месяцев, без переплат)'
-                            ]
-                        },
-                        hybrid: {
-                            title: 'Ваш комфорт в приоритете:',
-                            lines: [
-                                '<strong>Первоначальный взнос</strong> — 50 000 000 сум',
-                                '<strong>Ежемесячный платёж</strong> — 8 333 333 сум',
-                                '<strong>До 25% суммы</strong> можно отложить на удобный момент'
-                            ]
-                        },
-                        mortgage: {
-                            title: '30% оплачиваются при сдаче объекта.',
-                            lines: [
-                                '<strong>Стоимость квартиры</strong> — 200 000 000 сум',
-                                '<strong>Сумма ипотеки</strong> — 160 000 000 сум',
-                                'Если к этому моменту будет удобнее — вы сможете оформить ипотеку и рассчитаться комфортно, без лишних забот.'
-                            ]
-                        }
-                    }
-                },
-                modals: {
-                    installment: `<h3>Пример рассрочки</h3>
-                        <p><strong>Стоимость квартиры:</strong> 200 000 000 сум</p>
-                        <p><strong>Первоначальный взнос:</strong> 40 000 000 сум (20%)</p>
-                        <p><strong>Ежемесячный платеж:</strong> 8 888 889 сум</p>
-                        <p><strong>Срок рассрочки:</strong> 18 месяцев</p>
-                        <p><strong>Переплата:</strong> 0 сум</p>`,
-                    hybrid: `<h3>Пример гибридной рассрочки</h3>
-                        <p><strong>Стоимость квартиры:</strong> 200 000 000 сум</p>
-                        <p><strong>Первоначальный взнос (25%):</strong> 50 000 000 сум</p>
-                        <p><strong>Ежемесячная оплата (12 мес., 50%):</strong> 8 333 333 сум</p>
-                        <p><strong>Последний платёж (13-й месяц, 25%):</strong> 50 000 000 сум</p>`,
-                    mortgage: `<h3>Переход на ипотеку</h3>
-                        <p><strong>Стоимость квартиры:</strong> 200 000 000 сум</p>
-                        <p><strong>Первоначальный взнос:</strong> 40 000 000 сум (20%)</p>
-                        <p><strong>Сумма ипотеки:</strong> 160 000 000 сум</p>
-                        <p><strong>Ставка:</strong> от 18% годовых</p>
-                        <p><strong>Срок:</strong> до 20 лет</p>
-                        <p><strong>Ежемесячный платеж:</strong> от 1 600 000 сум</p>`
-                },
+                ctaLink: '/complexes',
+                conditions: null, // Будет загружено динамически
+                modals: null, // Будет загружено динамически
                 apartmentInfo: {
-                    size: '58.25 м²',
+                    size: '55.67 м²',
                     rooms: [
                         { name: 'Гостиная', size: '18.50 м²' },
                         { name: 'Спальня', size: '14.20 м²' },
                         { name: 'Балкон', size: '4.15 м²' }
                     ],
-                    block: 'Блок А. Этажи 3-15'
+                    block: 'Блок 3,1. Этажи 2-5'
                 },
                 contact: {
                     heading: 'Отдел продаж ЖК «Бахор»',
@@ -1128,6 +1131,35 @@
                 }
             }
         };
+
+        // Функция для получения данных о способах оплаты для конкретного комплекса
+        function getPaymentOptionsForComplex(complexKey) {
+            if (!paymentOptionsData) {
+                console.warn('Данные о способах оплаты не загружены, используем данные по умолчанию');
+                return getDefaultPaymentOptions()[complexKey] || null;
+            }
+            
+            // Маппинг ключей комплексов на названия в API
+            const complexMapping = {
+                'rassvet': 'ЖК_Рассвет',
+                'bahor': 'ЖК_Бахор'
+            };
+            
+            const apiKey = complexMapping[complexKey];
+            return paymentOptionsData[apiKey] || null;
+        }
+
+        // Функция для обновления данных комплекса с загруженными данными о способах оплаты
+        function updateComplexWithPaymentOptions(complexKey) {
+            const complex = COMPLEXES[complexKey];
+            if (!complex) return;
+            
+            const paymentOptions = getPaymentOptionsForComplex(complexKey);
+            if (paymentOptions) {
+                complex.conditions = paymentOptions.conditions || paymentOptions;
+                complex.modals = paymentOptions.modals;
+            }
+        }
 
         const COMPLEX_KEYS = Object.keys(COMPLEXES);
         const DEFAULT_COMPLEX = 'rassvet';
@@ -1156,7 +1188,14 @@
         }
         window.closeConditionModal = closeConditionModal;
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Загружаем данные о способах оплаты для комплекса из hash (или по умолчанию)
+            const initialKey = getComplexFromHash();
+            const complexMapping = { 'rassvet': 'ЖК_Рассвет', 'bahor': 'ЖК_Бахор' };
+            const jkName = complexMapping[initialKey];
+            if (jkName) {
+                await loadPaymentOptionsForComplex(jkName);
+            }
             const heroBackgroundEl = document.querySelector('[data-role="hero-background"]');
             const heroNameEl = document.querySelector('[data-role="hero-name"]');
             const heroTitleEl = document.querySelector('[data-role="hero-title"]');
@@ -1208,18 +1247,35 @@
                 });
             }
 
-            function updateConditionContent(config) {
+            async function updateConditionContent(config) {
+                // Обновляем данные о способах оплаты для текущего комплекса
+                const complexMapping = { 'rassvet': 'ЖК_Рассвет', 'bahor': 'ЖК_Бахор' };
+                const jkName = complexMapping[currentComplexKey];
+                if (jkName) {
+                    // Подтянем актуальные данные с API по выбранному ЖК
+                    await loadPaymentOptionsForComplex(jkName);
+                }
+                updateComplexWithPaymentOptions(currentComplexKey);
+                
+                // Получаем обновленную конфигурацию
+                const updatedConfig = COMPLEXES[currentComplexKey];
+                
+                if (!updatedConfig.conditions) {
+                    console.warn('Данные о способах оплаты не найдены для комплекса:', currentComplexKey);
+                    return;
+                }
+                
                 conditionDescEls.forEach(descEl => {
                     const key = descEl.dataset.condition;
-                    descEl.textContent = config.conditions.descriptions[key] || '';
+                    descEl.textContent = updatedConfig.conditions.descriptions[key] || '';
                 });
                 conditionTitleEls.forEach(titleEl => {
                     const key = titleEl.dataset.condition;
-                    titleEl.textContent = config.conditions.details[key]?.title || '';
+                    titleEl.textContent = updatedConfig.conditions.details[key]?.title || '';
                 });
                 conditionBodyEls.forEach(bodyEl => {
                     const key = bodyEl.dataset.condition;
-                    const lines = config.conditions.details[key]?.lines || [];
+                    const lines = updatedConfig.conditions.details[key]?.lines || [];
                     bodyEl.innerHTML = lines.map(line => `<p>${line}</p>`).join('');
                 });
                 setActiveCondition('installment');
@@ -1294,6 +1350,10 @@
 
             function showConditionExample(conditionKey) {
                 if (!modalContainer || !modalContentEl) return;
+                
+                // Обновляем данные о способах оплаты для текущего комплекса
+                updateComplexWithPaymentOptions(currentComplexKey);
+                
                 const config = COMPLEXES[currentComplexKey];
                 const html = config.modals?.[conditionKey];
                 if (!html) return;
@@ -1354,7 +1414,7 @@
 
                     updateComplexButtons(key);
                     updateHero(config);
-                    updateConditionContent(config);
+                    await updateConditionContent(config);
                     updateApartmentInfo(config);
                     updateContacts(config);
                     updateCTALinks(config);
@@ -1483,7 +1543,8 @@
                                 </button>
                             </div>
                             <div class="apartment-card__floorplan">
-                                <img src="/api/complexes/plan-image?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(apartment.blockName ?? '')}&apartmentSize=${apartment.size}" alt="План квартиры" class="apartment-card__image">
+                                <div class="apartment-card__placeholder">План</div>
+                                <img src="" alt="План квартиры" class="apartment-card__image" style="display: none;">
                             </div>
                             <div class="apartment-card__details">
                                 <div class="apartment-detail">
@@ -1531,6 +1592,9 @@
                             </button>
                         `;
                         apartmentsGridEl.appendChild(card);
+                        
+                        // Загружаем планировку для карточки
+                        loadApartmentPlanForCard(card, jkName, apartment);
                     }
                 } catch (error) {
                     console.error('Ошибка при загрузке квартир:', error);
@@ -1538,12 +1602,58 @@
                 }
             }
 
+            // Функция для загрузки планировки квартиры в карточку
+            async function loadApartmentPlanForCard(card, jkName, apartment) {
+                const placeholder = card.querySelector('.apartment-card__placeholder');
+                const image = card.querySelector('.apartment-card__image');
+                
+                if (!placeholder || !image || !apartment.size) return;
+                
+                try {
+                    const url = `/api/complexes/plan-image?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(apartment.blockName ?? '')}&apartmentSize=${apartment.size}`;
+                    const response = await fetch(url);
+                    
+                    if (response.ok) {
+                        // Планировка найдена, показываем изображение
+                        image.src = url;
+                        image.style.display = 'block';
+                        placeholder.style.display = 'none';
+                    } else {
+                        // Планировка не найдена, оставляем плейсхолдер
+                        placeholder.textContent = 'Нет плана';
+                        placeholder.style.display = 'flex';
+                        image.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.warn('Ошибка загрузки планировки:', error);
+                    // В случае ошибки показываем плейсхолдер
+                    placeholder.textContent = 'Нет плана';
+                    placeholder.style.display = 'flex';
+                    image.style.display = 'none';
+                }
+            }
+
             async function loadApartments(jkName, roomsFilter = null) {
                 try {
                     const response = await fetch(`/api/complexes/jk/${jkName}`);
+                    
+                    if (!response.ok) {
+                        console.warn(`API вернул ошибку ${response.status} для ЖК ${jkName}`);
+                        return [];
+                    }
+                    
                     const data = await response.json();
-                    if (data.status !== 'success') throw new Error('Ошибка загрузки данных ЖК');
+                    if (data.status !== 'success') {
+                        console.warn('Ошибка загрузки данных ЖК:', data.message || 'Неизвестная ошибка');
+                        return [];
+                    }
+                    
                     const shaxmatka = data.shaxmatka;
+                    if (!Array.isArray(shaxmatka)) {
+                        console.warn('Данные шахматки не являются массивом');
+                        return [];
+                    }
+                    
                     const apartments = [];
                     for (let i = 1; i < shaxmatka.length; i += 1) {
                         const row = shaxmatka[i];
@@ -1570,7 +1680,7 @@
                     }
                     return apartments;
                 } catch (error) {
-                    console.error('Ошибка загрузки квартир:', error);
+                    console.warn('Ошибка загрузки квартир:', error);
                     return [];
                 }
             }
@@ -1593,11 +1703,17 @@
             async function loadApartmentDetails(jkName, apartment) {
                 try {
                     const response = await fetch(`/api/complexes/apartment-info?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(apartment.blockName ?? '')}&apartmentSize=${apartment.size}&floor=${apartment.floor}&apartmentNumber=${apartment.apartmentNumber}`);
+                    
+                    if (!response.ok) {
+                        console.warn(`API вернул ошибку ${response.status} для квартиры ${apartment.apartmentNumber}`);
+                        return null;
+                    }
+                    
                     const data = await response.json();
                     if (data.status === 'success') return data.data;
                     return null;
                 } catch (error) {
-                    console.error('Ошибка загрузки деталей квартиры:', error);
+                    console.warn('Ошибка загрузки деталей квартиры:', error);
                     return null;
                 }
             }

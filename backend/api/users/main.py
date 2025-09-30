@@ -21,26 +21,30 @@ user_router = APIRouter(prefix="/api/users")
 
 @user_router.post("/add_user", response_model=UserRead)
 async def register_user(user: UserCreate):
-    # Проверяем, существует ли уже пользователь с таким логином
-    if get_user_by_login(login=user.login):
-        raise HTTPException(status_code=400, detail="Логин уже зарегистрирован")
+    try:
+        # Проверяем, существует ли уже пользователь с таким логином
+        if get_user_by_login(login=user.login):
+            raise HTTPException(status_code=400, detail="Логин уже зарегистрирован")
 
-    # Хешируем пароль и добавляем его в данные для создания пользователя
-    # (это временное расширение объекта user, можно создать dict и добавить туда значение)
-    user_data = user.model_dump()
-    user_data["hashed_password"] = get_password_hash(user.hashed_password)
-    # Можно удалить открытый пароль, если не нужен
-    # del user_data["password"]
+        # Хешируем пароль и добавляем его в данные для создания пользователя
+        user_data = user.model_dump()
+        user_data["hashed_password"] = get_password_hash(user.hashed_password)
 
-    # Создаём нового пользователя
-    # Обратите внимание, что функция add_user ожидает объект, у которого есть атрибут hashed_password.
-
-    new_user = add_user(UserCreate(**user_data))
-    return {
-        **new_user.__dict__,
-        "role": new_user.role.name if new_user.role else None,  # Возвращаем название роли, если оно есть
-        "role_id": new_user.role_id
-    }
+        # Создаём нового пользователя
+        new_user = add_user(UserCreate(**user_data))
+        
+        if new_user is None:
+            raise HTTPException(status_code=500, detail="Ошибка при создании пользователя")
+            
+        return {
+            **new_user.__dict__,
+            "role": new_user.role.name if new_user.role else None,
+            "role_id": new_user.role_id
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка при создании пользователя: {str(e)}")
 
 
 @user_router.post("/token", response_model=Token)

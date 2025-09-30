@@ -27,14 +27,13 @@
     align-items: center;
     background: white;
     border-radius: 50px;
-    padding: 0.8rem 1.2rem;
-    margin-bottom: 2rem;
+   
   }
   
   .input-with-icon svg {
     width: 20px;
     height: 20px;
-    margin-right: 1rem;
+
     flex-shrink: 0;
   }
   

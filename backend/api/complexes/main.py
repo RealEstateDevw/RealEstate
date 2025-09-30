@@ -59,6 +59,11 @@ async def get_complexes():
 async def get_jk_data(jk_name: str):
     shaxmatka_cache = await get_shaxmatka_data(jk_name)  # Получаем кэшированные данные шахматки
 
+    # Проверяем, не вернулась ли ошибка
+    if isinstance(shaxmatka_cache, dict) and "error" in shaxmatka_cache:
+        print(f"Ошибка при чтении данных ЖК {jk_name}: {shaxmatka_cache['error']}")
+        return {"status": "error", "message": f"Ошибка при чтении данных ЖК: {shaxmatka_cache['error']}"}
+
     shaxmatka_data = shaxmatka_cache
     render_folder = os.path.join('static', 'Жилые_Комплексы', jk_name, 'render')
     render_image = None
@@ -139,88 +144,31 @@ async def get_plan_image(
 
     # Путь к директории с планировками
     base_path = os.path.join('static', 'Жилые_Комплексы', jkName, 'Planirovki')
-    print(f"[plan-image] base_path: {base_path}")
+    print(f"Looking for plans in: {base_path}")
 
-    # Нормализация входных значений
-    size_raw = (apartmentSize or '').strip()
-    size_dot = size_raw.replace(',', '.')
-    # округлим до 1 знака после запятой (часто так хранятся файлы)
-    try:
-        size_float = float(size_dot)
-        size_1d = f"{size_float:.1f}"
-        size_0d = f"{round(size_float):d}"
-    except ValueError:
-        size_float = None
-        size_1d = size_dot
-        size_0d = size_dot
+    # if not os.path.exists(base_path):
+    #     raise HTTPException(status_code=404, detail="Планировки для указанного ЖК не найдены")
 
-    # Генерируем варианты имён файлов
-    size_variants = {
-        size_raw,
-        size_dot,
-        size_1d,
-        size_0d,
-        size_1d.replace('.', ','),
-        size_dot.replace('.', '_'),
-        size_dot.replace('.', '-'),
-        size_dot.replace('.', ' '),
-    }
+    # Сначала пытаемся найти графический файл с именем apartmentSize.xxx
+    possible_files = [f"{apartmentSize}.{ext}" for ext in ['jpg', 'jpeg', 'png', 'svg']]
+    for file_name in possible_files:
+        file_path = os.path.join(base_path, file_name)
+        if os.path.exists(file_path):
+            return FileResponse(file_path)
 
-    # Возможные расширения
-    exts = ('jpg', 'jpeg', 'png', 'svg')
-
-    # Список директорий, где ищем: Planirovki и подкаталог блока
-    search_dirs = [base_path, os.path.join(base_path, blockName)]
-
-    # 1) Пытаемся найти точное совпадение имени (с учётом разных вариантов записи площади)
-    for d in search_dirs:
-        if not os.path.isdir(d):
-            continue
-        for v in size_variants:
-            for ext in exts:
-                candidate = os.path.join(d, f"{v}.{ext}")
-                if os.path.exists(candidate):
-                    print(f"[plan-image] found by exact filename: {candidate}")
-                    return FileResponse(candidate)
-
-    # 2) Гибкий поиск: ищем файлы, содержащие число площади внутри имени
-    # Готовим шаблон: число с точкой и то же число с запятой
-    if size_float is not None:
-        plain = f"{size_float:.1f}"
-    else:
-        # Если парсинг не удался — используем исходную строку с точкой
-        plain = size_dot
-
-    token_regex = re.escape(plain)
-    alt_plain = plain.replace('.', ',')
-    alt_regex = re.escape(alt_plain)
-
-    filename_pattern = re.compile(fr"(^|[^\d])({token_regex}|{alt_regex})($|[^\d])", re.IGNORECASE)
-    for d in search_dirs:
-        if not os.path.isdir(d):
-            continue
-        for fname in os.listdir(d):
-            if not fname.lower().endswith(exts):
-                continue
-            if filename_pattern.search(fname):
-                candidate = os.path.join(d, fname)
-                print(f"[plan-image] found by pattern: {candidate}")
-                return FileResponse(candidate)
-
-    # 3) Если графических файлов нет, пытаемся найти PDF-файл
+    # Если графического файла нет, пытаемся найти PDF-файл
+    # Предположим, что PDF-файл называется по имени блока, например: "Блок 1.pdf"
     pdf_file_path = os.path.join(base_path, f"{blockName}.pdf")
-    print(f"[plan-image] try pdf: {pdf_file_path}")
+    print(pdf_file_path)
     if os.path.exists(pdf_file_path):
         try:
             doc = fitz.open(pdf_file_path)
             for page in doc:
-                text = (page.get_text() or '')
-                # Нормализуем текст страницы и искомую площадь (точки↔запятые)
-                normalized_page = text.replace(',', '.').replace(' ', '')
-                query_variants = {size_dot, size_1d, size_0d}
-                query_variants = {q.replace(' ', '').replace(',', '.') for q in query_variants if q}
-                if any(q in normalized_page for q in query_variants):
+                text = page.get_text()
+                # Если на странице содержится искомый apartmentSize, считаем, что это нужная страница
+                if apartmentSize in text:
                     pix = page.get_pixmap()
+                    # Сохраняем изображение страницы во временный файл
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
                         pix.save(tmp_file.name)
                         tmp_file_path = tmp_file.name
@@ -229,18 +177,10 @@ async def get_plan_image(
             doc.close()
             raise HTTPException(status_code=404, detail="Файл планировки не найден в PDF")
         except Exception as e:
-            print(f"[plan-image] pdf error: {e}")
-            render_path = os.path.join("static", 'Жилые_Комплексы', jkName, 'render')
-            if os.path.exists(render_path):
-                render_files = [f for f in os.listdir(render_path) if
-                                f.lower().endswith(('.png', '.jpg', '.jpeg', '.svg'))]
-                if render_files:
-                    first_render_file = os.path.join(render_path, render_files[0])
-                    return FileResponse(first_render_file)
-
-
+            raise HTTPException(status_code=500, detail=f"Ошибка при обработке PDF: {e}")
 
     raise HTTPException(status_code=404, detail="Файл планировки не найден")
+
 
 
 def _natural_key(path: str) -> List[Any]:
@@ -514,13 +454,18 @@ async def get_apartment_info(
     )
 
     if not all([jkName, blockName, apartmentSize, floor, apartmentNumber]):
-        raise HTTPException(status_code=400, detail="Отсутствуют обязательные параметры")
+        return {"status": "error", "message": "Отсутствуют обязательные параметры"}
 
     try:
         shaxmatka_data = await get_shaxmatka_data(jkName)
         if not shaxmatka_data:
             print(f"Данные для ЖК {jkName} не найдены в кэше.")
-            raise HTTPException(status_code=404, detail=f"Данные для ЖК {jkName} не найдены.")
+            return {"status": "error", "message": f"Данные для ЖК {jkName} не найдены."}
+        
+        # Проверяем, не вернулась ли ошибка
+        if isinstance(shaxmatka_data, dict) and "error" in shaxmatka_data:
+            print(f"Ошибка при чтении данных ЖК {jkName}: {shaxmatka_data['error']}")
+            return {"status": "error", "message": f"Ошибка при чтении данных ЖК: {shaxmatka_data['error']}"}
 
         apartment_status = None
         for row in shaxmatka_data:
@@ -549,7 +494,7 @@ async def get_apartment_info(
             print("Параметры поиска не совпадают ни с одной строкой.")
             for row in shaxmatka_data:
                 print(f"Строка: {row}")
-            raise HTTPException(status_code=404, detail="Квартира не найдена.")
+            return {"status": "error", "message": "Квартира не найдена."}
 
         # Получаем цены из price_cache
         price_keys = {
@@ -616,7 +561,7 @@ async def get_apartment_info(
         }
     except Exception as e:
         print(f"Ошибка при обработке запроса: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"status": "error", "message": str(e)}
 
 
 STATIC_DIR = "static"

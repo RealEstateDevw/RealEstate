@@ -107,8 +107,10 @@ async def delete_lead(lead_id: int, db: Session = Depends(get_db)):
 async def get_user_leads(user_id: int, include_callbacks: bool = False, skip: int = 0, limit: int = 100,
                          db: Session = Depends(get_db)):
     leads = lead_crud.get_leads_by_user(db, user_id, include_callbacks, skip, limit)
+    
+    # Если лидов нет, возвращаем пустой массив вместо ошибки 404
     if not leads:
-        raise HTTPException(status_code=404, detail="No leads found for this user")
+        return []
 
     result = []
     for lead in leads:
