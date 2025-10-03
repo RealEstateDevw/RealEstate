@@ -1794,17 +1794,31 @@
         }
 
         .chess-plus-cell {
-            min-width: 52px;
-            height: 44px;
-            border-radius: 14px;
+            min-width: 60px;
+            height: 48px;
+            padding: 8px 12px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
+            letter-spacing: 0.01em;
             color: #0f172a;
+            text-align: center;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 4px 12px rgba(15, 23, 42, 0.12);
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .chess-plus-cell .chess-plus-cell-size {
+            display: block;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1;
+            color: inherit;
+            white-space: nowrap;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.45);
         }
 
         .chess-plus-cell:hover {
@@ -4077,7 +4091,39 @@
 
                             const cell = document.createElement('div');
                             cell.className = `chess-plus-cell ${statusClass}`;
-                            cell.textContent = shortLabel;
+
+                            const rawSize = row[5];
+                            let formattedSize = '';
+                            if (rawSize !== undefined && rawSize !== null) {
+                                const trimmedSize = String(rawSize).trim();
+                                if (trimmedSize) {
+                                    const normalizedNumeric = trimmedSize
+                                        .replace(/\s+/g, '')
+                                        .replace(/,/g, '.')
+                                        .replace(/[^0-9.]/g, '');
+                                    const numericValue = normalizedNumeric ? Number.parseFloat(normalizedNumeric) : Number.NaN;
+                                    if (Number.isFinite(numericValue) && numericValue > 0) {
+                                        const hasFraction = !Number.isInteger(numericValue);
+                                        const formatter = new Intl.NumberFormat('ru-RU', {
+                                            minimumFractionDigits: hasFraction ? 1 : 0,
+                                            maximumFractionDigits: 1
+                                        });
+                                        formattedSize = `${formatter.format(numericValue)} м²`;
+                                    } else {
+                                        formattedSize = trimmedSize;
+                                    }
+                                }
+                            }
+
+                            const sizeValueForDisplay = formattedSize || '—';
+                            const sizeEl = document.createElement('span');
+                            sizeEl.className = 'chess-plus-cell-size';
+                            sizeEl.textContent = sizeValueForDisplay;
+                            cell.appendChild(sizeEl);
+
+                            if (statusRaw) {
+                                cell.title = statusRaw;
+                            }
                             cell.setAttribute('data-jk-name', jkName);
                             cell.setAttribute('data-block', blockName);
                             if (row[5]) cell.setAttribute('data-size', row[5]);
