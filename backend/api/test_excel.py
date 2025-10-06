@@ -7,7 +7,7 @@ from typing import Union, Dict, List, Any, Optional
 from dateutil.relativedelta import relativedelta
 from docx.shared import Mm
 from docxtpl import DocxTemplate, InlineImage
-from fastapi import APIRouter, HTTPException, Body, Query, Path
+from fastapi import APIRouter, HTTPException, Body, Query, Path, Depends
 from fastapi import Form, UploadFile, File
 import shutil
 from num2words import num2words
@@ -21,6 +21,22 @@ import traceback  # Для логирования ошибок
 from starlette.responses import StreamingResponse, FileResponse
 
 from pdf2image import convert_from_path
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
+from backend.database import get_db
+from backend.database.models import (
+    ResidentialComplex,
+    ApartmentUnit,
+    ChessboardPriceEntry,
+    ContractRegistryEntry,
+)
+from backend.core.cache_utils import invalidate_complex_cache
+from backend.core.excel_importer import (
+    import_chess_from_excel,
+    import_price_from_excel,
+    import_contract_registry_from_excel,
+)
 
 # --- Вспомогательные функции ---
 def col_letter_to_index(letter: str) -> int:
@@ -98,6 +114,94 @@ def _number_to_words(number: str) -> str:
 
 
 router = APIRouter(prefix="/excel", tags=["Excel Operations"])  # Пример префикса
+
+
+def _get_db_complex(db: Session, jk_name: str) -> ResidentialComplex:
+    complex_obj = (
+        db.query(ResidentialComplex)
+        .filter(ResidentialComplex.name == jk_name)
+        .first()
+    )
+    if not complex_obj:
+        raise HTTPException(status_code=404, detail=f"ЖК '{jk_name}' не найден")
+    return complex_obj
+
+
+def _clean_float(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    cleaned = (
+        str(value)
+        .replace(" ", "")
+        .replace("\xa0", "")
+        .replace(",", ".")
+        .strip()
+    )
+    if not cleaned:
+        return None
+    try:
+        return float(cleaned)
+    except ValueError:
+        return None
+
+
+def _normalize_unit_number(value: Any) -> str:
+    if value is None:
+        return ""
+    return str(value).strip()
+
+
+def _coerce_int(value: Any) -> Optional[int]:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, float)):
+        try:
+            return int(value)
+        except (ValueError, TypeError):
+            return None
+    cleaned = str(value).strip().replace(",", ".")
+    if not cleaned:
+        return None
+    try:
+        return int(float(cleaned))
+    except ValueError:
+        return None
+
+
+def _render_numeric_like(value: Any) -> Any:
+    if value is None:
+        return None
+    try:
+        num = float(value)
+        if num.is_integer():
+            return int(num)
+        return num
+    except (ValueError, TypeError):
+        return value
+
+
+def _render_contract_value(value: Any) -> Any:
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if hasattr(value, "isoformat"):
+        return value.isoformat()
+    return value
+
+
+def _extract_contract_sequence(value: Any) -> Optional[int]:
+    if value is None:
+        return None
+    digits = re.findall(r"\d+", str(value))
+    if not digits:
+        return None
+    try:
+        return int(digits[-1])
+    except ValueError:
+        return None
 
 
 # --- Обновленная Логика обновления Excel ---
@@ -194,35 +298,22 @@ def parse_date(date_str: str | None) -> datetime:
 
 
 @router.get("/last-contract-number")
-async def get_last_contract_number(jkName: str):
-    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
-    REGISTRY_PATH = os.path.join(jk_dir, "contract_registry.xlsx")
+async def get_last_contract_number(jkName: str, db: Session = Depends(get_db)):
+    complex_obj = _get_db_complex(db, jkName)
 
-    if not os.path.exists(REGISTRY_PATH):
-        return {"lastContractNumber": 1}  # Файл не существует — начинаем с первого номера
+    contract_numbers = (
+        db.query(ContractRegistryEntry.contract_number)
+        .filter(ContractRegistryEntry.complex_id == complex_obj.id)
+        .all()
+    )
 
-    try:
-        wb_registry = load_workbook(REGISTRY_PATH)
-        ws_registry = wb_registry.active
-        last_number = 0
+    last_number = 0
+    for (contract_number,) in contract_numbers:
+        seq = _extract_contract_sequence(contract_number)
+        if seq is not None and seq > last_number:
+            last_number = seq
 
-        # Ищем последнюю строку с номером договора в формате Д-XXXX
-        for row in reversed(list(ws_registry.iter_rows(min_row=2, values_only=True))):
-            contract_num = row[0]
-            if contract_num:
-                try:
-                    if isinstance(contract_num, str):
-                        number = int(contract_num.split('-')[0])
-                    else:
-                        number = int(contract_num)
-                    last_number = max(last_number, number)
-                except (IndexError, ValueError):
-                    continue
-
-        next_number = last_number + 1
-        return {"lastContractNumber": next_number}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка при чтении реестра: {str(e)}")
+    return {"lastContractNumber": last_number + 1}
 
 
 # --- Начало определения роутера и модели (пример) ---
@@ -565,29 +656,44 @@ async def download_contract_registry(jkName: str):
 
 
 @router.get("/get-contract-registry")
-async def get_contract_registry(jkName: str):
-    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
-    REGISTRY_PATH = os.path.join(jk_dir, "contract_registry.xlsx")
+async def get_contract_registry(jkName: str, db: Session = Depends(get_db)):
+    complex_obj = _get_db_complex(db, jkName)
 
-    if not os.path.exists(REGISTRY_PATH):
-        raise HTTPException(status_code=404, detail="Реестр договоров не найден")
+    entries = (
+        db.query(ContractRegistryEntry)
+        .filter(ContractRegistryEntry.complex_id == complex_obj.id)
+        .order_by(ContractRegistryEntry.contract_date.desc(), ContractRegistryEntry.id.desc())
+        .all()
+    )
 
-    try:
-        wb_registry = load_workbook(REGISTRY_PATH)
-        ws_registry = wb_registry.active
-        data = []
+    registry_rows: List[Dict[str, Any]] = []
+    for entry in entries:
+        row: Dict[str, Any] = {
+            "№ Договора": entry.contract_number,
+            "Дата Договора": _render_contract_value(entry.contract_date),
+            "Блок": entry.block_name,
+            "Этаж": entry.floor,
+            "№ КВ": entry.apartment_number,
+            "Кол-во ком": entry.rooms,
+            "Квадратура Квартиры": entry.area_sqm,
+            "Общ Стоимость Договора": entry.total_price,
+            "Стоимость 1 кв.м": entry.price_per_sqm,
+            "Процент 1 Взноса": entry.down_payment_percent,
+            "Сумма 1 Взноса": entry.down_payment_amount,
+            "Ф/И/О": entry.buyer_full_name,
+            "Серия Паспорта": entry.buyer_passport_series,
+            "ПИНФЛ": entry.buyer_pinfl,
+            "Кем выдан": entry.issued_by,
+            "Адрес прописки": entry.registration_address,
+            "Номер тел": entry.phone_number,
+            "Отдел Продаж": entry.sales_department,
+        }
+        if entry.extra_data:
+            for key, value in entry.extra_data.items():
+                row.setdefault(key, value)
+        registry_rows.append(row)
 
-        # Читаем заголовки из первой строки
-        headers = [cell.value for cell in ws_registry[1]]
-
-        # Читаем данные из остальных строк
-        for row in ws_registry.iter_rows(min_row=2, values_only=True):
-            row_data = dict(zip(headers, row))
-            data.append(row_data)
-
-        return {"registry": data}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка при чтении реестра: {str(e)}")
+    return {"registry": registry_rows}
 
 
 NEW_STATUS_ON_DELETE = "свободна"  # Статус, который нужно установить в шахматке
@@ -642,117 +748,58 @@ def _normalize_block_name(value: Any) -> str:
     return s
 
 
-def sync_chess_with_registry(jkName: str) -> dict:
-    """
-    Синхронизирует статусы в шахматке (jk_data.xlsx) с реестром договоров (contract_registry.xlsx).
-    Для всех квартир, присутствующих в реестре, выставляет статус `продана` в шахматке.
-    Возвращает сводку по изменениям.
-    """
-    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
-    chess_path = os.path.join(jk_dir, "jk_data.xlsx")
-    registry_path = os.path.join(jk_dir, "contract_registry.xlsx")
+def sync_chess_with_registry(db: Session, jkName: str) -> dict:
+    complex_obj = _get_db_complex(db, jkName)
 
-    if not os.path.exists(chess_path):
-        raise HTTPException(status_code=404, detail=f"Шахматка не найдена для '{jkName}'")
-    if not os.path.exists(registry_path):
-        raise HTTPException(status_code=404, detail=f"Реестр договоров не найден для '{jkName}'")
+    registry_entries = (
+        db.query(ContractRegistryEntry)
+        .filter(ContractRegistryEntry.complex_id == complex_obj.id)
+        .all()
+    )
 
-    # 1) Собираем множество квартир из реестра (robust parsing)
-    try:
-        wb_reg = load_workbook(registry_path, data_only=True)
-        ws_reg = wb_reg.active
-        headers_reg = [str(cell.value).strip() if cell.value is not None else "" for cell in ws_reg[1]]
+    sold_keys: set[tuple[str, int, str]] = set()
+    for entry in registry_entries:
+        block_norm = _normalize_block_name(entry.block_name)
+        floor_val = entry.floor
+        if floor_val is None and entry.extra_data:
+            floor_val = _coerce_int(entry.extra_data.get("Этаж"))
+        apt_number = entry.apartment_number or (entry.extra_data.get("№ КВ") if entry.extra_data else None)
+        apt_norm = _normalize_unit_number(apt_number)
 
-        # locate columns by header text to avoid hard-coding positions
-        def _find_col(headers, keywords):
-            for idx, h in enumerate(headers):
-                h_low = h.lower()
-                if any(kw in h_low for kw in keywords):
-                    return idx
-            return None
+        if block_norm and floor_val is not None and apt_norm:
+            sold_keys.add((block_norm, floor_val, apt_norm))
 
-        idx_block = _find_col(headers_reg, ["блок", "block", "корпус"])
-        idx_floor = _find_col(headers_reg, ["этаж", "floor"])
-        idx_apt = _find_col(headers_reg, ["№ кв", "квартира", "кв", "apartment", "помещ"])
+    apartments = (
+        db.query(ApartmentUnit)
+        .filter(ApartmentUnit.complex_id == complex_obj.id)
+        .all()
+    )
 
-        if None in (idx_block, idx_floor, idx_apt):
-            raise HTTPException(status_code=500, detail="В реестре отсутствуют необходимые заголовки (блок/этаж/№ кв)")
+    updated = 0
+    for apartment in apartments:
+        key = (
+            _normalize_block_name(apartment.block_name),
+            apartment.floor,
+            _normalize_unit_number(apartment.unit_number),
+        )
+        if key in sold_keys and (apartment.status or "").strip().lower() != SOLD_STATUS_IN_CHESS:
+            apartment.status = SOLD_STATUS_IN_CHESS
+            payload = dict(apartment.raw_payload or {})
+            for column_key in list(payload.keys()):
+                if isinstance(column_key, str) and "статус" in column_key.lower():
+                    payload[column_key] = SOLD_STATUS_IN_CHESS
+            apartment.raw_payload = payload or None
+            updated += 1
 
-        sold_keys = set()
-        for row in ws_reg.iter_rows(min_row=2, values_only=True):
-            try:
-                block_norm = _normalize_block_name(row[idx_block])
-                floor_i = _to_int_first(row[idx_floor])
-                apt_i = _to_int_first(row[idx_apt])
-                if block_norm and floor_i is not None and apt_i is not None:
-                    sold_keys.add((block_norm, floor_i, apt_i))
-            except Exception:
-                continue
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка чтения реестра: {e}")
+    if updated:
+        db.commit()
 
-    # 2) Проходим по шахматке и выставляем статусы
-    try:
-        wb_chess = load_workbook(chess_path)
-        ws_chess = wb_chess.active
+    return {
+        "status": "success",
+        "updated": updated,
+        "totalContracts": len(registry_entries),
+    }
 
-        # Сначала пробуем найти колонки по заголовкам; fallback на COLUMN_MAPPING
-        headers_chess = [str(cell.value).strip().lower() if cell.value is not None else "" for cell in ws_chess[1]]
-
-        def _find_col_idx(headers, keywords):
-            for i, h in enumerate(headers, start=1):  # 1-based
-                if any(kw in h for kw in keywords):
-                    return i
-            return None
-
-        block_col = _find_col_idx(headers_chess, ["блок", "block", "корпус"]) or col_letter_to_index(
-            COLUMN_MAPPING["blockName"])
-        floor_col = _find_col_idx(headers_chess, ["этаж", "floor"]) or col_letter_to_index(COLUMN_MAPPING["floor"])
-        apt_col = _find_col_idx(headers_chess, ["№ кв", "квартира", "кв", "apartment", "помещ"]) or col_letter_to_index(
-            COLUMN_MAPPING["apartmentNumber"])
-        status_col = _find_col_idx(headers_chess, ["статус", "status"]) or col_letter_to_index(COLUMN_MAPPING["status"])
-
-        changes = []
-        updated_count = 0
-
-        for r in range(DATA_START_ROW, ws_chess.max_row + 1):
-            cell_block = ws_chess.cell(row=r, column=block_col).value
-            cell_floor = ws_chess.cell(row=r, column=floor_col).value
-            cell_apt = ws_chess.cell(row=r, column=apt_col).value
-            cell_status = ws_chess.cell(row=r, column=status_col).value
-
-            block_norm = _normalize_block_name(cell_block)
-            floor_i = _to_int_first(cell_floor)
-            apt_i = _to_int_first(cell_apt)
-
-            if not block_norm or floor_i is None or apt_i is None:
-                continue
-
-            if (block_norm, floor_i, apt_i) in sold_keys:
-                current_status = str(cell_status).strip().lower() if cell_status is not None else ""
-                if current_status != SOLD_STATUS_IN_CHESS:
-                    ws_chess.cell(row=r, column=status_col, value=SOLD_STATUS_IN_CHESS)
-                    updated_count += 1
-                    changes.append({
-                        "row": r,
-                        "blockName": cell_block,
-                        "floor": cell_floor,
-                        "apartmentNumber": cell_apt,
-                        "oldStatus": cell_status,
-                        "newStatus": SOLD_STATUS_IN_CHESS
-                    })
-
-        if updated_count:
-            wb_chess.save(chess_path)
-
-        return {"status": "success", "updated": updated_count, "changes": changes}
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка обновления шахматки: {e}")
 
 
 @router.delete("/delete-contract-from-registry")
@@ -913,10 +960,14 @@ async def delete_contract_from_registry_and_update_shaxmatka(  # Переиме�
 
 
 # --- Новый эндпоинт: Синхронизация шахматки с реестром ---
-@router.post("/sync-chess-with-registry", summary="Sync chess (jk_data.xlsx) statuses with contract registry")
-async def api_sync_chess_with_registry(jkName: str = Query(..., description="Название ЖК для синхронизации")):
-    """Сравнивает шахматку с реестром и, если квартира есть в реестре, меняет её статус в шахматке на 'продана'."""
-    return sync_chess_with_registry(jkName)
+@router.post("/sync-chess-with-registry", summary="Sync chess statuses with contract registry")
+async def api_sync_chess_with_registry(
+        jkName: str = Query(..., description="Название ЖК для синхронизации"),
+        db: Session = Depends(get_db),
+):
+    result = sync_chess_with_registry(db, jkName)
+    await invalidate_complex_cache()
+    return result
 
 
 import os
@@ -924,21 +975,23 @@ import os
 
 # Получить список всех ЖК (папок в BASE_STATIC_PATH)
 @router.get("/complexes", summary="List all residential complexes")
-async def list_complexes():
-    """
-    Возвращает список папок (названий ЖК) в каталоге BASE_STATIC_PATH.
-    """
-    complexes_dir = BASE_STATIC_PATH
-    try:
-        if not os.path.exists(complexes_dir):
-            return {"complexes": []}
-        items = [
-            name for name in os.listdir(complexes_dir)
-            if os.path.isdir(os.path.join(complexes_dir, name))
-        ]
-        return {"complexes": items}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка при чтении списка ЖК: {e}")
+async def list_complexes(db: Session = Depends(get_db)):
+    complexes = (
+        db.query(ResidentialComplex)
+        .order_by(ResidentialComplex.name.asc())
+        .all()
+    )
+    if complexes:
+        return {"complexes": [c.name for c in complexes]}
+
+    if not os.path.exists(BASE_STATIC_PATH):
+        return {"complexes": []}
+
+    items = [
+        name for name in os.listdir(BASE_STATIC_PATH)
+        if os.path.isdir(os.path.join(BASE_STATIC_PATH, name))
+    ]
+    return {"complexes": items}
 
 
 # Получить список файлов внутри папки конкретного ЖК
@@ -963,28 +1016,40 @@ async def list_complex_files(jkName: str):
 
 # --- Новый эндпоинт: Получить price_shaxamtka.xlsx как JSON ---
 @router.get("/complexes/{jkName}/price", summary="Get price data for a given residential complex")
-async def get_price(jkName: str):
-    """
-    Возвращает содержимое файла price_shaxamtka.xlsx в папке ЖК в виде JSON:
-    {
-      "headers": [...],
-      "rows": [{header1: value1, ...}, ...]
-    }
-    """
-    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
-    file_path = os.path.join(jk_dir, "price_shaxamtka.xlsx")
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail=f"Price file not found for '{jkName}'")
-    # Load workbook
-    wb = load_workbook(file_path, data_only=True)
-    ws = wb.active
-    # Read header row
-    headers = [cell.value for cell in ws[1]]
-    # Read data rows
-    rows = []
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        row_dict = {headers[i]: row[i] for i in range(len(headers))}
-        rows.append(row_dict)
+async def get_price(jkName: str, db: Session = Depends(get_db)):
+    complex_obj = _get_db_complex(db, jkName)
+
+    price_entries = (
+        db.query(ChessboardPriceEntry)
+        .filter(ChessboardPriceEntry.complex_id == complex_obj.id)
+        .order_by(ChessboardPriceEntry.order_index.asc(), ChessboardPriceEntry.category_key.asc())
+        .all()
+    )
+
+    if not price_entries:
+        return {"headers": [], "rows": []}
+
+    ordered_categories: List[Tuple[int, str]] = []
+    seen: set[str] = set()
+    for entry in price_entries:
+        if entry.category_key in seen:
+            continue
+        ordered_categories.append((entry.order_index, entry.category_key))
+        seen.add(entry.category_key)
+    ordered_categories.sort(key=lambda item: (item[0], item[1]))
+
+    floor_map: Dict[int, Dict[str, float]] = {}
+    for entry in price_entries:
+        floor_map.setdefault(int(entry.floor), {})[entry.category_key] = entry.price_per_sqm
+
+    headers = ["Этаж"] + [cat for _, cat in ordered_categories]
+    rows: List[Dict[str, Any]] = []
+    for floor in sorted(floor_map.keys(), reverse=True):
+        row_payload: Dict[str, Any] = {"Этаж": floor}
+        for _, original_key in ordered_categories:
+            row_payload[original_key] = floor_map[floor].get(original_key)
+        rows.append(row_payload)
+
     return {"headers": headers, "rows": rows}
 
 
@@ -992,69 +1057,70 @@ async def get_price(jkName: str):
 async def update_price(
         jkName: str,
         data: Dict[str, Any] = Body(...,
-                                    description="JSON с ключами 'headers' (list) и 'rows' (list of dict)")
+                                    description="JSON с ключами 'headers' (list) и 'rows' (list of dict)"),
+        db: Session = Depends(get_db),
 ):
     headers = data.get("headers")
     rows = data.get("rows")
 
-    # Validation
-    if not headers or not rows:
-        raise HTTPException(status_code=400, detail="Headers and rows must be provided")
+    if not isinstance(headers, list) or not headers:
+        raise HTTPException(status_code=400, detail="Headers must be a non-empty list")
+    if not isinstance(rows, list):
+        raise HTTPException(status_code=400, detail="Rows must be a list of dictionaries")
+    if len(headers) < 2:
+        raise HTTPException(status_code=400, detail="Не указаны колонки с ценами")
 
-    # Определяем директорию комплекса и путь к файлу
-    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
-    file_path = os.path.join(jk_dir, "price_shaxamtka.xlsx")
+    floor_header = headers[0]
+    category_headers = headers[1:]
 
-    if not os.path.isdir(jk_dir):
-        raise HTTPException(status_code=404, detail=f"Residential complex '{jkName}' not found")
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail=f"Price file not found for '{jkName}'")
+    complex_obj = _get_db_complex(db, jkName)
 
-    try:
-        # Загружаем Excel файл
-        wb = load_workbook(file_path)
-        ws = wb.active
+    db.query(ChessboardPriceEntry).filter(ChessboardPriceEntry.complex_id == complex_obj.id).delete(
+        synchronize_session=False
+    )
 
-        # Читаем заголовки из Excel
-        excel_headers = [cell.value for cell in ws[1]]
+    new_entries: List[ChessboardPriceEntry] = []
 
-        # Создаем маппинг заголовок -> индекс колонки (1-based)
-        col_map = {str(h): i + 1 for i, h in enumerate(excel_headers)}
+    for row_data in rows:
+        if not isinstance(row_data, dict):
+            continue
+        floor_value = row_data.get(floor_header)
+        floor_int = _coerce_int(floor_value)
+        if floor_int is None:
+            continue
 
-        # Находим индекс колонки "Этаж" (обычно первая колонка)
-        floor_col_idx = None
-        for i, header in enumerate(excel_headers):
-            if isinstance(header, str) and "этаж" in header.lower():
-                floor_col_idx = i + 1
-                break
+        for order_index, category_header in enumerate(category_headers):
+            raw_price = row_data.get(category_header)
+            price_float = _clean_float(raw_price)
+            if price_float is None:
+                continue
 
-        if floor_col_idx is None:
-            # Если колонка "Этаж" не найдена, предполагаем что это первая колонка
-            floor_col_idx = 1
+            new_entries.append(
+                ChessboardPriceEntry(
+                    complex_id=complex_obj.id,
+                    floor=floor_int,
+                    category_key=str(category_header),
+                    price_per_sqm=price_float,
+                    order_index=order_index,
+                )
+            )
 
-        # Обновляем данные в Excel
-        for row_idx, row_data in enumerate(rows, start=2):  # Excel rows are 1-indexed, header is row 1
-            for header, value in row_data.items():
-                col_idx = col_map.get(str(header))
+    if new_entries:
+        db.bulk_save_objects(new_entries)
+    db.commit()
 
-                # Пропускаем колонку "Этаж"
-                if col_idx is not None and col_idx != floor_col_idx:
-                    # Конвертируем значение в число если это цена
-                    if isinstance(value, (int, float)) or (isinstance(value, str) and value.isdigit()):
-                        value = int(value)  # Убеждаемся что это целое число
+    await invalidate_complex_cache([
+        "complexes:price-by-key",
+        "complexes:price-all",
+        "complexes:aggregate",
+        "complexes:apartment-info",
+    ])
 
-                    # Обновляем ячейку
-                    ws.cell(row=row_idx, column=col_idx, value=value)
-
-        # Сохраняем изменения
-        wb.save(file_path)
-
-        return {"status": "success", "message": f"Price file updated for '{jkName}'"}
-
-    except Exception as e:
-        # Логируем ошибку для отладки
-        print(f"Error updating price file: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error updating price file: {str(e)}")
+    return {
+        "status": "success",
+        "message": f"Price grid updated for '{jkName}'",
+        "records": len(new_entries),
+    }
 
 
 class ChessUpdate(BaseModel):
@@ -1067,31 +1133,40 @@ class ChessUpdates(BaseModel):
 
 
 @router.get("/complexes/{jkName}/chess", summary="Get full chess grid")
-async def get_chess(jkName: str):
-    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
-    path = os.path.join(jk_dir, "jk_data.xlsx")
-    if not os.path.exists(path):
-        raise HTTPException(404, "Шахматка не найдена")
+async def get_chess(jkName: str, db: Session = Depends(get_db)):
+    complex_obj = _get_db_complex(db, jkName)
 
-    wb = load_workbook(path)
-    ws = wb.active
+    apartments = (
+        db.query(ApartmentUnit)
+        .filter(ApartmentUnit.complex_id == complex_obj.id)
+        .order_by(
+            ApartmentUnit.block_name.asc(),
+            ApartmentUnit.floor.asc(),
+            ApartmentUnit.unit_number.asc(),
+        )
+        .all()
+    )
 
-    # Считываем заголовки из первой строки
-    headers = [cell.value for cell in ws[1]]
-
-    grid = []
-    # Проходим по строкам с 2 по max_row
-    for i in range(2, ws.max_row + 1):
-        row_obj = {}
-        for j, h in enumerate(headers, start=1):
-            row_obj[h] = ws.cell(row=i, column=j).value
-        grid.append(row_obj)
+    grid: List[Dict[str, Any]] = []
+    for unit in apartments:
+        row: Dict[str, Any] = {
+            "block": unit.block_name,
+            "unit_type": unit.unit_type,
+            "status": unit.status,
+            "rooms": unit.rooms,
+            "number": unit.unit_number,
+            "area": unit.area_sqm,
+            "floor": unit.floor,
+        }
+        if unit.raw_payload:
+            row.update(unit.raw_payload)
+        grid.append(row)
 
     return {"grid": grid}
 
 
 @router.put("/complexes/chess", summary="Update chess grid statuses")
-async def update_chess(data: ChessUpdates):
+async def update_chess(data: ChessUpdates, db: Session = Depends(get_db)):
     """
     Принимает JSON:
     {
@@ -1107,24 +1182,59 @@ async def update_chess(data: ChessUpdates):
       ]
     }
     """
-    not_found = []
+    not_found: List[str] = []
+    updated = 0
+
     for upd in data.updates:
-        jk_dir = os.path.join(BASE_STATIC_PATH, upd.jkName)
-        path = os.path.join(jk_dir, "jk_data.xlsx")
-        if not os.path.exists(path):
-            not_found.append(f"{upd.jkName}: файл не найден")
+        try:
+            complex_obj = _get_db_complex(db, upd.jkName)
+        except HTTPException:
+            not_found.append(f"{upd.jkName}: комплекс не найден")
             continue
 
-        success = find_row_and_update_status(path, upd)
-        if not success:
+        normalized_number = _normalize_unit_number(upd.apartmentNumber)
+        candidates = (
+            db.query(ApartmentUnit)
+            .filter(
+                ApartmentUnit.complex_id == complex_obj.id,
+                ApartmentUnit.floor == upd.floor,
+                ApartmentUnit.unit_number == normalized_number,
+            )
+            .all()
+        )
+
+        target_unit = next(
+            (
+                unit for unit in candidates
+                if _normalize_block_name(unit.block_name) == _normalize_block_name(upd.blockName)
+            ),
+            None,
+        )
+
+        if not target_unit:
             not_found.append(
                 f"{upd.jkName} — Блок={upd.blockName}, этаж={upd.floor}, кв={upd.apartmentNumber}"
             )
+            continue
+
+        target_unit.status = upd.newStatus
+        payload = dict(target_unit.raw_payload or {})
+        for key in list(payload.keys()):
+            if isinstance(key, str) and "статус" in key.lower():
+                payload[key] = upd.newStatus
+        target_unit.raw_payload = payload or None
+        updated += 1
+
+    if updated:
+        db.commit()
+        await invalidate_complex_cache()
+    else:
+        db.rollback()
 
     if not_found:
         raise HTTPException(status_code=404, detail={"not_updated": not_found})
 
-    return {"detail": "Все статусы успешно сохранены"}
+    return {"detail": "Все статусы успешно сохранены", "updated": updated}
 
 
 # --- Новый эндпоинт для замены файла в папке ЖК ---
@@ -1132,7 +1242,8 @@ async def update_chess(data: ChessUpdates):
 async def replace_file(
         name: str = Form(..., description="Название жилого комплекса (jkName)"),
         category: str = Form(..., description="Категория файла: 'jk_data', 'price', 'template', 'registry', 'tamplate_empty'"),
-        file: UploadFile = File(..., description="Загружаемый файл")
+        file: UploadFile = File(..., description="Загружаемый файл"),
+        db: Session = Depends(get_db),
 ):
     """
     Загружает новый файл и заменяет существующий в папке ЖК.
@@ -1141,6 +1252,8 @@ async def replace_file(
     complex_dir = os.path.join(BASE_STATIC_PATH, name)
     if not os.path.isdir(complex_dir):
         raise HTTPException(status_code=404, detail=f"ЖК '{name}' не найден")
+
+    complex_obj = _get_db_complex(db, name)
 
     # Определяем имя файла на сервере по категории
     filename_map = {
@@ -1155,39 +1268,61 @@ async def replace_file(
         raise HTTPException(status_code=400, detail=f"Неизвестная категория файла: {category}")
 
     target_path = os.path.join(complex_dir, target_filename)
-    # Сохраняем загруженный файл, перезаписывая существующий
     try:
         with open(target_path, "wb") as out_file:
             shutil.copyfileobj(file.file, out_file)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при сохранении файла: {e}")
 
-    return {"status": "success", "message": f"Файл '{target_filename}' заменён в ЖК '{name}'"}
+    imports_summary: Dict[str, Any] = {}
+
+    try:
+        if category == "jk_data":
+            apartments = import_chess_from_excel(db, complex_obj, target_path)
+            imports_summary["apartments"] = apartments
+        elif category == "price":
+            prices = import_price_from_excel(db, complex_obj, target_path)
+            imports_summary["prices"] = prices
+        elif category == "registry":
+            contracts = import_contract_registry_from_excel(db, complex_obj, target_path)
+            imports_summary["contracts"] = contracts
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка при импорте данных из Excel: {exc}") from exc
+
+    await invalidate_complex_cache()
+
+    return {
+        "status": "success",
+        "message": f"Файл '{target_filename}' заменён в ЖК '{name}'",
+        "imports": imports_summary,
+    }
 
 
 # --- Новый эндпоинт: Получить все забронированные квартиры ---
 @router.get("/reserved-apartments", summary="Get reserved apartments for a given residential complex")
-async def get_reserved_apartments(jkName: str):
-    file_path = EXCEL_FILE_PATHS.get(jkName)
-    if not file_path or not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail=f"Excel file not found for '{jkName}'")
-    wb = load_workbook(file_path, data_only=True)
-    ws = wb.active
+async def get_reserved_apartments(jkName: str, db: Session = Depends(get_db)):
+    complex_obj = _get_db_complex(db, jkName)
 
-    block_col = col_letter_to_index(COLUMN_MAPPING["blockName"])
-    floor_col = col_letter_to_index(COLUMN_MAPPING["floor"])
-    apt_col = col_letter_to_index(COLUMN_MAPPING["apartmentNumber"])
-    status_col = col_letter_to_index(COLUMN_MAPPING["status"])
+    reserved_units = (
+        db.query(ApartmentUnit)
+        .filter(
+            ApartmentUnit.complex_id == complex_obj.id,
+            func.lower(ApartmentUnit.status) == "бронь",
+        )
+        .all()
+    )
 
-    reserved = []
-    for row_idx in range(DATA_START_ROW, ws.max_row + 1):
-        status_val = ws.cell(row=row_idx, column=status_col).value
-        if str(status_val).strip().lower() == "бронь":
-            reserved.append({
-                "blockName": ws.cell(row=row_idx, column=block_col).value,
-                "floor": ws.cell(row=row_idx, column=floor_col).value,
-                "apartmentNumber": ws.cell(row=row_idx, column=apt_col).value
-            })
+    reserved = [
+        {
+            "blockName": unit.block_name,
+            "floor": unit.floor,
+            "apartmentNumber": unit.unit_number,
+        }
+        for unit in reserved_units
+    ]
+
     return {"reservedApartments": reserved}
 
 
@@ -1197,29 +1332,34 @@ async def get_apartment_status(
         jkName: str = Query(..., description="Name of the residential complex"),
         blockName: str = Query(..., description="Block name"),
         floor: int = Query(..., description="Floor number"),
-        apartmentNumber: Union[int, str] = Query(..., description="Apartment number")
+        apartmentNumber: Union[int, str] = Query(..., description="Apartment number"),
+        db: Session = Depends(get_db),
 ):
-    file_path = EXCEL_FILE_PATHS.get(jkName)
-    if not file_path or not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail=f"Excel file not found for '{jkName}'")
-    wb = load_workbook(file_path, data_only=True)
-    ws = wb.active
+    complex_obj = _get_db_complex(db, jkName)
 
-    block_col = col_letter_to_index(COLUMN_MAPPING["blockName"])
-    floor_col = col_letter_to_index(COLUMN_MAPPING["floor"])
-    apt_col = col_letter_to_index(COLUMN_MAPPING["apartmentNumber"])
-    status_col = col_letter_to_index(COLUMN_MAPPING["status"])
+    normalized_number = _normalize_unit_number(apartmentNumber)
+    candidates = (
+        db.query(ApartmentUnit)
+        .filter(
+            ApartmentUnit.complex_id == complex_obj.id,
+            ApartmentUnit.floor == floor,
+            ApartmentUnit.unit_number == normalized_number,
+        )
+        .all()
+    )
 
-    for row_idx in range(DATA_START_ROW, ws.max_row + 1):
-        cell_block = ws.cell(row=row_idx, column=block_col).value
-        cell_floor = ws.cell(row=row_idx, column=floor_col).value
-        cell_apt = ws.cell(row=row_idx, column=apt_col).value
+    target_unit = next(
+        (
+        unit for unit in candidates
+        if _normalize_block_name(unit.block_name) == _normalize_block_name(blockName)
+        ),
+        None,
+    )
 
-        if str(cell_block).strip().lower() == blockName.strip().lower() and cell_floor == floor and str(
-                cell_apt) == str(apartmentNumber):
-            status_val = ws.cell(row=row_idx, column=status_col).value
-            return {"apartmentStatus": status_val}
-    raise HTTPException(status_code=404, detail="Apartment not found")
+    if not target_unit:
+        raise HTTPException(status_code=404, detail="Apartment not found")
+
+    return {"apartmentStatus": target_unit.status}
 
 
 # --- Новый эндпоинт: Скачать один из трех файлов для ЖК ---

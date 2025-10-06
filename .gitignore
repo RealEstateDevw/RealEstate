@@ -128,6 +128,7 @@ data.db
 logs/
 static/media/temp_files/*
 !static/media/temp_files/.gitkeep
+backend/static/floorplans/**/*__*.png
 
 # IDE
 .vscode/

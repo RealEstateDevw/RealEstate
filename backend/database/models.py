@@ -7,7 +7,7 @@ from backend.api.leads.schemas import LeadState, LeadStatus
 from backend.api.rop.schemas import ExpenseCategory
 from backend.database import Base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Time, ARRAY, Date, JSON, Float, Enum, Text, \
-    Boolean
+    Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 
@@ -512,4 +512,118 @@ class Campaign(Base):
         return (
             f"<Campaign(id={self.id}, name={self.name!r}, "
             f"platform={self.platform.value}, status={self.status.value})>"
+        )
+
+
+class ResidentialComplex(Base):
+    __tablename__ = 'residential_complexes'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    slug = Column(String, unique=True, nullable=True)
+    city = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    apartments = relationship("ApartmentUnit", back_populates="complex", cascade="all, delete-orphan")
+    contract_entries = relationship("ContractRegistryEntry", back_populates="complex", cascade="all, delete-orphan")
+    price_entries = relationship("ChessboardPriceEntry", back_populates="complex", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<ResidentialComplex(id={self.id}, name={self.name!r})>"
+
+
+class ApartmentUnit(Base):
+    __tablename__ = 'apartment_units'
+
+    id = Column(Integer, primary_key=True)
+    complex_id = Column(Integer, ForeignKey('residential_complexes.id', ondelete='CASCADE'), nullable=False, index=True)
+    block_name = Column(String, nullable=False)
+    unit_type = Column(String, nullable=True)
+    status = Column(String, nullable=False)
+    rooms = Column(Integer, nullable=True)
+    unit_number = Column(String, nullable=False)
+    area_sqm = Column(Float, nullable=True)
+    floor = Column(Integer, nullable=False)
+    raw_payload = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    complex = relationship("ResidentialComplex", back_populates="apartments")
+    contracts = relationship("ContractRegistryEntry", back_populates="apartment")
+
+    __table_args__ = (
+        UniqueConstraint('complex_id', 'block_name', 'floor', 'unit_number', name='uq_apartment_unit'),
+    )
+
+    def __repr__(self):
+        return (
+            f"<ApartmentUnit(id={self.id}, complex={self.complex_id}, block={self.block_name!r}, "
+            f"unit={self.unit_number!r}, status={self.status!r})>"
+        )
+
+
+class ContractRegistryEntry(Base):
+    __tablename__ = 'contract_registry_entries'
+
+    id = Column(Integer, primary_key=True)
+    complex_id = Column(Integer, ForeignKey('residential_complexes.id', ondelete='CASCADE'), nullable=False, index=True)
+    apartment_id = Column(Integer, ForeignKey('apartment_units.id', ondelete='SET NULL'), nullable=True, index=True)
+    contract_number = Column(String, nullable=False)
+    contract_date = Column(Date, nullable=False)
+    block_name = Column(String, nullable=True)
+    floor = Column(Integer, nullable=True)
+    apartment_number = Column(String, nullable=True)
+    rooms = Column(Integer, nullable=True)
+    area_sqm = Column(Float, nullable=True)
+    total_price = Column(Float, nullable=True)
+    price_per_sqm = Column(Float, nullable=True)
+    down_payment_percent = Column(Float, nullable=True)
+    down_payment_amount = Column(Float, nullable=True)
+    buyer_full_name = Column(String, nullable=False)
+    buyer_passport_series = Column(String, nullable=True)
+    buyer_pinfl = Column(String, nullable=True)
+    issued_by = Column(String, nullable=True)
+    registration_address = Column(Text, nullable=True)
+    phone_number = Column(String, nullable=True)
+    sales_department = Column(String, nullable=True)
+    extra_data = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    complex = relationship("ResidentialComplex", back_populates="contract_entries")
+    apartment = relationship("ApartmentUnit", back_populates="contracts")
+
+    __table_args__ = (
+        UniqueConstraint('complex_id', 'contract_number', name='uq_contract_registry_contract'),
+    )
+
+    def __repr__(self):
+        return f"<ContractRegistryEntry(id={self.id}, contract={self.contract_number!r})>"
+
+
+class ChessboardPriceEntry(Base):
+    __tablename__ = 'chessboard_price_entries'
+
+    id = Column(Integer, primary_key=True)
+    complex_id = Column(Integer, ForeignKey('residential_complexes.id', ondelete='CASCADE'), nullable=False, index=True)
+    floor = Column(Integer, nullable=False)
+    category_key = Column(String, nullable=False)
+    price_per_sqm = Column(Float, nullable=False)
+    order_index = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    complex = relationship("ResidentialComplex", back_populates="price_entries")
+
+    __table_args__ = (
+        UniqueConstraint('complex_id', 'floor', 'category_key', name='uq_chessboard_price_entry'),
+    )
+
+    def __repr__(self):
+        return (
+            f"<ChessboardPriceEntry(id={self.id}, complex={self.complex_id}, floor={self.floor}, "
+            f"category={self.category_key!r})>"
         )

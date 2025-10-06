@@ -42,6 +42,7 @@ from backend.core.static import CachedStaticFiles
 from backend.core.rate_limiter import RateLimitMiddleware
 from backend.core.logging_config import setup_logging
 from backend.database.userservice import get_user_by_login, get_all_users
+from backend.core.cache_utils import warmup_complex_caches
 from config import logger, templates
 from backend.crm.admin.main import router as admin_router
 from backend.crm.seller.main import router as seller_router
@@ -135,6 +136,21 @@ async def on_startup():
     # Можно также выполнить первоначальную загрузку данных, если необходимо:
     Base.metadata.create_all(bind=engine)  # Создание таблиц, если их нет
     init_roles()
+    try:
+        await warmup_complex_caches()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"Cache warmup failed: {exc}")
+    asyncio.create_task(_periodic_cache_warmup())
+
+
+async def _periodic_cache_warmup(interval_seconds: int = 900) -> None:
+    """Re-populates caches on a rolling schedule to keep landing data fresh."""
+    while True:
+        await asyncio.sleep(interval_seconds)
+        try:
+            await warmup_complex_caches()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"Scheduled cache warmup failed: {exc}")
     # asyncio.get_event_loop().create_task(run_bot())
     # await bot.set_webhook(WEBHOOK_URL, allowed_updates=USED_UPDATE_TYPES)
     # dp.include_router(draw_router)

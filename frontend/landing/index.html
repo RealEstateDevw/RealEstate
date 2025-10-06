@@ -225,141 +225,279 @@
             }
         }
         
-        /* Social Links Styling */
+        /* Social & footer styling */
         .social-links {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
         }
-        
         .social-link {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border-radius: 12px;
             text-decoration: none;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
+            color: #f3efe3;
+            background: rgba(243, 239, 227, 0.08);
+            border: 1px solid rgba(210, 174, 109, 0.2);
+            transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+        }
+        .social-link svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        .social-link:hover {
+            transform: translateY(-2px);
+            background: rgba(210, 174, 109, 0.16);
+            border-color: rgba(210, 174, 109, 0.45);
+        }
+        .social-link--instagram { color: #e67184; }
+        .social-link--telegram { color: #51b4ff; }
+        .social-link--mail { color: #d2ae6d; }
+
+        .landing-footer {
             position: relative;
+            background: linear-gradient(180deg, #08112d 0%, #040819 100%);
+            color: #f3efe3;
+            padding: 72px 0 36px;
+            margin-top: 100px;
             overflow: hidden;
         }
-        
-        .social-link::before {
+        .landing-footer::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.12), transparent 55%),
+                        radial-gradient(circle at 80% 30%, rgba(97, 161, 255, 0.08), transparent 60%);
+            opacity: 0.6;
+            pointer-events: none;
         }
-        
-        .social-link:hover::before {
-            opacity: 1;
-        }
-        
-        .social-link:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-        }
-        
-        .social-link--instagram {
-            background: linear-gradient(135deg, #E4405F 0%, #C13584 100%);
-            color: white;
-            border-color: #E4405F;
-        }
-        
-        .social-link--instagram:hover {
-            background: linear-gradient(135deg, #C13584 0%, #A02D6B 100%);
-            border-color: #C13584;
-        }
-        
-        .social-link--telegram {
-            background: linear-gradient(135deg, #0088CC 0%, #0066AA 100%);
-            color: white;
-            border-color: #0088CC;
-        }
-        
-        .social-link--telegram:hover {
-            background: linear-gradient(135deg, #0066AA 0%, #004488 100%);
-            border-color: #0066AA;
-        }
-        
-        .social-link svg {
-            width: 24px;
-            height: 24px;
-            stroke: currentColor;
-            stroke-width: 2;
-            transition: transform 0.3s ease;
-        }
-        
-        .social-link:hover svg {
-            transform: scale(1.1);
-        }
-        
-        /* Map Styling Improvements */
-        .contacts-map {
-            margin-top: 32px;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            background: #fff;
-        }
-        
-        .map-placeholder {
+        .landing-footer .container {
             position: relative;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            padding: 24px;
-            border-radius: 16px;
+            max-width: 1200px;
         }
-        
-        .map-placeholder p {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1e293b;
-            margin: 0 0 16px 0;
-            text-align: center;
+        .landing-footer a {
+            color: inherit;
+            transition: color 0.2s ease;
         }
-        
-        .map-links {
+        .landing-footer a:hover {
+            color: #d2ae6d;
+        }
+        .footer-main {
             display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-bottom: 20px;
+            gap: 48px;
             flex-wrap: wrap;
+            align-items: stretch;
         }
-        
-        .map-link {
+        .footer-info {
+            flex: 1 1 420px;
+        }
+        .footer-title {
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #d2ae6d;
+            margin-bottom: 28px;
+        }
+        .footer-location {
+            padding: 18px 0;
+            border-bottom: 1px solid rgba(210, 174, 109, 0.25);
+            line-height: 1.7;
+        }
+        .footer-location:last-of-type { border-bottom: none; }
+        .footer-location p {
+            color: rgba(243, 239, 227, 0.85);
+            margin: 4px 0;
+        }
+        .footer-location a {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #216BF4 0%, #3d8bff 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(33, 107, 244, 0.3);
+            margin-top: 8px;
+            font-weight: 600;
+            color: #d2ae6d;
         }
-        
-        .map-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(33, 107, 244, 0.4);
-            background: linear-gradient(135deg, #1d5bb8 0%, #2563eb 100%);
+        .footer-location a svg { width: 16px; height: 16px; }
+        .footer-map {
+            position: relative;
+            flex: 1 1 360px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
         }
-        
-        .map-frame {
+        .footer-map iframe {
             width: 100%;
-            height: 400px;
+            height: 100%;
+            min-height: 340px;
             border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            filter: grayscale(1) contrast(1.1) brightness(1.05);
+        }
+        .footer-map__pin {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(12, 26, 58, 0.85);
+            border: 2px solid rgba(210, 174, 109, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #f3efe3;
+            box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45);
+            pointer-events: none;
+        }
+        .footer-map__pin::after {
+            content: '';
+            position: absolute;
+            bottom: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid rgba(12, 26, 58, 0.85);
+            filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.35));
+        }
+        .footer-map__pin--rassvet { top: 40%; left: 44%; }
+        .footer-map__pin--bahor { top: 60%; left: 68%; }
+        .footer-wrap {
+            display: flex;
+            gap: 48px;
+            flex-wrap: wrap;
+            margin-top: 60px;
+            border-top: 1px solid rgba(210, 174, 109, 0.25);
+            padding-top: 32px;
+        }
+        .footer-item { flex: 1 1 220px; }
+        .footer-item__title {
+            font-size: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            color: #d2ae6d;
+        }
+        .footer-item__text a,
+        .footer-item__text p {
+            font-size: 15px;
+            margin: 4px 0;
+        }
+        .footer-note {
+            margin-top: 26px;
+            background: rgba(7, 13, 30, 0.6);
+            padding: 20px 24px;
+            border-radius: 18px;
+            line-height: 1.7;
+            font-size: 14px;
+            color: rgba(243, 239, 227, 0.85);
+        }
+        .footer-copy {
+            margin-top: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            font-size: 14px;
+            color: rgba(243, 239, 227, 0.7);
+        }
+        @media (max-width: 768px) {
+            .landing-footer { padding: 56px 0 28px; }
+            .footer-main { flex-direction: column; }
+            .footer-map iframe { min-height: 260px; }
+            .footer-wrap { flex-direction: column; gap: 28px; }
+            .footer-copy { flex-direction: column; align-items: flex-start; gap: 8px; }
+        }
+
+        .contacts-section {
+            background: linear-gradient(135deg, #0c1332 0%, #050a1c 100%);
+            color: #f2f2fa;
+            padding: 80px 0;
+        }
+        .contacts-content {
+            display: flex;
+            gap: 48px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .office-locations { flex: 1 1 420px; }
+        .contacts-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 32px;
+            letter-spacing: 0.05em;
+            color: #d2ae6d;
+        }
+        .office-location {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 18px 35px rgba(5, 10, 28, 0.35);
+        }
+        .office-location h3 { font-size: 22px; margin-bottom: 6px; }
+        .office-info .office-type { color: rgba(243, 239, 227, 0.6); margin-bottom: 8px; }
+        .office-info .location-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #d2ae6d;
+        }
+        .contact-item h4 {
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(243, 239, 227, 0.65);
+            margin-bottom: 6px;
+        }
+        .contact-item a { font-size: 16px; }
+        .contacts-map {
+            flex: 1 1 360px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+        }
+        .map-placeholder {
+            background: rgba(5, 11, 28, 0.55);
+            padding: 20px;
+            border-radius: 24px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .map-placeholder iframe {
+            flex: 1;
+            border-radius: 18px;
+            border: none;
+        }
+        .map-placeholder p {
+            font-size: 18px;
+            font-weight: 600;
+            color: rgba(243, 239, 227, 0.8);
+            margin: 0;
+        }
+        .map-links {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .map-link {
+            font-weight: 600;
+            color: #d2ae6d;
+            text-decoration: none;
+        }
+        .map-link:hover { color: #f8f4e8; }
+        .trust-line {
+            margin-top: 38px;
+            font-size: 16px;
+            color: rgba(243, 239, 227, 0.7);
+            text-align: center;
         }
         
         .map-frame:hover {
@@ -569,7 +707,7 @@
                 <span class="logo-text">ISMConstructions</span>
             </a>
             <div class="header-buttons">
-                <a href="#contacts" class="header-btn header-btn--phone">
+                <a href="#footer" class="header-btn header-btn--phone">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                         <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="#216BF4"/>
                     </svg>
@@ -626,7 +764,7 @@
                         <button class="mobile-complex-toggle__btn" data-role="complex-button" data-complex="bahor" type="button">ЖК Бахор</button>
                     </div>
                 </div>
-                <a href="#contacts" class="mobile-menu-link">
+                <a href="#footer" class="mobile-menu-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                         <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="#216BF4"/>
                     </svg>
@@ -825,114 +963,100 @@
             </div>
         </section>
 
-        <section class="contacts-section" id="contacts">
-            <div class="container">
-                <div class="contacts-content">
-                    <div class="office-locations">
-                        <h2 class="contacts-title">Контакты</h2>
-                        <div class="section-complex-toggle" data-role="section-toggle">
-                            <button class="complex-toggle__btn active" data-role="complex-button" data-complex="rassvet" type="button">ЖК Рассвет</button>
-                            <button class="complex-toggle__btn" data-role="complex-button" data-complex="bahor" type="button">ЖК Бахор</button>
-                        </div>
-                        <div class="office-location">
-                            <div class="office-info">
-                                <h3 data-role="contacts-heading"></h3>
-                                <p class="office-type">Главный офис</p>
-                                <a href="#" class="location-link" data-role="contact-location"></a>
-                            </div>
-                            <div class="contact-details">
-                                <div class="contact-item">
-                                    <h4>Телефон</h4>
-                                    <a href="tel:+998971234567" class="phone-link">+998 97 123 45 67</a>
-                                </div>
-                                <div class="contact-item">
-                                    <h4>Социальные сети</h4>
-                                    <div class="social-links">
-                                        <a href="https://www.instagram.com/ism_construction?igsh=MW96amh6bnpzcTFpdw==" target="_blank" class="social-link social-link--instagram" title="Instagram">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" stroke-width="2"/>
-                                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="currentColor" stroke-width="2"/>
-                                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="currentColor" stroke-width="2"/>
-                                            </svg>
-                                        </a>
-                                        <a href="https://t.me/ISMRASSVET" target="_blank" class="social-link social-link--telegram" title="Telegram">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                                <path d="M22 2L2 10L8 13L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M22 2L15 22L8 13L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="contact-item">
-                                    <h4>График работы</h4>
-                                    <div class="working-hours">
-                                        <p>Пн-Вс: 10:00 - 19:00</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Central Office Section -->
-                        <div class="office-location central-office">
-                            <div class="office-info">
-                                <h3>Центральный офис продаж</h3>
-                                <p class="office-type">Главный офис</p>
-                                <a href="#" class="location-link">📍 Ташкентская область, г. Чирчик, Кимёгарлар МСГ, Амир Темур дом №125</a>
-                            </div>
-                            <div class="contact-details">
-                                <div class="contact-item">
-                                    <h4>Телефон</h4>
-                                    <a href="tel:+998971234567" class="phone-link">+998 97 123 45 67</a>
-                                </div>
-                                <div class="contact-item">
-                                    <h4>Социальные сети</h4>
-                                    <div class="social-links">
-                                        <a href="https://www.instagram.com/ism_construction?igsh=MW96amh6bnpzcTFpdw==" target="_blank" class="social-link social-link--instagram" title="Instagram">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" stroke-width="2"/>
-                                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="currentColor" stroke-width="2"/>
-                                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="currentColor" stroke-width="2"/>
-                                            </svg>
-                                        </a>
-                                        <a href="https://t.me/ISMRASSVET" target="_blank" class="social-link social-link--telegram" title="Telegram">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                                <path d="M22 2L2 10L8 13L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M22 2L15 22L8 13L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="contact-item">
-                                    <h4>График работы</h4>
-                                    <div class="working-hours">
-                                        <p>Пн-Вс: 10:00 - 19:00</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="contacts-map">
-                            <div class="map-placeholder">
-                                <p data-role="contact-map-label"></p>
-                                <div class="map-links">
-                                    <a href="#" class="map-link" data-role="contact-map-link" data-map="google">Открыть в Google Maps</a>
-                                    <a href="#" class="map-link" data-role="contact-map-link" data-map="yandex">Открыть в Яндекс.Картах</a>
-                                </div>
-                                <iframe class="map-frame" data-role="map-frame" src="" allowfullscreen loading="lazy"></iframe>
-                            </div>
-                        </div>
+        
+    </main>
+    <footer class="landing-footer" id="footer">
+        <div class="container">
+            <div class="footer-main">
+                <div class="footer-info">
+                    <h2 class="footer-title">Отделы продаж</h2>
+                    <div class="footer-location">
+                        <p>г. Ташкент, ул. Навои, 15</p>
+                        <p>(Офис продаж ЖК «Рассвет»)</p>
+                        <p>Тел.: <a href="tel:+998901234567">+998 90 123 45 67</a></p>
+                        <a href="https://yandex.uz/maps/114900/chirchiq/?ll=69.571266%2C41.466346&mode=whatshere&whatshere%5Bpoint%5D=69.570498%2C41.467903&whatshere%5Bzoom%5D=20&z=17.34" target="_blank" rel="noreferrer">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C7.58 2 4 5.58 4 10C4 15.25 10.55 21.54 11.1 22.07C11.6 22.55 12.39 22.55 12.89 22.07C13.45 21.54 20 15.25 20 10C20 5.58 16.42 2 12 2ZM12 12.5C10.62 12.5 9.5 11.38 9.5 10C9.5 8.62 10.62 7.5 12 7.5C13.38 7.5 14.5 8.62 14.5 10C14.5 11.38 13.38 12.5 12 12.5Z" fill="currentColor"/>
+                            </svg>
+                            <span>Показать на карте</span>
+                        </a>
                     </div>
-                    
+                    <div class="footer-location">
+                        <p>г. Ташкент, ул. Амира Темура, 25</p>
+                        <p>(Офис продаж ЖК «Бахор»)</p>
+                        <p>Тел.: <a href="tel:+998901234567">+998 90 123 45 67</a></p>
+                        <a href="https://yandex.uz/maps/114900/chirchiq/?ll=69.548823%2C41.461406&mode=whatshere&whatshere%5Bpoint%5D=69.549232%2C41.461742&whatshere%5Bzoom%5D=18.22&z=17.6" target="_blank" rel="noreferrer">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C7.58 2 4 5.58 4 10C4 15.25 10.55 21.54 11.1 22.07C11.6 22.55 12.39 22.55 12.89 22.07C13.45 21.54 20 15.25 20 10C20 5.58 16.42 2 12 2ZM12 12.5C10.62 12.5 9.5 11.38 9.5 10C9.5 8.62 10.62 7.5 12 7.5C13.38 7.5 14.5 8.62 14.5 10C14.5 11.38 13.38 12.5 12 12.5Z" fill="currentColor"/>
+                            </svg>
+                            <span>Показать на карте</span>
+                        </a>
+                    </div>
                 </div>
-                <div class="trust-line">
-                    <p>Доверьте нам свою мечту о новом доме</p>
-                </div>
-                <div class="copyright">
-                    <p>© 2025 Buildings. Все права защищены.</p>
+                <div class="footer-map">
+                    <iframe class="map-frame" src="https://yandex.uz/map-widget/v1/?ll=69.571266%2C41.466346&mode=whatshere&whatshere%5Bpoint%5D=69.570498%2C41.467903&whatshere%5Bzoom%5D=20&z=17.34" allowfullscreen loading="lazy"></iframe>
+                    <div class="footer-map__pin footer-map__pin--rassvet">RS</div>
+                    <div class="footer-map__pin footer-map__pin--bahor">BH</div>
                 </div>
             </div>
-        </section>
-    </main>
+            <div class="footer-wrap">
+                <div class="footer-item">
+                    <div class="footer-item__title">Телефон</div>
+                    <div class="footer-item__text">
+                        <a href="tel:+998901234567">+998 90 123 45 67</a>
+                        <p>Единая линия продаж</p>
+                    </div>
+                </div>
+                <div class="footer-item">
+                    <div class="footer-item__title">Мы в соцсетях</div>
+                    <div class="footer-item__text">
+                        <div class="social-links">
+                            <a href="https://t.me/ISMConstructions" target="_blank" rel="noreferrer" class="social-link social-link--telegram" title="Telegram">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                                    <path d="M22 2L2 10L8.2 12.4L18.7 5.6L9.6 13.5L9.5 19.8L13.1 16.7L18.5 20.7L22 2Z" fill="currentColor"/>
+                                </svg>
+                            </a>
+                            <a href="https://www.instagram.com/ISMConstructions" target="_blank" rel="noreferrer" class="social-link social-link--instagram" title="Instagram">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37Z" stroke="currentColor" stroke-width="2"/>
+                                    <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/>
+                                </svg>
+                            </a>
+                            <a href="mailto:info@ismconstructions.uz" target="_blank" rel="noreferrer" class="social-link social-link--mail" title="Email">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                                    <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M22 6L12 13L2 6" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-item">
+                    <div class="footer-item__title">График работы</div>
+                    <div class="footer-item__text">
+                        <p>Пн-Пт: 09:00 - 18:00</p>
+                        <p>Сб-Вс: 10:00 - 16:00</p>
+                    </div>
+                </div>
+                <div class="footer-item">
+                    <div class="footer-item__title">Электронная почта</div>
+                    <div class="footer-item__text">
+                        <a href="mailto:info@ismconstructions.uz">info@ismconstructions.uz</a>
+                        <p>Ответим в течение рабочего дня</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-note">
+                Если у вас остались вопросы или вы хотите записаться на просмотр квартир, пожалуйста, позвоните нам или оставьте заявку на сайте — менеджер свяжется с вами в ближайшее время.
+            </div>
+            <div class="footer-copy">
+                <p>© 2025 ISMConstructions. Все права защищены.</p>
+                <p>Разработка: внутренняя команда ISM</p>
+            </div>
+        </div>
+    </footer>
+
 
     <div id="conditionModal" class="condition-modal" style="display: none;">
         <div class="condition-modal-content">
