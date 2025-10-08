@@ -3653,7 +3653,21 @@
                 // Добавьте остальные блоки и скорректируйте координаты
             };
 
-            const uniqueBlocks = [...new Set(shaxmatkaData.map(row => row[0]))];
+            let uniqueBlocks = [...new Set(shaxmatkaData.map(row => row[0]))];
+            
+            // Сортируем блоки для ЖК Бахор в правильном порядке
+            if (jkName === 'ЖК_Бахор') {
+                const blockOrder = ['Блок 1', 'Блок 1,1', 'Блок 1,2', 'Блок 1,3', 'Блок 2', 'Блок 3', 'Блок 3,1', 'Блок 3,2', 'Блок-1', 'Блок-1,1'];
+                uniqueBlocks = uniqueBlocks.sort((a, b) => {
+                    const indexA = blockOrder.indexOf(a);
+                    const indexB = blockOrder.indexOf(b);
+                    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+                    if (indexA === -1) return 1;
+                    if (indexB === -1) return -1;
+                    return indexA - indexB;
+                });
+            }
+            
             uniqueBlocks.forEach(blockName => {
                 const btn = document.createElement('button');
                 btn.className = 'overlay-block-btn';
@@ -3824,9 +3838,22 @@
 
             jkDetailsContainer.appendChild(wrapper);
 
-            const blockNames = Array.from(new Set(shaxmatkaData
+            let blockNames = Array.from(new Set(shaxmatkaData
                 .map(row => (row[0] || '').toString().trim())
                 .filter(Boolean)));
+            
+            // Сортируем блоки для ЖК Бахор в правильном порядке
+            if (jkName === 'ЖК_Бахор') {
+                const blockOrder = ['Блок-1', 'Блок-1,1', 'Блок 1,2', 'Блок 1,3', 'Блок 2', 'Блок 3', 'Блок 3,1', 'Блок 3,2', 'Блок-1', 'Блок-1,1'];
+                blockNames = blockNames.sort((a, b) => {
+                    const indexA = blockOrder.indexOf(a);
+                    const indexB = blockOrder.indexOf(b);
+                    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+                    if (indexA === -1) return 1;
+                    if (indexB === -1) return -1;
+                    return indexA - indexB;
+                });
+            }
 
             if (chessBlockButtonsWrap) {
                 chessBlockButtonsWrap.innerHTML = '';
@@ -4947,9 +4974,10 @@
 
                         const totalPriceP = document.createElement('p');
                         totalPriceP.className = 'total-price';
-                        // Отображаем базовую цену "от" (pricePerM2_30 * size) или total_price из API?
-                        // Используем total_price из API как стартовую общую цену
-                        totalPriceP.textContent = `${Number(total_price).toLocaleString('ru-RU')} сум`;
+                        // Отображаем базовую цену "от" (pricePerM2_30 * apartmentSquare)
+                        const squareMeters = parseFloat(String(apartmentSize).replace(',', '.')) || 0;
+                        const basePrice = pricePerM2_30 * squareMeters;
+                        totalPriceP.textContent = `${Number(basePrice).toLocaleString('ru-RU')} сум`;
                         priceSection.appendChild(totalPriceP);
 
                         const pricePerMeterP = document.createElement('p');
@@ -5011,8 +5039,8 @@
                             const renderFullPayment = () => {
                                 clearSubOptions();
                                 updatePaymentChoice(100);
-                                const fullPrice = pricePerM2_100 * apartmentSquare;
-                                const economy = total_price - fullPrice;
+                                const fullPrice = pricePerM2_30 * apartmentSquare;
+                                const economy = fullPrice - total_price;
                                 userSelection.totalPrice = fullPrice;
                                 userSelection.pricePerM2 = pricePerM2_100;
                                 updateInitialPayment(fullPrice);
@@ -5023,7 +5051,7 @@
                                     <div class="summary-title">100% оплата</div>
                                     <div class="summary-row">
                                         <span class="summary-label">Стоимость квартиры</span>
-                                        <span class="summary-value">${fullPrice.toLocaleString('ru-RU')} сум</span>
+                                        <span class="summary-value">${total_price.toLocaleString('ru-RU')} сум</span>
                                     </div>
                                     ${economy > 0 ? `<div class=\"summary-row muted\"><span class=\"summary-label\">Экономия</span><span class=\"summary-value\">${economy.toLocaleString('ru-RU')} сум</span></div>` : ''}
                                 `;
@@ -5039,7 +5067,8 @@
                                 const months = months_left > 0 ? months_left : 1;
                                 const remaining = totalPriceInstallment - initialPaymentValue;
                                 const monthlyPayment = remaining / months;
-                                const economy = total_price - totalPriceInstallment;
+                                const economy = basePrice - totalPriceInstallment;
+                                console.log(total_price);
                                 userSelection.totalPrice = totalPriceInstallment;
                                 userSelection.pricePerM2 = pricePerM2;
                                 updateInitialPayment(initialPaymentValue);
