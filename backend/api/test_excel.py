@@ -11,7 +11,6 @@ from fastapi import APIRouter, HTTPException, Body, Query, Path, Depends
 from fastapi import Form, UploadFile, File
 import shutil
 from num2words import num2words
-from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
 from pydantic import BaseModel, Field
 import openpyxl
@@ -19,6 +18,7 @@ import os
 import traceback  # Для логирования ошибок
 
 from starlette.responses import StreamingResponse, FileResponse
+from urllib.parse import quote
 
 from pdf2image import convert_from_path
 from sqlalchemy import func
@@ -53,13 +53,6 @@ def col_letter_to_index(letter: str) -> int:
 
 # --- Конфигурация ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Словарь путей к файлам Excel для каждого ЖК
-EXCEL_FILE_PATHS = {
-    # !!! ЗАМЕНИТЕ НА ВАШИ РЕАЛЬНЫЕ ИМЕНА ЖК И ПУТИ !!!
-    "ЖК_Бахор": os.path.join("static", "Жилые_Комплексы", "ЖК_Бахор", "jk_data.xlsx"),
-    "ЖК_Рассвет": os.path.join("static", "Жилые_Комплексы", "ЖК_Рассвет", "jk_data.xlsx"),
-}
 
 # === НОВАЯ КОНФИГУРАЦИЯ СТОЛБЦОВ ===
 COLUMN_MAPPING = {
@@ -171,6 +164,36 @@ def _coerce_int(value: Any) -> Optional[int]:
     except ValueError:
         return None
 
+def _find_apartment_unit(
+        db: Session,
+        complex_id: int,
+        block_name: Any,
+        floor: Any,
+        apartment_number: Any,
+) -> Optional[ApartmentUnit]:
+    normalized_number = _normalize_unit_number(apartment_number)
+    floor_int = _coerce_int(floor)
+    if not normalized_number or floor_int is None:
+        return None
+
+    candidates = (
+        db.query(ApartmentUnit)
+        .filter(
+            ApartmentUnit.complex_id == complex_id,
+            ApartmentUnit.floor == floor_int,
+            ApartmentUnit.unit_number == normalized_number,
+        )
+        .all()
+    )
+    block_norm = _normalize_block_name(block_name)
+    return next(
+        (
+            unit for unit in candidates
+            if _normalize_block_name(unit.block_name) == block_norm
+        ),
+        None,
+    )
+
 
 def _render_numeric_like(value: Any) -> Any:
     if value is None:
@@ -204,78 +227,46 @@ def _extract_contract_sequence(value: Any) -> Optional[int]:
         return None
 
 
-# --- Обновленная Логика обновления Excel ---
-def find_row_and_update_status(file_path: str, update_data: ApartmentStatusUpdate):
-    try:
-        workbook = openpyxl.load_workbook(file_path)
-        sheet = workbook.active
+# --- Обновленная логика работы со статусами квартир ---
+def _update_apartment_status_db(db: Session, update_data: ApartmentStatusUpdate) -> bool:
+    complex_obj = _get_db_complex(db, update_data.jkName)
+    apartment = _find_apartment_unit(
+        db,
+        complex_obj.id,
+        update_data.blockName,
+        update_data.floor,
+        update_data.apartmentNumber,
+    )
+    if not apartment:
+        return False
 
-        block_col_idx = col_letter_to_index(COLUMN_MAPPING["blockName"])
-        floor_col_idx = col_letter_to_index(COLUMN_MAPPING["floor"])
-        apt_num_col_idx = col_letter_to_index(COLUMN_MAPPING["apartmentNumber"])
-        status_col_idx = col_letter_to_index(COLUMN_MAPPING["status"])
-
-
-        target_row_idx = -1
-        for row_idx in range(DATA_START_ROW, sheet.max_row + 1):
-            cell_block = sheet.cell(row=row_idx, column=block_col_idx).value
-            cell_floor = sheet.cell(row=row_idx, column=floor_col_idx).value
-            cell_apt_num = sheet.cell(row=row_idx, column=apt_num_col_idx).value
-
-
-            try:
-                current_block = str(cell_block).strip().lower() if cell_block else ""
-                update_block = str(update_data.blockName).strip().lower()
-                matches_block = current_block == update_block
-
-                current_floor = int(cell_floor) if cell_floor is not None else None
-                matches_floor = current_floor == update_data.floor
-
-                current_apt_num = int(cell_apt_num) if cell_apt_num is not None else None
-                matches_apt_num = current_apt_num == update_data.apartmentNumber
-
-                if matches_block and matches_floor and matches_apt_num:
-                    target_row_idx = row_idx
-                    break
-
-            except (ValueError, TypeError) as e:
-                continue
-
-        if target_row_idx != -1:
-            status_cell = sheet.cell(row=target_row_idx, column=status_col_idx)
-            old_status = status_cell.value
-            status_cell.value = update_data.newStatus
-            workbook.save(file_path)
-            return True
-        else:
-            print(
-                f"Квартира не найдена: Блок={update_data.blockName}, Этаж={update_data.floor}, Кв={update_data.apartmentNumber}")
-            return False
-
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail=f"Excel file not found: {file_path}")
-    except Exception as e:
-        print(f"Ошибка при обновлении Excel: {e}")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error processing Excel file: {e}")
+    apartment.status = update_data.newStatus
+    payload = dict(apartment.raw_payload or {})
+    for key in list(payload.keys()):
+        if isinstance(key, str) and "статус" in key.lower():
+            payload[key] = update_data.newStatus
+    apartment.raw_payload = payload or None
+    return True
 
 
 @router.post("/update-status")
-async def update_excel_status_endpoint(update_data: ApartmentStatusUpdate = Body(...)):
+async def update_excel_status_endpoint(
+        update_data: ApartmentStatusUpdate = Body(...),
+        db: Session = Depends(get_db),
+):
     print(f"Запрос: {update_data.dict()}")
-    file_path = EXCEL_FILE_PATHS.get(update_data.jkName)
+    updated = _update_apartment_status_db(db, update_data)
+    if not updated:
+        return {"status": "warning", "message": f"Квартира не найдена для '{update_data.jkName}'"}
 
-    if not file_path:
-        return {"status": "warning", "message": f"Excel file path config missing for '{update_data.jkName}'"}
+    try:
+        db.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Не удалось обновить статус: {exc}") from exc
 
-    if not os.path.exists(file_path):
-        return {"status": "warning", "message": f"Excel file not found for '{update_data.jkName}'"}
-
-    success = find_row_and_update_status(file_path, update_data)
-    if success:
-        return {"status": "success", "message": "Apartment status updated successfully"}
-    else:
-        return {"status": "warning", "message": f"Apartment not found in Excel for '{update_data.jkName}'"}
+    await invalidate_complex_cache()
+    return {"status": "success", "message": "Apartment status updated successfully"}
 
 
 BASE_STATIC_PATH = "static/Жилые_Комплексы"
@@ -386,12 +377,14 @@ FLOORPLAN_IMAGES: Dict[str, List[str]] = {
 
 
 @router.post("/generate-contract")
-async def generate_contract(data: ContractData):
+async def generate_contract(
+        data: ContractData,
+        db: Session = Depends(get_db),
+):
     """Генерация договора в формате DOCX (автоматический выбор шаблона: жилой/нежилой) и обновление реестра в XLSX (docxtpl)."""
 
     jk_dir = os.path.join(BASE_STATIC_PATH, data.jkName)
     TEMPLATE_PATH = os.path.join(jk_dir, "contract_template.docx")
-    REGISTRY_PATH = os.path.join(jk_dir, "contract_registry.xlsx")
     # Выбор шаблона: жилой/нежилой
     alt_template_path = os.path.join(jk_dir, "contract_template_empty.docx")
     unit_type_val = (data.unitType or "residential").strip().lower()
@@ -402,7 +395,8 @@ async def generate_contract(data: ContractData):
 
     os.makedirs(jk_dir, exist_ok=True)
 
-    contract_number = data.contractNumber or _generate_contract_number(REGISTRY_PATH)
+    complex_obj = _get_db_complex(db, data.jkName)
+    contract_number = data.contractNumber or _generate_contract_number(db, complex_obj)
     data.contractNumber = contract_number  # Сохраняем сгенерированный номер обратно в данные
 
     if not os.path.exists(TEMPLATE_PATH):
@@ -432,54 +426,51 @@ async def generate_contract(data: ContractData):
         doc.save(contract_buffer)
         contract_buffer.seek(0)
 
-        _update_registry(REGISTRY_PATH, data)  # Обновление реестра остается прежним
+        entry, apartment = _create_contract_registry_entry(db, complex_obj, data, contract_number)
+        if apartment:
+            apartment.status = SOLD_STATUS_IN_CHESS
+            payload = dict(apartment.raw_payload or {})
+            for key in list(payload.keys()):
+                if isinstance(key, str) and "статус" in key.lower():
+                    payload[key] = SOLD_STATUS_IN_CHESS
+            apartment.raw_payload = payload or None
+
+        db.commit()
 
         contract_filename = f"contract_{contract_number}.docx"
-        return StreamingResponse(
-            contract_buffer,
-            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            headers={
-                "Content-Disposition": f"attachment; filename=\"{contract_filename}\"",
-                "Content-Length": str(contract_buffer.getbuffer().nbytes)  # Длина буфера
-            }
-        )
-
     except Exception as e:
+        db.rollback()
         # Добавим вывод traceback для лучшей диагностики
         import traceback
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Ошибка обработки договора: {str(e)}")
 
+    await invalidate_complex_cache()
+
+    return StreamingResponse(
+        contract_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={
+            "Content-Disposition": f"attachment; filename=\"{contract_filename}\"",
+            "Content-Length": str(contract_buffer.getbuffer().nbytes)
+        }
+    )
 
 # --- Вспомогательные функции ---
 
-def _generate_contract_number(registry_path: str) -> str:
-    # ... (без изменений)
-    if not os.path.exists(registry_path):
-        return "Д-0001"
-
-    try:
-        wb = load_workbook(registry_path)
-        ws = wb.active
-        last_row = ws.max_row
-        if last_row <= 1:  # Проверяем, есть ли строки с данными (не только заголовок)
-            return "Д-0001"
-
-        # Ищем последнюю непустую ячейку в столбце A, начиная с конца
-        for row_idx in range(last_row, 1, -1):
-            cell_value = ws[f"A{row_idx}"].value
-            if cell_value and isinstance(cell_value, str) and cell_value.startswith("Д-"):
-                try:
-                    last_num = int(cell_value.split('-')[1])
-                    return f"Д-{str(last_num + 1).zfill(4)}"
-                except (IndexError, ValueError):
-                    continue  # Если формат неверный, ищем дальше вверх
-        # Если не нашли подходящий номер
-        return "Д-0001"
-    except Exception as e:
-        print(f"Ошибка генерации номера договора: {e}")
-        # В случае любой ошибки, лучше вернуть базовый номер
-        return "Д-0001"
+def _generate_contract_number(db: Session, complex_obj: ResidentialComplex) -> str:
+    existing_numbers = (
+        db.query(ContractRegistryEntry.contract_number)
+        .filter(ContractRegistryEntry.complex_id == complex_obj.id)
+        .all()
+    )
+    max_seq = 0
+    for (number,) in existing_numbers:
+        seq = _extract_contract_sequence(number)
+        if seq and seq > max_seq:
+            max_seq = seq
+    next_seq = max_seq + 1
+    return f"Д-{str(next_seq).zfill(4)}"
 
 
 def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
@@ -575,8 +566,66 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     return context
 
 
-def _update_registry(registry_path: str, data: ContractData) -> None:
-    # ... (без изменений, но проверьте заголовки и порядок данных)
+def _create_contract_registry_entry(
+        db: Session,
+        complex_obj: ResidentialComplex,
+        data: ContractData,
+        contract_number: str,
+) -> tuple[ContractRegistryEntry, Optional[ApartmentUnit]]:
+    contract_date = parse_date(data.contractDate).date()
+    total_amount = clean_number(data.totalPrice)
+    price_m2 = clean_number(data.pricePerM2)
+    initial_payment = clean_number(data.initialPayment)
+    payment_choice_clean = clean_number((data.paymentChoice or "").replace("%", "")) if data.paymentChoice else None
+
+    apartment = _find_apartment_unit(
+        db,
+        complex_obj.id,
+        data.block,
+        data.floor,
+        data.apartmentNumber,
+    )
+
+    entry = ContractRegistryEntry(
+        complex_id=complex_obj.id,
+        apartment_id=apartment.id if apartment else None,
+        contract_number=contract_number,
+        contract_date=contract_date,
+        block_name=data.block,
+        floor=_coerce_int(data.floor),
+        apartment_number=_normalize_unit_number(data.apartmentNumber),
+        rooms=data.rooms,
+        area_sqm=clean_number(str(data.size)),
+        total_price=total_amount,
+        price_per_sqm=price_m2,
+        down_payment_percent=payment_choice_clean,
+        down_payment_amount=initial_payment,
+        buyer_full_name=data.fullName,
+        buyer_passport_series=data.passportSeries,
+        buyer_pinfl=data.pinfl,
+        issued_by=data.issuedBy,
+        registration_address=data.registrationAddress,
+        phone_number=data.phone,
+        sales_department=data.salesDepartment,
+        extra_data=None,
+    )
+
+    db.add(entry)
+    db.flush()
+    return entry, apartment
+
+
+@router.get("/download-contract-registry")
+async def download_contract_registry(jkName: str, db: Session = Depends(get_db)):
+    complex_obj = _get_db_complex(db, jkName)
+
+    entries = (
+        db.query(ContractRegistryEntry)
+        .filter(ContractRegistryEntry.complex_id == complex_obj.id)
+        .order_by(ContractRegistryEntry.contract_date.desc(), ContractRegistryEntry.id.desc())
+        .all()
+    )
+
     headers = [
         "№ Договора", "Дата Договора", "Блок", "Этаж", "№ КВ", "Кол-во ком",
         "Квадратура Квартиры", "Общ Стоимость Договора", "Стоимость 1 кв.м",
@@ -584,74 +633,43 @@ def _update_registry(registry_path: str, data: ContractData) -> None:
         "ПИНФЛ", "Кем выдан", "Адрес прописки", "Номер тел", "Отдел Продаж"
     ]
 
-    # Используем очищенные числовые значения там, где это нужно для реестра
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.append(headers)
 
-    total_amount = clean_number(data.totalPrice)
-    price_m2 = clean_number(data.pricePerM2)
-    initial_payment = clean_number(data.initialPayment)
+    for entry in entries:
+        sheet.append([
+            entry.contract_number,
+            entry.contract_date,
+            entry.block_name,
+            entry.floor,
+            entry.apartment_number,
+            entry.rooms,
+            entry.area_sqm,
+            entry.total_price,
+            entry.price_per_sqm,
+            entry.down_payment_percent,
+            entry.down_payment_amount,
+            entry.buyer_full_name,
+            entry.buyer_passport_series,
+            entry.buyer_pinfl,
+            entry.issued_by,
+            entry.registration_address,
+            entry.phone_number,
+            entry.sales_department,
+        ])
 
-    row = [
-        data.contractNumber,
-        data.contractDate,  # Дата как строка
-        data.block,
-        data.floor,
-        data.apartmentNumber,
-        data.rooms,
-        data.size,  # Квадратура как строка? Или число?
-        total_amount,  # Числовое значение для возможного анализа в Excel
-        price_m2,  # Числовое значение
-        (data.paymentChoice or "").replace("%", ""),  # Процент как строка без %
-        initial_payment,  # Числовое значение
-        data.fullName,
-        data.passportSeries,
-        data.pinfl,
-        data.issuedBy,
-        data.registrationAddress,
-        data.phone,
-        data.salesDepartment
-    ]
-    # Проверка типов данных перед добавлением
-    final_row = []
-    for item in row:
-        # Даты оставляем как строки или конвертируем в datetime для Excel?
-        # Если Excel должен понимать как дату, то:
-        # parsed_date = parse_date(item) if isinstance(item, str) and "." in item else item # Пример
-        final_row.append(item if item is not None else "")  # Заменяем None на пустую строку для Excel
+    buffer = BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
 
-    try:
-        wb = load_workbook(registry_path) if os.path.exists(registry_path) else Workbook()
-        ws = wb.active
-        # Проверяем, пустой ли лист или только заголовки
-        if ws.max_row == 0 or (ws.max_row == 1 and all(c.value is None for c in ws[1])):
-            print("Добавляем заголовки в реестр")
-            ws.append(headers)
+    filename = f"contract_registry_{jkName}.xlsx"
+    disposition = f"attachment; filename*=UTF-8''{quote(filename)}"
 
-        print(f"Добавляем строку в реестр: {final_row}")
-        ws.append(final_row)
-        wb.save(registry_path)
-        print(f"Реестр сохранен: {registry_path}")
-
-    except Exception as e:
-        print(f"Ошибка обновления реестра: {e}")
-        import traceback
-
-        print(traceback.format_exc())
-        # Можно перевыбросить исключение или обработать иначе
-        # raise HTTPException(status_code=500, detail=f"Ошибка обновления реестра: {str(e)}")
-
-
-@router.get("/download-contract-registry")
-async def download_contract_registry(jkName: str):
-    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
-    REGISTRY_PATH = os.path.join(jk_dir, "contract_registry.xlsx")
-
-    if not os.path.exists(REGISTRY_PATH):
-        raise HTTPException(status_code=404, detail="Реестр договоров не найден")
-
-    return FileResponse(
-        REGISTRY_PATH,
+    return StreamingResponse(
+        buffer,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename=f"contract_registry_{jkName}.xlsx"
+        headers={"Content-Disposition": disposition}
     )
 
 
@@ -689,7 +707,10 @@ async def get_contract_registry(jkName: str, db: Session = Depends(get_db)):
             "Отдел Продаж": entry.sales_department,
         }
         if entry.extra_data:
-            for key, value in entry.extra_data.items():
+            extra = dict(entry.extra_data)
+            for skip_key in ("unitType", "rawPaymentChoice"):
+                extra.pop(skip_key, None)
+            for key, value in extra.items():
                 row.setdefault(key, value)
         registry_rows.append(row)
 
@@ -803,160 +824,78 @@ def sync_chess_with_registry(db: Session, jkName: str) -> dict:
 
 
 @router.delete("/delete-contract-from-registry")
-async def delete_contract_from_registry_and_update_shaxmatka(  # Переименовал для ясности
+async def delete_contract_from_registry_and_update_shaxmatка(
         jkName: str = Query(..., description="Название жилого комплекса"),
-        contractNumber: str = Query(..., description="Номер договора для удаления (например, Д-0001)")
+        contractNumber: str = Query(..., description="Номер договора для удаления (например, Д-0001)"),
+        db: Session = Depends(get_db),
 ):
     """
-    Удаляет строку из реестра договоров и обновляет статус
-    соответствующей квартиры в шахматке на 'свободна'.
+    Удаляет договор из базы и возвращает квартиру в статус 'свободна'.
     """
-    print(f"Запрос на удаление договора и обновление шахматки: ЖК='{jkName}', Номер='{contractNumber}'")
-    jk_dir = os.path.join(BASE_STATIC_PATH, jkName)
-    REGISTRY_PATH = os.path.join(jk_dir, "contract_registry.xlsx")
+    contract_number_clean = contractNumber.strip()
+    complex_obj = _get_db_complex(db, jkName)
 
-    if not os.path.exists(REGISTRY_PATH):
-        print(f"Ошибка: Реестр не найден по пути {REGISTRY_PATH}")
-        raise HTTPException(status_code=404, detail=f"Реестр договоров для ЖК '{jkName}' не найден")
+    entry = (
+        db.query(ContractRegistryEntry)
+        .filter(
+            ContractRegistryEntry.complex_id == complex_obj.id,
+            ContractRegistryEntry.contract_number == contract_number_clean,
+        )
+        .first()
+    )
 
-    apartment_details = None  # Словарь для хранения данных квартиры из реестра
-    found_row_index = None
-    registry_headers = []
+    if not entry:
+        raise HTTPException(status_code=404, detail=f"Договор '{contractNumber}' не найден")
+
+    block_name = entry.block_name or (entry.extra_data or {}).get("Блок")
+    floor_value = entry.floor
+    if floor_value is None and entry.extra_data:
+        floor_value = _coerce_int(entry.extra_data.get("Этаж"))
+    apartment_number = entry.apartment_number or ((entry.extra_data or {}).get("№ КВ"))
+
+    apartment: Optional[ApartmentUnit] = None
+    if entry.apartment_id:
+        apartment = db.query(ApartmentUnit).filter(ApartmentUnit.id == entry.apartment_id).first()
+
+    if apartment is None and floor_value is not None and apartment_number:
+        apartment = _find_apartment_unit(
+            db,
+            complex_obj.id,
+            block_name,
+            floor_value,
+            apartment_number,
+        )
+
+    db.delete(entry)
+
+    apartment_updated = False
+    if apartment:
+        apartment.status = NEW_STATUS_ON_DELETE
+        payload = dict(apartment.raw_payload or {})
+        for key in list(payload.keys()):
+            if isinstance(key, str) and "статус" in key.lower():
+                payload[key] = NEW_STATUS_ON_DELETE
+        apartment.raw_payload = payload or None
+        apartment_updated = True
 
     try:
-        wb_registry = load_workbook(REGISTRY_PATH)
-        ws_registry = wb_registry.active
+        db.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Не удалось удалить договор: {exc}") from exc
 
-        # Читаем заголовки реестра из первой строки
-        registry_headers = [cell.value for cell in ws_registry[1]]
-        print(f"Заголовки реестра: {registry_headers}")
+    await invalidate_complex_cache()
 
-        # --- Определяем индексы нужных колонок в реестре ---
-        try:
-            col_idx_contract = registry_headers.index(REGISTRY_COLUMN_HEADERS["contractNumber"])
-            col_idx_block = registry_headers.index(REGISTRY_COLUMN_HEADERS["block"])
-            col_idx_floor = registry_headers.index(REGISTRY_COLUMN_HEADERS["floor"])
-            col_idx_apt_num = registry_headers.index(REGISTRY_COLUMN_HEADERS["apartmentNumber"])
-        except ValueError as e:
-            print(f"Критическая ошибка: Не найдены необходимые заголовки в реестре {REGISTRY_PATH}. Ошибка: {e}")
-            raise HTTPException(status_code=500,
-                                detail=f"Ошибка конфигурации реестра: отсутствуют необходимые колонки ({e}).")
+    message = f"Договор '{contractNumber}' удален из реестра."
+    if apartment_updated:
+        message += f" Статус квартиры обновлен на '{NEW_STATUS_ON_DELETE}'."
+    else:
+        message += " Не удалось определить квартиру для обновления статуса."
 
-        # Ищем строку для удаления в реестре и извлекаем данные
-        for idx, row_values in enumerate(ws_registry.iter_rows(min_row=2, values_only=True), start=2):
-            current_contract_num = str(row_values[col_idx_contract]).strip() if row_values[col_idx_contract] else ""
-
-            if current_contract_num == contractNumber.strip():
-                found_row_index = idx
-                print(f"Найден договор '{contractNumber}' в реестре, строка {found_row_index}")
-                try:
-                    # Извлекаем данные квартиры, обрабатывая возможные ошибки типа
-                    apt_block = str(row_values[col_idx_block]).strip()
-                    apt_floor = int(row_values[col_idx_floor])
-                    apt_num = int(row_values[col_idx_apt_num])
-
-                    if not apt_block:  # Проверяем, что блок не пустой
-                        raise ValueError("Название блока не может быть пустым")
-
-                    apartment_details = {
-                        "blockName": apt_block,
-                        "floor": apt_floor,
-                        "apartmentNumber": apt_num
-                    }
-                    print(f"Извлечены данные квартиры из реестра: {apartment_details}")
-                    break  # Строка найдена, выходим из цикла
-                except (ValueError, TypeError, IndexError) as e:
-                    print(
-                        f"Ошибка извлечения данных квартиры из строки {found_row_index} реестра: {e}. Данные: {row_values}")
-                    raise HTTPException(status_code=500,
-                                        detail=f"Ошибка данных в реестре для договора {contractNumber} (строка {found_row_index}): {e}")
-        # --- Конец поиска в реестре ---
-
-        if found_row_index is None:
-            print(f"Ошибка: Договор '{contractNumber}' не найден в реестре {REGISTRY_PATH}")
-            raise HTTPException(status_code=404, detail=f"Договор '{contractNumber}' не найден в реестре ЖК '{jkName}'")
-
-        # 1. Удаляем строку из реестра
-        ws_registry.delete_rows(found_row_index)
-        print(f"Строка {found_row_index} помечена для удаления из реестра.")
-
-        # Сохраняем изменения в файле реестра ПЕРЕД обновлением шахматки
-        # Это менее атомарно, но проще в реализации. Если обновление шахматки не удастся,
-        # реестр уже будет изменен.
-        try:
-            wb_registry.save(REGISTRY_PATH)
-            print(f"Реестр сохранен: {REGISTRY_PATH}")
-        except PermissionError:
-            print(
-                f"КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить реестр {REGISTRY_PATH} после удаления строки. Файл может быть открыт.")
-            # Важно сообщить об ошибке, так как реестр не обновлен
-            raise HTTPException(status_code=500,
-                                detail="Не удалось сохранить изменения в реестре после удаления строки. Возможно, файл открыт.")
-        except Exception as save_err:
-            print(
-                f"КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить реестр {REGISTRY_PATH} после удаления строки. Ошибка: {save_err}")
-            raise HTTPException(status_code=500, detail=f"Неизвестная ошибка при сохранении реестра: {save_err}")
-
-        # 2. Обновляем статус в шахматке
-        shaxmatka_updated = False
-        if apartment_details:
-            shaxmatka_path = EXCEL_FILE_PATHS.get(jkName)
-            if not shaxmatka_path:
-                print(f"Предупреждение: Путь к файлу шахматки для ЖК '{jkName}' не найден в конфигурации.")
-                # Реестр обновлен, но шахматку обновить не можем. Вернем успех с предупреждением.
-                return {
-                    "status": "warning",
-                    "message": f"Договор '{contractNumber}' удален из реестра, но конфигурация шахматки для '{jkName}' отсутствует."
-                }
-            if not os.path.exists(shaxmatka_path):
-                print(f"Предупреждение: Файл шахматки не найден по пути: {shaxmatka_path}")
-                return {
-                    "status": "warning",
-                    "message": f"Договор '{contractNumber}' удален из реестра, но файл шахматки не найден: {shaxmatka_path}."
-                }
-
-            update_data = ApartmentStatusUpdate(
-                jkName=jkName,
-                blockName=apartment_details["blockName"],
-                floor=apartment_details["floor"],
-                apartmentNumber=apartment_details["apartmentNumber"],
-                newStatus=NEW_STATUS_ON_DELETE  # Устанавливаем статус "свободна"
-            )
-            print(f"Попытка обновить статус в шахматке: {update_data.dict()}")
-            shaxmatka_updated = find_row_and_update_status(shaxmatka_path, update_data)
-        else:
-            # Это не должно произойти, если мы дошли до сюда, но на всякий случай
-            print("Критическая ошибка: Данные квартиры не были извлечены из реестра.")
-            # Реестр уже сохранен без строки. Сообщаем об успехе удаления, но с ошибкой данных.
-            return {
-                "status": "error",  # Или warning?
-                "message": f"Договор '{contractNumber}' удален из реестра, но произошла ошибка при получении данных квартиры для обновления шахматки."
-            }
-
-        # Формируем финальный ответ
-        if shaxmatka_updated:
-            return {
-                "status": "success",
-                "message": f"Договор '{contractNumber}' удален из реестра, статус квартиры в шахматке обновлен на '{NEW_STATUS_ON_DELETE}'."
-            }
-        else:
-            # Реестр обновлен, но шахматка - нет (квартира не найдена там или ошибка сохранения)
-            return {
-                "status": "warning",  # Используем warning, так как основное действие (удаление) выполнено
-                "message": f"Договор '{contractNumber}' удален из реестра, НО не удалось обновить статус в шахматке (квартира не найдена или произошла ошибка при сохранении шахматки)."
-            }
-
-    except FileNotFoundError:
-        print(f"Критическая ошибка: FileNotFoundError для {REGISTRY_PATH} после проверки существования.")
-        raise HTTPException(status_code=404,
-                            detail=f"Реестр договоров для ЖК '{jkName}' не найден (ошибка после проверки).")
-    except HTTPException as http_err:
-        # Перехватываем HTTPException, чтобы не попасть в общий Exception
-        raise http_err
-    except Exception as e:
-        print(f"Непредвиденная ошибка при удалении/обновлении: {e}")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Внутренняя ошибка сервера при обработке запроса: {str(e)}")
+    return {
+        "status": "success" if apartment_updated else "warning",
+        "message": message,
+    }
 
 
 # --- Новый эндпоинт: Синхронизация шахматки с реестром ---

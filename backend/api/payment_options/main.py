@@ -19,11 +19,12 @@ async def load_payment_options_for_complex(complex_name: str, floor: str = "5") 
     try:
         # Получаем цены из тех же файлов, что и в apartment-info
         price_keys = {
-            "100": f"{complex_name}_{floor}_100",
-            "70": f"{complex_name}_{floor}_70", 
-            "50": f"{complex_name}_{floor}_50",
-            "30": f"{complex_name}_{floor}_30"
+            "100": f"{complex_name}_5_100",
+            "70": f"{complex_name}_5_70", 
+            "50": f"{complex_name}_5_50",
+            "30": f"{complex_name}_5_30"
         }
+
 
         prices = {}
         for suffix, key in price_keys.items():
@@ -45,9 +46,10 @@ async def load_payment_options_for_complex(complex_name: str, floor: str = "5") 
             end_date = start_date + relativedelta(months=24)
             installment_months = 24
         else:  # ЖК_Рассвет
+            base_price = 6_400_000
             start_date = datetime(2025, 10, 1)
             end_date = start_date + relativedelta(months=21)
-            installment_months = 21
+            installment_months = 20
 
         # Текущая дата
         today = datetime.today()
@@ -59,7 +61,10 @@ async def load_payment_options_for_complex(complex_name: str, floor: str = "5") 
         total_months_left = max(total_months_left, 0)
 
         # Примерная площадь квартиры для расчетов (65 м²)
-        example_area = 55.67
+        if complex_name == "ЖК_Бахор":
+            example_area = 55.67
+        else:
+            example_area = 65.38
         example_total_price = base_price * example_area
 
         # Рассрочка 30%
