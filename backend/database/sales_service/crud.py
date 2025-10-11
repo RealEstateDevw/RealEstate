@@ -153,8 +153,10 @@ class LeadCRUD:
 
     def get_leads_by_user(self, db: Session, user_id: int, include_callbacks: bool = False, skip: int = 0,
                           limit: int = 100) -> List[Lead]:
-        query = db.query(Lead).filter(Lead.user_id == user_id,
-                                      Lead.state != 'INACTIVE').order_by(desc(Lead.created_at))
+        query = db.query(Lead).filter(
+            Lead.user_id == user_id,
+            Lead.state.notin_([LeadState.INACTIVE.value, LeadState.CLOSED.value])
+        ).order_by(desc(Lead.created_at))
 
         if include_callbacks:
             query = query.options(joinedload(Lead.callbacks))
@@ -734,6 +736,8 @@ class LeadDetailService:
             "monthly_payment": lead.monthly_payment,
             "installment_period": lead.installment_period,
             "installment_markup": lead.installment_markup,
+            "down_payment": lead.down_payment,
+            "hybrid_final_payment": getattr(lead, "hybrid_final_payment", None),
             "status": lead_status,
             "paid_amount": paid_amount,
             "paid_months": paid_months,

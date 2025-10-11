@@ -131,6 +131,9 @@ async def get_user_leads(user_id: int, include_callbacks: bool = False, skip: in
             "monthly_payment": lead.monthly_payment,
             "installment_period": lead.installment_period,
             "installment_markup": lead.installment_markup,
+            "square_meters_price": lead.square_meters_price,
+            "down_payment": lead.down_payment,
+            "hybrid_final_payment": getattr(lead, "hybrid_final_payment", None),
             "notes": lead.notes,
             "next_contact_date": lead.next_contact_date,
             "user_id": lead.user_id,
@@ -361,6 +364,5 @@ async def import_leads(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error importing leads: {str(e)}")
-
 
 

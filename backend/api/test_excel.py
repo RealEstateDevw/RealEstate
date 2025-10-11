@@ -30,7 +30,9 @@ from backend.database.models import (
     ApartmentUnit,
     ChessboardPriceEntry,
     ContractRegistryEntry,
+    Lead,
 )
+from backend.api.leads.schemas import LeadState
 from backend.core.cache_utils import invalidate_complex_cache
 from backend.core.excel_importer import (
     import_chess_from_excel,
@@ -79,6 +81,7 @@ class ContractData(BaseModel):
     jkName: str
     contractNumber: Union[str, None] = None
     contractDate: str
+    leadId: Optional[int] = None
     fullName: str
     passportSeries: str
     issuedBy: str
@@ -94,7 +97,9 @@ class ContractData(BaseModel):
     pricePerM2: str
     paymentChoice: str
     initialPayment: str
-    salesDepartment: Union[str, None] = None,
+    monthlyPayment: Optional[str] = None
+    finalPayment: Optional[str] = None
+    salesDepartment: Union[str, None] = None
     unitType: Optional[str] = Field(default="residential",
                                     description="Тип помещения: 'residential' (жилой) или 'nonresidential' (нежилой)")
 
@@ -395,6 +400,12 @@ async def generate_contract(
 
     os.makedirs(jk_dir, exist_ok=True)
 
+    lead_obj = None
+    if data.leadId is not None:
+        lead_obj = db.query(Lead).filter(Lead.id == data.leadId).first()
+        if not lead_obj:
+            raise HTTPException(status_code=404, detail=f"Лид с ID {data.leadId} не найден")
+
     complex_obj = _get_db_complex(db, data.jkName)
     contract_number = data.contractNumber or _generate_contract_number(db, complex_obj)
     data.contractNumber = contract_number  # Сохраняем сгенерированный номер обратно в данные
@@ -434,6 +445,28 @@ async def generate_contract(
                 if isinstance(key, str) and "статус" in key.lower():
                     payload[key] = SOLD_STATUS_IN_CHESS
             apartment.raw_payload = payload or None
+
+        if lead_obj:
+            total_amount = clean_number(data.totalPrice)
+            price_per_sqm = clean_number(data.pricePerM2)
+            initial_payment = clean_number(data.initialPayment)
+            monthly_payment = clean_number(data.monthlyPayment) if data.monthlyPayment else None
+            final_payment = clean_number(data.finalPayment) if data.finalPayment else None
+
+            lead_obj.state = LeadState.CLOSED
+            if total_amount:
+                lead_obj.total_price = total_amount
+            if price_per_sqm:
+                lead_obj.square_meters_price = price_per_sqm
+            if initial_payment:
+                lead_obj.down_payment = initial_payment
+            if data.paymentChoice:
+                lead_obj.down_payment_percent = data.paymentChoice
+            if monthly_payment is not None:
+                lead_obj.monthly_payment = monthly_payment
+            if final_payment is not None:
+                lead_obj.hybrid_final_payment = final_payment
+            lead_obj.updated_at = datetime.utcnow()
 
         db.commit()
 
@@ -477,6 +510,9 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     """Подготовка словаря (контекста) для docxtpl."""
     total_amount = clean_number(data.totalPrice)
     initial_payment = clean_number(data.initialPayment)
+    monthly_payment_override = None
+    if getattr(data, "monthlyPayment", None) is not None:
+        monthly_payment_override = clean_number(data.monthlyPayment)
 
     # Не допускаем отрицательных значений
     # Осторожно с делением на 0, если total_amount может быть 0
@@ -502,8 +538,12 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     if today.day > 1:
         total_months_left -= 1
     total_months_left = max(total_months_left, 0)
-    monthly_payment = (
-                              total_amount - initial_payment) / total_months_left if total_amount and initial_payment is not None else 0
+    if monthly_payment_override is not None:
+        monthly_payment = monthly_payment_override
+    else:
+        monthly_payment = (
+            total_amount - initial_payment
+        ) / total_months_left if total_amount and initial_payment is not None and total_months_left else 0
 
     # Не допускаем отрицательных значений
     # Ключи БЕЗ {{ }}

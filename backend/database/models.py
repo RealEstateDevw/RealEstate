@@ -118,6 +118,7 @@ class Lead(Base):
     monthly_payment = Column(Float, nullable=True)  # For installment plans
     installment_period = Column(Integer, nullable=True)  # количество месяцев рассрочки
     installment_markup = Column(Float, nullable=True)  # процент переплаты (например, 10%)
+    hybrid_final_payment = Column(Float, nullable=True)  # Остаточный платеж для гибридной рассрочки
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)

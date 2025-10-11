@@ -42,6 +42,7 @@ class LeadBase(BaseModel):
     monthly_payment: Optional[float] = None
     installment_period: Optional[int] = None
     installment_markup: Optional[float] = 10
+    hybrid_final_payment: Optional[float] = None
     notes: Optional[str] = None
     next_contact_date: Optional[datetime] = None
     callbacks: List[datetime] = []
@@ -77,6 +78,7 @@ class LeadUpdate(BaseModel):
     monthly_payment: Optional[float] = None
     installment_period: Optional[int] = None
     installment_markup: Optional[float] = None
+    hybrid_final_payment: Optional[float] = None
     notes: Optional[str] = None
     next_contact_date: Optional[datetime] = None
     user_id: Optional[int] = None
@@ -110,6 +112,7 @@ class LeadSearchResponse(BaseModel):
     total_price: float
     payment_type: str
     contact_source: str
+    hybrid_final_payment: Optional[float] = None
 
     class Config:
         orm_mode = True

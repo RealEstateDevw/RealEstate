@@ -2379,9 +2379,10 @@
 
                         const totalPriceP = document.createElement('p');
                         totalPriceP.className = 'total-price';
-                        // Отображаем базовую цену "от" (pricePerM2_30 * size) или total_price из API?
-                        // Используем total_price из API как стартовую общую цену
-                        totalPriceP.textContent = `${Number(total_price).toLocaleString('ru-RU')} сум`;
+                        // Отображаем базовую цену "от" (pricePerM2_30 * apartmentSize)
+                        const squareMeters = parseFloat(String(apartmentSize).replace(',', '.')) || 0;
+                        const basePrice = pricePerM2_30 * squareMeters;
+                        totalPriceP.textContent = `${Number(basePrice).toLocaleString('ru-RU')} сум`;
                         priceSection.appendChild(totalPriceP);
 
                         const pricePerMeterP = document.createElement('p');
