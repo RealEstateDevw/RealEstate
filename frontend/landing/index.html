@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-sA+4SUzJ05zS8GTPmkvY+rrj3A4kR4j04rG4MxaqJQo=" crossorigin="">
     <style>
         * {
             box-sizing: border-box;
@@ -328,12 +329,17 @@
             overflow: hidden;
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
         }
-        .footer-map iframe {
+        .footer-map .map-frame {
             width: 100%;
             height: 100%;
             min-height: 340px;
-            border: none;
+            border-radius: inherit;
+            overflow: hidden;
             filter: grayscale(1) contrast(1.1) brightness(1.05);
+        }
+        .footer-map .map-frame .leaflet-container {
+            width: 100%;
+            height: 100%;
         }
         .footer-map__pin {
             position: absolute;
@@ -408,7 +414,7 @@
         @media (max-width: 768px) {
             .landing-footer { padding: 56px 0 28px; }
             .footer-main { flex-direction: column; }
-            .footer-map iframe { min-height: 260px; }
+            .footer-map .map-frame { min-height: 260px; }
             .footer-wrap { flex-direction: column; gap: 28px; }
             .footer-copy { flex-direction: column; align-items: flex-start; gap: 8px; }
         }
@@ -996,9 +1002,7 @@
                     </div>
                 </div>
                 <div class="footer-map">
-                    <iframe class="map-frame" src="https://yandex.uz/map-widget/v1/?ll=69.571266%2C41.466346&mode=whatshere&whatshere%5Bpoint%5D=69.570498%2C41.467903&whatshere%5Bzoom%5D=20&z=17.34" allowfullscreen loading="lazy"></iframe>
-                    <div class="footer-map__pin footer-map__pin--rassvet">RS</div>
-                    <div class="footer-map__pin footer-map__pin--bahor">BH</div>
+                    <div class="map-frame" data-role="map-frame"></div>
                 </div>
             </div>
             <div class="footer-wrap">
@@ -1063,6 +1067,7 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o9N1j7kGStbri38pJsi1vQGV8Z8bzoEq+yiv0c7A+7g=" crossorigin=""></script>
     <script>
         // Глобальная переменная для хранения данных о способах оплаты
         let paymentOptionsData = null;
@@ -1200,6 +1205,7 @@
                     heading: 'Отдел продаж ЖК «Рассвет»',
                     location: '📍 Ташкентская область, г. Чирчик, Кимёгарлар МСГ, Амир Темур дом №125',
                     mapLabel: 'Карта расположения ЖК «Рассвет»',
+                    coords: [41.467903, 69.570498],
                     mapEmbed: 'https://yandex.uz/map-widget/v1/?ll=69.571266%2C41.466346&mode=whatshere&whatshere%5Bpoint%5D=69.570498%2C41.467903&whatshere%5Bzoom%5D=20&z=17.34',
                     mapLinks: {
                         google: '#',
@@ -1241,6 +1247,7 @@
                     heading: 'Отдел продаж ЖК «Бахор»',
                     location: '📍 Ташкентская область, город Чирчик, Хумо МСГ 8 микрорайон дом 36А',
                     mapLabel: 'Карта расположения ЖК «Бахор»',
+                    coords: [41.461742, 69.549232],
                     mapEmbed: 'https://yandex.uz/map-widget/v1/?ll=69.548823%2C41.461406&mode=whatshere&whatshere%5Bpoint%5D=69.549232%2C41.461742&whatshere%5Bzoom%5D=18.22&z=17.6',
                     mapLinks: {
                         google: '#',
@@ -1339,6 +1346,8 @@
             const contactMapLabelEl = document.querySelector('[data-role="contact-map-label"]');
             const contactMapLinks = document.querySelectorAll('[data-role="contact-map-link"]');
             const mapFrameEl = document.querySelector('[data-role="map-frame"]');
+            let leafletMap = null;
+            const mapMarkers = {};
             const ctaLinks = document.querySelectorAll('[data-role="cta-link"]');
             const apartmentsGridEl = document.querySelector('[data-role="apartments-grid"]');
             const blocksContainer = document.getElementById('blocksContainer');
@@ -1416,6 +1425,50 @@
                 if (apartmentBlockEl) apartmentBlockEl.textContent = config.apartmentInfo.block;
             }
 
+            function initMap() {
+                if (!mapFrameEl || typeof L === 'undefined') {
+                    return;
+                }
+                if (leafletMap) {
+                    return;
+                }
+                leafletMap = L.map(mapFrameEl, {
+                    scrollWheelZoom: false
+                });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(leafletMap);
+
+                Object.entries(COMPLEXES).forEach(([key, cfg]) => {
+                    const coords = cfg.contact?.coords;
+                    if (!coords) return;
+                    const marker = L.marker(coords, {
+                        title: cfg.hero?.name || key
+                    }).addTo(leafletMap);
+                    if (cfg.hero?.name) {
+                        marker.bindPopup(cfg.hero.name);
+                    }
+                    mapMarkers[key] = marker;
+                });
+
+                requestAnimationFrame(() => leafletMap.invalidateSize());
+            }
+
+            function focusMapOnComplex(key) {
+                if (!leafletMap) return;
+                const coords = COMPLEXES[key]?.contact?.coords;
+                if (!coords) return;
+                leafletMap.setView(coords, 16);
+                requestAnimationFrame(() => leafletMap.invalidateSize());
+                Object.entries(mapMarkers).forEach(([markerKey, marker]) => {
+                    if (markerKey === key) {
+                        marker.openPopup();
+                    } else {
+                        marker.closePopup();
+                    }
+                });
+            }
+
             function updateContacts(config) {
                 if (contactHeadingEl) contactHeadingEl.textContent = config.contact.heading;
                 if (contactLocationEl) contactLocationEl.textContent = config.contact.location;
@@ -1426,10 +1479,8 @@
                     link.setAttribute('href', href);
                 });
                 if (mapFrameEl) {
-                    const src = config.contact.mapEmbed || '';
-                    if (src && mapFrameEl.src !== src) {
-                        mapFrameEl.src = src;
-                    }
+                    initMap();
+                    focusMapOnComplex(currentComplexKey);
                 }
             }
 
@@ -1845,6 +1896,7 @@
                 applyComplex(target, { fromHash: true, preserveRoomFilter: true });
             });
 
+            initMap();
             const initialComplex = getComplexFromHash();
             applyComplex(initialComplex, { fromHash: true, preserveRoomFilter: true });
         });
