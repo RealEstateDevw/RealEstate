@@ -1,13 +1,16 @@
-from fastapi import Depends, APIRouter
+from datetime import date
+
+from fastapi import Depends, APIRouter, Form, HTTPException
+from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy.orm import Session
 from starlette.requests import Request
-from starlette.responses import HTMLResponse
 
 from backend import get_db
 from backend.core.deps import get_current_user_from_cookie
 from backend.database.marketing.crud import DrawUserCRUD
 from backend.database.userservice import get_all_users
 from config import templates
+from backend.database.act_service import reg_act
 
 router = APIRouter(prefix="/dashboard/admin")
 
@@ -69,3 +72,50 @@ async def marketing(request: Request, current_user=Depends(get_current_user_from
     if current_user.role.name != "Админ":
         return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
     return templates.TemplateResponse("/marketing/exact_campaign.html", {"request": request, "user": current_user})
+
+
+@router.get("/act-generator", response_class=HTMLResponse, name="act_generator")
+async def act_generator(
+    request: Request,
+    current_user=Depends(get_current_user_from_cookie),
+):
+    if current_user.role.name != "Админ":
+        return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
+
+    return templates.TemplateResponse(
+        "/admin/act-generator.html",
+        {
+            "request": request,
+            "user": current_user,
+        },
+    )
+
+
+@router.post("/act-generator/create", name="act_generator_create")
+async def act_generator_create(
+    jk_name: str = Form(...),
+    contract_id: str = Form(...),
+    act_number: str = Form(...),
+    date_act: date = Form(...),
+    current_user=Depends(get_current_user_from_cookie),
+):
+    if current_user.role.name != "Админ":
+        raise HTTPException(status_code=403, detail="Недостаточно прав для создания актов.")
+
+    try:
+        act_path = reg_act(jk_name=jk_name, contract_id=contract_id, act_number=act_number, date_act=date_act)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail="Не удалось сформировать акт.") from exc
+
+    return FileResponse(
+        path=act_path,
+        filename=act_path.name,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+
+
+

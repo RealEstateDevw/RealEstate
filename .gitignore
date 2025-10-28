@@ -147,3 +147,4 @@ Thumbs.db
 # Alembic
 alembic/versions/*.py
 !alembic/versions/.gitkeep
+

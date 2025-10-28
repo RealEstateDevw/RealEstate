@@ -406,6 +406,13 @@ function showPaymentOptions(info) {
 // Заполняет основную форму данными выбора
 function fillForm() {
   console.log(userSelection);
+  
+  // Устанавливаем глобальные переменные для передачи в API
+  window.selectedComplex = userSelection.jkName || null;
+  window.selectedBlock = userSelection.block || null;
+  window.selectedDownPayment = userSelection.initialPayment || null;
+  window.selectedDownPaymentPercent = userSelection.percent || null;
+  
   // Заполнить поля 'Выбранные опции'
   const inputs = document.querySelectorAll('.option-grid .value');
   if (inputs.length >= 4) {

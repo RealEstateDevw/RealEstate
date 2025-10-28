@@ -1,29 +1,45 @@
 <header class="header">
-   
+
         <a href="/dashboard/admin" class="logo">Main Admin</a>
 
-        {% if request.path in[ '/dashboard/admin/', '/dashboard/admin/data-base', '/dashboard/admin/draws'] %}
+        {% if request.path in[ '/dashboard/admin/', '/dashboard/admin/data-base', '/dashboard/admin/draws', '/dashboard/admin/act-generator'] %}
         <div class="actions-group">
-            
-            <button class="shahmatki">Реестр Договоров</button>
-            <a href="/dashboard/admin/marketing" class="shahmatki draw-button" aria-label="Страница маркетинга">
-                Маркетинг
-            </a>
-            <a class="shahmatki" href="/dashboard/admin/data-base/">База Данных</a>
-            <a href="/complexes" class="shahmatki">Шахматки</a>
-            <a href="/dashboard/admin/add_user" class="register-btn" aria-label="Зарегистрировать сотрудника">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
-                    <path d="M24 17H8C7.45333 17 7 16.5467 7 16C7 15.4533 7.45333 15 8 15H24C24.5467 15 25 15.4533 25 16C25 16.5467 24.5467 17 24 17Z" fill="white"></path>
-                    <path d="M16 25C15.4533 25 15 24.5467 15 24V8C15 7.45333 15.4533 7 16 7C16.5467 7 17 7.45333 17 8V24C17 24.5467 16.5467 25 16 25Z" fill="white"></path>
-                </svg>
-                <h2 class="register-btn-text">Добавить сотрудника или жк</h2>
-            </a>
+            <!-- <div class="primary-controls"> -->
+                <button type="button" class="nav-pill shahmatki" aria-label="Реестр договоров">
+                    Реестр Договоров
+                </button>
+                <a href="/dashboard/admin/add_user" class="register-btn" aria-label="Зарегистрировать сотрудника">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <path d="M24 17H8C7.45333 17 7 16.5467 7 16C7 15.4533 7.45333 15 8 15H24C24.5467 15 25 15.4533 25 16C25 16.5467 24.5467 17 24 17Z" fill="white"></path>
+                        <path d="M16 25C15.4533 25 15 24.5467 15 24V8C15 7.45333 15.4533 7 16 7C16.5467 7 17 7.45333 17 8V24C17 24.5467 16.5467 25 16 25Z" fill="white"></path>
+                    </svg>
+                    <h2 class="register-btn-text">Добавить сотрудника или жк</h2>
+                </a>
+                <button class="burger-toggle" type="button" id="adminBurgerToggle" aria-label="Открыть меню" aria-expanded="false" aria-controls="adminBurgerMenu">
+                    <span class="burger-toggle__bars">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                    <span class="burger-toggle__label">Меню</span>
+                </button>
+            <!-- </div> -->
             <a class="user-icon" href="{{ url_for('user_profile') }}" aria-label="Профиль пользователя">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="user-icon-svg">
                     <path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 1.5c-3.3 0-9.5 1.7-9.5 5v1.3c0 .8.7 1.5 1.5 1.5h16c.8 0 1.5-.7 1.5-1.5v-1.3c0-3.3-6.2-5-9.5-5z"></path>
                 </svg>
             </a>
         </div>
+        <div class="burger-backdrop" id="adminBurgerBackdrop"></div>
+        <nav class="burger-menu" id="adminBurgerMenu" aria-hidden="true">
+            <span class="burger-menu__title">Навигация</span>
+            <ul class="burger-menu__list">
+                <li><a href="/dashboard/admin/marketing" class="burger-menu__link" aria-label="Страница маркетинга">Маркетинг</a></li>
+                <li><a href="/dashboard/admin/data-base/" class="burger-menu__link">База Данных</a></li>
+                <li><a href="/complexes" class="burger-menu__link">Шахматки</a></li>
+                <li><a href="/dashboard/admin/act-generator" class="burger-menu__link">Акты ISM</a></li>
+            </ul>
+        </nav>
     {% else %}
        
         <div class="actions-group">
@@ -40,4 +56,63 @@
             </a>
         </div>
     {% endif %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('adminBurgerToggle');
+            const menu = document.getElementById('adminBurgerMenu');
+            const backdrop = document.getElementById('adminBurgerBackdrop');
+            const label = toggle ? toggle.querySelector('.burger-toggle__label') : null;
+
+            if (!toggle || !menu || !backdrop) {
+                return;
+            }
+
+            const closeMenu = () => {
+                toggle.classList.remove('is-open');
+                menu.classList.remove('is-open');
+                backdrop.classList.remove('is-open');
+                toggle.setAttribute('aria-expanded', 'false');
+                menu.setAttribute('aria-hidden', 'true');
+                toggle.setAttribute('aria-label', 'Открыть меню');
+                if (label) {
+                    label.textContent = 'Меню';
+                }
+            };
+
+            const openMenu = () => {
+                toggle.classList.add('is-open');
+                menu.classList.add('is-open');
+                backdrop.classList.add('is-open');
+                toggle.setAttribute('aria-expanded', 'true');
+                menu.setAttribute('aria-hidden', 'false');
+                toggle.setAttribute('aria-label', 'Закрыть меню');
+                if (label) {
+                    label.textContent = 'Закрыть';
+                }
+            };
+
+            toggle.addEventListener('click', () => {
+                const isActive = toggle.classList.contains('is-open');
+                if (isActive) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            });
+
+            backdrop.addEventListener('click', closeMenu);
+
+            menu.addEventListener('click', (event) => {
+                if (event.target.classList.contains('burger-menu__link')) {
+                    closeMenu();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && toggle.classList.contains('is-open')) {
+                    closeMenu();
+                }
+            });
+        });
+    </script>
 </header>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генерация акта ISM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/static/admin_style/act-ism.css">
+    <link rel="stylesheet" href="/static/main_admin_style.css">
+    <link rel="stylesheet" href="/static/modal-content.css">
+    <link rel="stylesheet" href="/static/admin_style/style.css">
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}') lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            transition: background 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    {% include 'partials/admin-header.html' %}
+
+    <main class="act-ism-main">
+        <section class="act-hero">
+            <div class="act-hero__content">
+                <h1 class="act-hero__title">Регистрация актов ISM</h1>
+                <p class="act-hero__subtitle">
+                    Подготовьте акт по зарегистрированному договору. Файл будет сформирован в формате DOCX с учётом выбранного ЖК.
+                </p>
+            </div>
+            <button id="openActModal" class="act-hero__button" type="button">
+                Открыть форму
+            </button>
+        </section>
+
+        <div class="act-modal" id="actModal" aria-hidden="true">
+            <div class="act-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="actModalTitle">
+                <button class="act-modal__close" id="closeActModal" type="button" aria-label="Закрыть форму">
+                    &times;
+                </button>
+                <h2 class="act-modal__title" id="actModalTitle">Регистрация акта</h2>
+                <p class="act-modal__subtitle">Заполните данные договора, чтобы получить готовый документ.</p>
+                <form id="actForm" class="act-form" method="post" action="/dashboard/admin/act-generator/create">
+                    <div class="act-field">
+                        <label class="act-field__label" for="jk_name">Выберите ЖК</label>
+                        <select class="act-field__control" id="jk_name" name="jk_name" required>
+                            <option value="">-- Выберите --</option>
+                            <option value="rassvet">ЖК Рассвет</option>
+                            <option value="baxor">ЖК Бахор</option>
+                        </select>
+                    </div>
+
+                    <div class="act-field">
+                        <label class="act-field__label" for="contract_id">Номер договора</label>
+                        <input class="act-field__control" id="contract_id" name="contract_id" type="text" placeholder="Например, RS-01234" required>
+                    </div>
+
+                    <div class="act-field">
+                        <label class="act-field__label" for="act_number">Номер акта</label>
+                        <input class="act-field__control" id="act_number" name="act_number" type="text" placeholder="Например, ACT-2024/15" required>
+                    </div>
+
+                    <div class="act-field">
+                        <label class="act-field__label" for="date_act">Дата акта</label>
+                        <input class="act-field__control" id="date_act" name="date_act" type="date" required>
+                    </div>
+
+                    <button class="act-submit" type="submit">Сформировать акт</button>
+                    <p class="act-hint">После обработки файл автоматически начнёт скачивание.</p>
+                    <p class="act-message" id="actMessage" role="alert" aria-live="polite"></p>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        (function () {
+            const modal = document.getElementById('actModal');
+            const openButton = document.getElementById('openActModal');
+            const closeButton = document.getElementById('closeActModal');
+            const form = document.getElementById('actForm');
+            const message = document.getElementById('actMessage');
+            const submitButton = form.querySelector('.act-submit');
+
+            const toggleModal = (open) => {
+                if (open) {
+                    modal.classList.add('is-open');
+                    modal.setAttribute('aria-hidden', 'false');
+                } else {
+                    modal.classList.remove('is-open');
+                    modal.setAttribute('aria-hidden', 'true');
+                    form.reset();
+                    resetMessage();
+                }
+            };
+
+            const resetMessage = () => {
+                message.textContent = '';
+                message.classList.remove('act-message--error', 'act-message--success');
+            };
+
+            openButton.addEventListener('click', () => toggleModal(true));
+
+            closeButton.addEventListener('click', () => toggleModal(false));
+
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    toggleModal(false);
+                }
+            });
+
+            const setLoadingState = (isLoading) => {
+                submitButton.disabled = isLoading;
+                if (isLoading) {
+                    submitButton.setAttribute('data-loading', 'true');
+                } else {
+                    submitButton.removeAttribute('data-loading');
+                }
+            };
+
+            const extractFilename = (disposition) => {
+                if (!disposition) {
+                    return 'act.docx';
+                }
+                const filenameMatch = disposition.match(/filename="?([^"]+)"?/i);
+                return filenameMatch ? decodeURIComponent(filenameMatch[1]) : 'act.docx';
+            };
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                resetMessage();
+                setLoadingState(true);
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: new FormData(form),
+                    });
+
+                    if (!response.ok) {
+                        let errorDetail = 'Не удалось сформировать акт. Проверьте данные и попробуйте снова.';
+                        try {
+                            const data = await response.json();
+                            if (data?.detail) {
+                                errorDetail = Array.isArray(data.detail) ? data.detail[0].msg ?? errorDetail : data.detail;
+                            }
+                        } catch (jsonErr) {
+                            console.debug('Failed to parse error JSON', jsonErr);
+                        }
+                        throw new Error(errorDetail);
+                    }
+
+                    const blob = await response.blob();
+                    const filename = extractFilename(response.headers.get('content-disposition'));
+                    const downloadUrl = window.URL.createObjectURL(blob);
+
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+
+                    setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 1500);
+
+                    message.textContent = 'Акт успешно сформирован. Скачивание началось.';
+                    message.classList.add('act-message--success');
+                } catch (error) {
+                    console.error(error);
+                    message.textContent = error.message || 'Произошла непредвиденная ошибка.';
+                    message.classList.add('act-message--error');
+                } finally {
+                    setLoadingState(false);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -169,12 +169,17 @@ monthly_payment = total_price * (1 + installment_markup / 100) / installment_per
         square_meters: parseFloat(document.querySelector(".option-item input[placeholder='180']").value) || null,
         rooms: parseInt(document.querySelector(".option-item input[placeholder='5']").value) || null,
         floor: parseInt(document.querySelector(".option-item input[placeholder='0']").value) || null,
+        number_apartments: parseInt(document.querySelector(".option-item input[placeholder='98']").value) || null, // Номер квартиры
+        complex_name: window.selectedComplex || null, // Название жилого комплекса
+        block: window.selectedBlock || null, // Блок
         total_price: total_price, // Убираем запятые
         currency: document.querySelector(".currency-button.active").getAttribute("data-currency"),
         payment_type: document.querySelector(".installment-button.active").textContent.trim(),
         monthly_payment: monthly_payment, // Можно добавить расчет
         installment_period: installment_period,
         installment_markup: installment_markup, // Можно добавить расчет
+        down_payment: window.selectedDownPayment || null, // Первоначальный взнос
+        down_payment_percent: window.selectedDownPaymentPercent || null, // Процент первоначального взноса
         notes: "",
         next_contact_date: null,
         user_id: currentUser.id // Получаем ID текущего пользователя
@@ -274,7 +279,7 @@ monthly_payment = total_price * (1 + installment_markup / 100) / installment_per
 
         alert("Лид успешно добавлен!");
         // Можно добавить сброс формы или перенаправление
-        document.getElementById("employeeForm").reset();
+        window.location.href = '/dashboard/sales';
 
     } catch (error) {
         console.error("Ошибка сети:", error);
