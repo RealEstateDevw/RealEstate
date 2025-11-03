@@ -124,7 +124,6 @@ dmypy.json
 
 # Project specific
 data.db
-*.db
 logs/
 static/media/temp_files/*
 !static/media/temp_files/.gitkeep
