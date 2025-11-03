@@ -123,7 +123,7 @@ dmypy.json
 .pyre/
 
 # Project specific
-data.db
+
 logs/
 static/media/temp_files/*
 !static/media/temp_files/.gitkeep
