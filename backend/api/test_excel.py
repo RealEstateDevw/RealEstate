@@ -12,7 +12,7 @@ from fastapi import Form, UploadFile, File
 import shutil
 from num2words import num2words
 from openpyxl.workbook import Workbook
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 import openpyxl
 import os
 import traceback  # Для логирования ошибок
@@ -91,7 +91,7 @@ class ContractData(BaseModel):
     block: str
     floor: int
     apartmentNumber: int
-    rooms: int
+    rooms: Optional[int] = None
     size: float
     totalPrice: str
     pricePerM2: str
@@ -103,6 +103,28 @@ class ContractData(BaseModel):
     unitType: Optional[str] = Field(default="residential",
                                     description="Тип помещения: 'residential' (жилой) или 'nonresidential' (нежилой)")
 
+    @validator("rooms", pre=True)
+    def _normalize_rooms(cls, value: Any) -> Optional[int]:
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return int(value)
+        if isinstance(value, (int, float)):
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                return None
+        str_value = str(value).strip()
+        if not str_value:
+            return None
+        digits = re.findall(r"\d+", str_value)
+        if digits:
+            try:
+                return int(digits[0])
+            except (ValueError, TypeError):
+                return None
+        return None
+
 
 # Функция преобразования числа в слова (на русском языке)
 def _number_to_words(number: str) -> str:
@@ -112,6 +134,23 @@ def _number_to_words(number: str) -> str:
 
 
 router = APIRouter(prefix="/excel", tags=["Excel Operations"])  # Пример префикса
+
+
+def _is_non_residential_unit(unit_type: Optional[str]) -> bool:
+    if not unit_type:
+        return False
+    normalized = str(unit_type).strip().lower()
+    nonres_keywords = (
+        "nonresidential",
+        "non-residential",
+        "commercial",
+        "нежил",
+        "помещ",
+        "коммерц",
+        "офис",
+        "business",
+    )
+    return any(keyword in normalized for keyword in nonres_keywords)
 
 
 def _get_db_complex(db: Session, jk_name: str) -> ResidentialComplex:
@@ -389,14 +428,13 @@ async def generate_contract(
     """Генерация договора в формате DOCX (автоматический выбор шаблона: жилой/нежилой) и обновление реестра в XLSX (docxtpl)."""
 
     jk_dir = os.path.join(BASE_STATIC_PATH, data.jkName)
-    TEMPLATE_PATH = os.path.join(jk_dir, "contract_template.docx")
+    default_template_path = os.path.join(jk_dir, "contract_template.docx")
     # Выбор шаблона: жилой/нежилой
     alt_template_path = os.path.join(jk_dir, "contract_template_empty.docx")
-    unit_type_val = (data.unitType or "residential").strip().lower()
-    # Поддерживаем русские и английские значения
-    nonres_aliases = {"nonresidential", "non-residential", "commercial", "нежилой", "не жилой", "помещение", "нежилое"}
-    if unit_type_val in nonres_aliases:
-        TEMPLATE_PATH = alt_template_path
+    template_path = default_template_path
+
+    if _is_non_residential_unit(data.unitType) and os.path.exists(alt_template_path):
+        template_path = alt_template_path
 
     os.makedirs(jk_dir, exist_ok=True)
 
@@ -410,12 +448,12 @@ async def generate_contract(
     contract_number = data.contractNumber or _generate_contract_number(db, complex_obj)
     data.contractNumber = contract_number  # Сохраняем сгенерированный номер обратно в данные
 
-    if not os.path.exists(TEMPLATE_PATH):
-        raise HTTPException(status_code=404, detail=f"Шаблон договора не найден: {TEMPLATE_PATH}")
+    if not os.path.exists(template_path):
+        raise HTTPException(status_code=404, detail=f"Шаблон договора не найден: {template_path}")
 
     try:
         # Загрузка шаблона с помощью DocxTemplate
-        doc = DocxTemplate(TEMPLATE_PATH)  # Используем DocxTemplate
+        doc = DocxTemplate(template_path)  # Используем DocxTemplate
 
         # Подготовка контекста (словаря) для Jinja2
         # Имена ключей должны ТОЧНО соответствовать плейсхолдерам БЕЗ {{ }}

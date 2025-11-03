@@ -16,13 +16,15 @@ from backend.api.mop.schemas import convert_user_to_search_result, convert_lead_
     convert_expense_to_search_result
 from backend.database.models import Lead, User, InstallmentPayment, Payment, Expense, Role
 
+SALESPERSON_ROLE_NAME = "Продажник"
+
 
 class LeadCRUD:
     def get_random_salesperson_id(self, db: Session) -> int:
         """Находит ID случайного активного продажника."""
         # ... (код функции остается без изменений, как в предыдущем ответе) ...
         try:
-            salespeople = db.query(User).join(Role).filter(Role.name == "Продажник").all()
+            salespeople = db.query(User).join(Role).filter(Role.name == SALESPERSON_ROLE_NAME).all()
             if not salespeople:
                 raise NoResultFound("Не найдено пользователей с ролью продажника для назначения лида.")
             assigned_user = random.choice(salespeople)
@@ -51,8 +53,8 @@ class LeadCRUD:
             if not user:
                 raise ValueError(f"Пользователь с предоставленным ID={lead.user_id} не найден.")
             # Можно добавить проверку роли, если это важно
-            # if user.role.name != SALESPERSON_ROLE_NAME:
-            #    raise ValueError(f"Пользователь ID={lead.user_id} не имеет роли '{SALESPERSON_ROLE_NAME}'.")
+            if user.role.name != SALESPERSON_ROLE_NAME:
+               raise ValueError(f"Пользователь ID={lead.user_id} не имеет роли '{SALESPERSON_ROLE_NAME}'.")
             # --- КОНЕЦ ВАЛИДАЦИИ ---
             final_user_id = lead.user_id
         else:

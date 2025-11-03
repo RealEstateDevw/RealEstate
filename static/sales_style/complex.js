@@ -195,8 +195,11 @@ async function fetchAndShowPaymentOptions(r) {
       throw new Error(json.detail || 'Некорректный ответ сервера');
     }
     const info = json.data;
-    // Добавляем недостающие поля из r
-    info.roomsCount = 1;
+    // Используем количество комнат из API, если нет - берем из исходных данных шахматки
+    info.roomsCount = info.roomsCount || r[3] || 1;
+    // Используем тип помещения из API, если нет - берем из исходных данных шахматки (r[1])
+    info.unitType = info.unitType || (r.length > 1 ? r[1] : null) || null;
+    initializeUserSelection(info);
     showPaymentOptions(info);
   } catch (e) {
     alert(e.message);
@@ -219,6 +222,7 @@ function initializeUserSelection(info) {
     number: info.apartment_number,
     apartmentSize: info.size,
     roomsCount: info.roomsCount,
+    unitType: info.unitType || null,  // Сохраняем тип помещения
     paymentType: null,
     pricePerM2: null,
     totalPrice: null,
@@ -513,7 +517,8 @@ function showPaymentOptions(info) {
             block: currentBlock,
             down_payment: downPayment,
             square_meters_price: pricePerM2,
-            down_payment_percent: userSelection.percent
+            down_payment_percent: userSelection.percent,
+            unit_type: userSelection.unitType || null
           })
       });
       if (!res.ok) throw new Error();

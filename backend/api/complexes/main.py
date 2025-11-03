@@ -503,6 +503,8 @@ async def get_apartment_info(
         return {"status": "error", "message": str(e)}
 
     target_status = None
+    target_rooms = None
+    target_unit_type = None
     normalized_block = blockName.strip().lower()
     target_floor = int(float(str(floor).replace(',', '.')))
     target_size = float(str(apartmentSize).replace(',', '.'))
@@ -526,6 +528,25 @@ async def get_apartment_info(
             row_number == target_number
         ):
             target_status = row[2]
+            # Извлекаем тип помещения из row[1]
+            # По структуре данных: row[0]=block, row[1]=unit_type, row[2]=status, row[3]=rooms, row[4]=number, row[5]=size, row[6]=floor
+            if len(row) > 1:
+                target_unit_type = row[1] if row[1] is not None else None
+            # Извлекаем количество комнат из row[3]
+            if len(row) > 3:
+                rooms_value = row[3]
+                if rooms_value is not None:
+                    try:
+                        # Пытаемся преобразовать в int, если это число
+                        target_rooms = int(float(str(rooms_value).replace(',', '.')))
+                    except (ValueError, TypeError):
+                        # Если не число, оставляем как есть
+                        target_rooms = rooms_value
+                else:
+                    target_rooms = None
+            else:
+                target_rooms = None
+            print(f"[apartment-info] Найдена квартира: rooms={target_rooms}, unit_type={target_unit_type}, row={row}")
             break
 
     if target_status is None:
@@ -569,20 +590,24 @@ async def get_apartment_info(
     if prices.get("100"):
         total_price = prices["100"] * target_size
 
+    response_data = {
+        "pricePerM2_100": round(prices.get("100") or 0),
+        "pricePerM2_70": round(prices.get("70") or 0),
+        "pricePerM2_50": round(prices.get("50") or 0),
+        "pricePerM2_30": round(prices.get("30") or 0),
+        "total_price": round(total_price) if total_price else None,
+        "status": target_status,
+        "floor": floor,
+        "size": apartmentSize,
+        "apartment_number": apartmentNumber,
+        "months_left": months_left,
+        "roomsCount": target_rooms,  # Всегда включаем roomsCount в ответ
+        "unitType": target_unit_type,  # Тип помещения (жилой/нежилой)
+    }
+    
     return {
         "status": "success",
-        "data": {
-            "pricePerM2_100": round(prices.get("100") or 0),
-            "pricePerM2_70": round(prices.get("70") or 0),
-            "pricePerM2_50": round(prices.get("50") or 0),
-            "pricePerM2_30": round(prices.get("30") or 0),
-            "total_price": round(total_price) if total_price else None,
-            "status": target_status,
-            "floor": floor,
-            "size": apartmentSize,
-            "apartment_number": apartmentNumber,
-            "months_left": months_left,
-        }
+        "data": response_data
     }
 
 

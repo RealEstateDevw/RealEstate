@@ -67,10 +67,23 @@
       margin-top: 16px;
     }
 
-    .price-extra .price-value {
+    .price-main,
+    .price-value {
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    .price-main .price-input,
+    .price-value .price-input {
+      width: auto;
+      flex-shrink: 0;
+    }
+
+    .price-main > span,
+    .price-value > span {
+      flex-shrink: 0;
+      white-space: nowrap;
     }
 
     /* Стили для новых кнопок действий лида */
@@ -491,8 +504,25 @@
 
     .price-input {
       width: auto;
+      min-width: 1ch;
       display: inline-block;
       box-sizing: content-box;
+      font-weight: 600;
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: 0;
+    }
+
+    .price-display {
+      display: inline-block;
+
+      font-weight: 600;
+      color: #000;
+      border: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
     }
 
     /* Стили для редактирования клиента */
@@ -760,16 +790,14 @@
   <div class="price-extra" data-section="installment" style="display:none;">
     <div class="price-subtitle">Первоначальный взнос</div>
     <div class="price-value">
-      <input type="text" id="downPaymentInput" class="price-input"
-             value="{{ '{:,.0f}'.format(lead.down_payment or 0)|replace(',', ' ') }}" />
+      <span id="downPaymentDisplay" class="price-display">{{ '{:,.0f}'.format(lead.down_payment or 0)|replace(',', ' ') }}</span>
       <span>сум</span>
     </div>
   </div>
   <div class="price-extra" data-section="installment" style="display:none;">
     <div class="price-subtitle">Ежемесячная оплата</div>
     <div class="price-value">
-      <input type="text" id="monthlyPaymentInput" class="price-input"
-             value="{{ '{:,.0f}'.format(lead.monthly_payment or 0)|replace(',', ' ') }}" />
+      <span id="monthlyPaymentDisplay" class="price-display">{{ '{:,.0f}'.format(lead.monthly_payment or 0)|replace(',', ' ') }}</span>
       <span>сум/мес</span>
     </div>
   </div>
@@ -1216,6 +1244,7 @@ function openContractModal(prefilledData) {
             <input type="hidden" name="leadId" value="${prefilledData.leadId}">
             <input type="hidden" name="monthlyPayment" value="${prefilledData.monthlyPayment || ''}">
             <input type="hidden" name="finalPayment" value="${prefilledData.finalPayment || ''}">
+            <input type="hidden" name="unitType" value="${prefilledData.unitType || 'residential'}">
             
             <div style="grid-column: 1/3; display: flex; gap: 16px;">
                 <div style="flex: 1;">
@@ -1320,8 +1349,8 @@ function openContractModal(prefilledData) {
 
         const totalSource = document.getElementById('totalPriceInput');
         const priceSource = document.getElementById('pricePerM2Input');
-        const downSource = document.getElementById('downPaymentInput');
-        const monthlySource = document.getElementById('monthlyPaymentInput');
+        const downSource = document.getElementById('downPaymentDisplay');
+        const monthlySource = document.getElementById('monthlyPaymentDisplay');
         const finalSource = document.getElementById('finalPaymentInput');
 
         if (totalField && totalSource) {
@@ -1331,14 +1360,14 @@ function openContractModal(prefilledData) {
             priceField.value = priceSource.value;
         }
         if (initialField) {
-            if (downSource && downSource.value && downSource.value.replace(/[^\d]/g, '') !== '') {
-                initialField.value = downSource.value;
+            if (downSource && downSource.textContent && downSource.textContent.replace(/[^\d]/g, '') !== '') {
+                initialField.value = downSource.textContent;
             } else if (totalSource) {
                 initialField.value = totalSource.value;
             }
         }
         if (monthlyField && monthlySource) {
-            monthlyField.value = monthlySource.value || '0';
+            monthlyField.value = monthlySource.textContent || '0';
         }
         if (finalField && finalSource) {
             finalField.value = finalSource.value || '0';
@@ -1496,16 +1525,37 @@ function openContractModal(prefilledData) {
       const size = {{ lead.square_meters or 0 }};
       const paymentChoice = "{{ lead.down_payment_percent or '' }}";
 
+      // Получаем тип помещения из API
+      let unitType = null;
+      try {
+        const apartmentInfoParams = new URLSearchParams({
+          jkName: jkName,
+          blockName: blockName,
+          apartmentSize: size.toString(),
+          floor: floor.toString(),
+          apartmentNumber: apartmentNumber.toString()
+        });
+        const apartmentInfoRes = await fetch(`/api/complexes/apartment-info?${apartmentInfoParams.toString()}`);
+        if (apartmentInfoRes.ok) {
+          const apartmentInfoData = await apartmentInfoRes.json();
+          if (apartmentInfoData.status === 'success' && apartmentInfoData.data) {
+            unitType = apartmentInfoData.data.unitType || null;
+          }
+        }
+      } catch (e) {
+        console.warn('Не удалось получить тип помещения:', e);
+      }
+
       const totalInputEl = document.getElementById('totalPriceInput');
       const priceInputEl = document.getElementById('pricePerM2Input');
-      const downInputEl = document.getElementById('downPaymentInput');
-      const monthlyInputEl = document.getElementById('monthlyPaymentInput');
+      const downDisplayEl = document.getElementById('downPaymentDisplay');
+      const monthlyDisplayEl = document.getElementById('monthlyPaymentDisplay');
       const finalInputEl = document.getElementById('finalPaymentInput');
 
       const totalPriceValue = totalInputEl ? totalInputEl.value : '0';
       const pricePerM2Value = priceInputEl ? priceInputEl.value : '0';
-      const downPaymentValue = downInputEl ? downInputEl.value : '';
-      const monthlyPaymentValue = monthlyInputEl ? monthlyInputEl.value : '0';
+      const downPaymentValue = downDisplayEl ? downDisplayEl.textContent : '';
+      const monthlyPaymentValue = monthlyDisplayEl ? monthlyDisplayEl.textContent : '0';
       const finalPaymentValue = finalInputEl ? finalInputEl.value : '0';
 
       const normalizeDigits = (value) => (value || '').replace(/[^\d]/g, '');
@@ -1530,7 +1580,8 @@ function openContractModal(prefilledData) {
         contractNumber: nextContractNumber,
         leadId: {{ lead.id }},
         fullName: {{ (lead.full_name or "") | tojson }},
-        phone: {{ (lead.phone or "") | tojson }}
+        phone: {{ (lead.phone or "") | tojson }},
+        unitType: unitType
       });
     });
     </script>
@@ -1817,6 +1868,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     };
     const formatValue = (value) => formatter.format(Math.max(Math.round(value || 0), 0));
 
+    // Функция для установки размера инпута на основе его содержимого
+    function adjustInputSize(input) {
+      if (!input) return;
+      // Создаем временный span для измерения ширины текста
+      const tempSpan = document.createElement('span');
+      tempSpan.style.visibility = 'hidden';
+      tempSpan.style.position = 'absolute';
+      tempSpan.style.whiteSpace = 'pre';
+      tempSpan.style.font = window.getComputedStyle(input).font;
+      tempSpan.style.fontWeight = window.getComputedStyle(input).fontWeight;
+      tempSpan.style.fontSize = window.getComputedStyle(input).fontSize;
+      tempSpan.textContent = input.value || input.placeholder || '0';
+      document.body.appendChild(tempSpan);
+      const width = tempSpan.offsetWidth;
+      document.body.removeChild(tempSpan);
+      // Устанавливаем ширину с небольшим запасом
+      input.style.width = Math.max(width + 4, 20) + 'px';
+    }
+
     const paymentTypeLabel = (priceCard.dataset.paymentType || '').toLowerCase();
     const isHybrid = paymentTypeLabel.includes('гибрид');
     const isInstallment = isHybrid || paymentTypeLabel.includes('рассроч');
@@ -1833,14 +1903,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     const totalInput = document.getElementById('totalPriceInput');
     const priceInput = document.getElementById('pricePerM2Input');
-    const downPaymentInput = document.getElementById('downPaymentInput');
-    const monthlyPaymentInput = document.getElementById('monthlyPaymentInput');
+    const downPaymentDisplay = document.getElementById('downPaymentDisplay');
+    const monthlyPaymentDisplay = document.getElementById('monthlyPaymentDisplay');
     const finalPaymentInput = document.getElementById('finalPaymentInput');
     const datasetFinalPayment = parseNumber(priceCard.dataset.finalPayment || 0);
-
-    if (monthlyPaymentInput) {
-      monthlyPaymentInput.readOnly = true;
-    }
 
     priceCard.querySelectorAll('.price-extra').forEach((section) => {
       const sectionType = section.dataset.section;
@@ -1848,84 +1914,78 @@ document.addEventListener('DOMContentLoaded', async function() {
       section.style.display = shouldShow ? 'block' : 'none';
     });
 
-    [totalInput, priceInput, downPaymentInput, monthlyPaymentInput, finalPaymentInput].forEach((input) => {
+    [totalInput, priceInput, finalPaymentInput].forEach((input) => {
       if (input) {
         input.value = formatValue(parseNumber(input.value));
+        adjustInputSize(input);
       }
     });
+    
+    if (downPaymentDisplay) {
+      downPaymentDisplay.textContent = formatValue(parseNumber(downPaymentDisplay.textContent));
+    }
+    if (monthlyPaymentDisplay) {
+      monthlyPaymentDisplay.textContent = formatValue(parseNumber(monthlyPaymentDisplay.textContent));
+    }
 
     if (priceInput && parseNumber(priceInput.value) === 0 && squareMeters) {
       const computedPrice = parseNumber(totalInput.value) / squareMeters;
       priceInput.value = computedPrice ? formatValue(computedPrice) : '0';
+      adjustInputSize(priceInput);
     }
 
     if (isInstallment) {
       updateInstallmentDerived();
     } else if (finalPaymentInput) {
       finalPaymentInput.value = '0';
+      adjustInputSize(finalPaymentInput);
     }
 
     totalInput.addEventListener('input', () => {
+      adjustInputSize(totalInput);
       const total = parseNumber(totalInput.value);
       if (priceInput && squareMeters) {
         const price = total / squareMeters;
         priceInput.value = price ? formatValue(price) : '0';
+        adjustInputSize(priceInput);
       }
       updateInstallmentDerived();
     });
     totalInput.addEventListener('blur', () => {
       totalInput.value = formatValue(parseNumber(totalInput.value));
+      adjustInputSize(totalInput);
     });
 
     if (priceInput) {
       priceInput.addEventListener('input', () => {
+        adjustInputSize(priceInput);
         const price = parseNumber(priceInput.value);
         if (squareMeters) {
           const total = price * squareMeters;
           totalInput.value = total ? formatValue(total) : '0';
+          adjustInputSize(totalInput);
         }
         updateInstallmentDerived();
       });
       priceInput.addEventListener('blur', () => {
         priceInput.value = formatValue(parseNumber(priceInput.value));
+        adjustInputSize(priceInput);
       });
     }
 
-    if (downPaymentInput) {
-      downPaymentInput.addEventListener('input', () => {
-        updateInstallmentDerived();
-      });
-      downPaymentInput.addEventListener('blur', () => {
-        downPaymentInput.value = formatValue(parseNumber(downPaymentInput.value));
-        updateInstallmentDerived();
-      });
-    }
-
-    if (monthlyPaymentInput) {
-      monthlyPaymentInput.addEventListener('blur', () => {
-        monthlyPaymentInput.value = formatValue(parseNumber(monthlyPaymentInput.value));
-        if (!finalPercentFromChoice) {
-          updateFinalBasedOnMonthly();
-        } else {
-          updateInstallmentDerived();
-        }
-      });
-      monthlyPaymentInput.addEventListener('input', () => {
-        if (!finalPercentFromChoice) {
-          updateFinalBasedOnMonthly();
-        }
-      });
-    }
 
     if (finalPaymentInput) {
       finalPaymentInput.addEventListener('input', () => {
+        adjustInputSize(finalPaymentInput);
         if (!finalPercentFromChoice) {
           finalPaymentInput.value = formatValue(parseNumber(finalPaymentInput.value));
+          adjustInputSize(finalPaymentInput);
           updateInstallmentDerived();
         }
       });
       finalPaymentInput.addEventListener('blur', () => {
         finalPaymentInput.value = formatValue(parseNumber(finalPaymentInput.value));
+        adjustInputSize(finalPaymentInput);
         updateInstallmentDerived();
       });
     }
@@ -1936,19 +1996,14 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
 
       const total = parseNumber(totalInput.value);
-      let downPayment = downPaymentInput ? parseNumber(downPaymentInput.value) : 0;
+      let downPayment = downPaymentDisplay ? parseNumber(downPaymentDisplay.textContent) : 0;
 
       if ((!downPayment || downPayment === 0) && total && downPercentFromChoice !== null) {
         downPayment = total * downPercentFromChoice;
-        if (downPaymentInput) {
-          downPaymentInput.value = formatValue(downPayment);
+        if (downPaymentDisplay) {
+          downPaymentDisplay.textContent = formatValue(downPayment);
         }
       }
-
-      const monthsForMonthly = Math.max(
-        isHybrid ? installmentPeriod - 1 : installmentPeriod,
-        1
-      );
 
       let targetFinalPayment = 0;
       if (isHybrid) {
@@ -1957,6 +2012,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           if (finalPaymentInput) {
             finalPaymentInput.value = formatValue(targetFinalPayment);
             finalPaymentInput.readOnly = true;
+            adjustInputSize(finalPaymentInput);
           }
         } else {
           targetFinalPayment = finalPaymentInput ? parseNumber(finalPaymentInput.value) : 0;
@@ -1966,30 +2022,16 @@ document.addEventListener('DOMContentLoaded', async function() {
           if (finalPaymentInput) {
             finalPaymentInput.value = formatValue(targetFinalPayment);
             finalPaymentInput.readOnly = false;
+            adjustInputSize(finalPaymentInput);
           }
         }
       } else if (finalPaymentInput) {
         finalPaymentInput.value = '0';
         finalPaymentInput.readOnly = true;
+        adjustInputSize(finalPaymentInput);
       }
 
-      if (monthlyPaymentInput) {
-        const distributable = Math.max(total - downPayment - targetFinalPayment, 0);
-        const monthly = monthsForMonthly ? distributable / monthsForMonthly : 0;
-        monthlyPaymentInput.value = monthsForMonthly ? formatValue(monthly) : '0';
-      }
-    }
-    function updateFinalBasedOnMonthly() {
-      if (!isHybrid || !monthlyPaymentInput || !finalPaymentInput || finalPercentFromChoice) {
-        return;
-      }
-
-      const total = parseNumber(totalInput.value);
-      const downPayment = downPaymentInput ? parseNumber(downPaymentInput.value) : 0;
-      const monthly = parseNumber(monthlyPaymentInput.value);
-      const monthsBeforeFinal = Math.max(installmentPeriod - 1, 0);
-      const residual = Math.max(total - downPayment - monthly * monthsBeforeFinal, 0);
-      finalPaymentInput.value = formatValue(residual);
+      // Ежемесячная оплата не пересчитывается автоматически - остается неизменной
     }
   });
 

@@ -85,6 +85,10 @@ class LanguageSwitcher {
                 'footer.development': 'Разработка: внутренняя команда ISM',
                 
                 // Mobile menu
+                'mobile_menu.contacts': 'Контакты',
+                'mobile_menu.conditions': 'Условия покупки',
+                'mobile_menu.pricing': 'Стоимость квартир',
+                'mobile_menu.select_apartment': 'Выбрать квартиру',
                 'mobile.select_complex': 'Выберите ЖК',
                 'mobile.complex_rassvet': 'ЖК Рассвет',
                 'mobile.complex_bahor': 'ЖК Бахор',
@@ -189,6 +193,10 @@ class LanguageSwitcher {
                 'footer.development': 'Ishlab chiqish: ISM ichki jamoasi',
                 
                 // Mobile menu
+                'mobile_menu.contacts': 'Aloqa',
+                'mobile_menu.conditions': 'Sotib olish shartlari',
+                'mobile_menu.pricing': 'Kvartira narxlari',
+                'mobile_menu.select_apartment': 'Kvartira tanlash',
                 'mobile.select_complex': 'JK tanlang',
                 'mobile.complex_rassvet': 'JK Tong',
                 'mobile.complex_bahor': 'JK Bahor',
