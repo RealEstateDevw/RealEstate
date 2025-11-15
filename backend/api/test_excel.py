@@ -230,13 +230,13 @@ def _find_apartment_unit(
         .all()
     )
     block_norm = _normalize_block_name(block_name)
-    return next(
-        (
-            unit for unit in candidates
-            if _normalize_block_name(unit.block_name) == block_norm
-        ),
-        None,
-    )
+    if block_norm:
+        for unit in candidates:
+            if _normalize_block_name(unit.block_name) == block_norm:
+                return unit
+    if len(candidates) == 1:
+        return candidates[0]
+    return None
 
 
 def _render_numeric_like(value: Any) -> Any:
@@ -257,6 +257,37 @@ def _render_contract_value(value: Any) -> Any:
     if hasattr(value, "isoformat"):
         return value.isoformat()
     return value
+
+
+_CONTRACT_NUMBER_RE = re.compile(r"\d+")
+
+
+def _contract_number_value(contract_number: Any) -> int:
+    """
+    Возвращает числовую часть номера договора.
+    Если цифры не найдены, возвращает -1 чтобы запись уходила в конец.
+    """
+    if contract_number is None:
+        return -1
+    digits = _CONTRACT_NUMBER_RE.findall(str(contract_number))
+    if not digits:
+        return -1
+    try:
+        return int(digits[-1])
+    except ValueError:
+        return -1
+
+
+def _sort_registry_entries(entries: List[ContractRegistryEntry]) -> List[ContractRegistryEntry]:
+    """Сортируем по номеру договора (по убыванию), затем по дате и id."""
+    def _key(entry: ContractRegistryEntry) -> tuple[int, Any, int]:
+        return (
+            _contract_number_value(entry.contract_number),
+            entry.contract_date or datetime.min.date(),
+            entry.id or 0,
+        )
+
+    return sorted(entries, key=_key, reverse=True)
 
 
 def _extract_contract_sequence(value: Any) -> Optional[int]:
@@ -509,6 +540,9 @@ async def generate_contract(
         db.commit()
 
         contract_filename = f"contract_{contract_number}.docx"
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         # Добавим вывод traceback для лучшей диагностики
@@ -649,7 +683,7 @@ def _create_contract_registry_entry(
         complex_obj: ResidentialComplex,
         data: ContractData,
         contract_number: str,
-) -> tuple[ContractRegistryEntry, Optional[ApartmentUnit]]:
+) -> tuple[ContractRegistryEntry, ApartmentUnit]:
     contract_date = parse_date(data.contractDate).date()
     total_amount = clean_number(data.totalPrice)
     price_m2 = clean_number(data.pricePerM2)
@@ -663,10 +697,36 @@ def _create_contract_registry_entry(
         data.floor,
         data.apartmentNumber,
     )
+    if not apartment:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Квартира блок '{data.block}', этаж {data.floor}, №{data.apartmentNumber} "
+                f"не найдена в шахматке ЖК {complex_obj.name}. Сначала обновите шахматку или проверьте данные."
+            ),
+        )
+
+    existing_entry = (
+        db.query(ContractRegistryEntry)
+        .filter(
+            ContractRegistryEntry.complex_id == complex_obj.id,
+            ContractRegistryEntry.apartment_id == apartment.id,
+        )
+        .first()
+    )
+    if existing_entry:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Для квартиры блок '{apartment.block_name}', этаж {apartment.floor}, №{apartment.unit_number} "
+                f"уже оформлен договор {existing_entry.contract_number}. Удалите существующий договор из реестра, "
+                "если необходимо переоформление."
+            ),
+        )
 
     entry = ContractRegistryEntry(
         complex_id=complex_obj.id,
-        apartment_id=apartment.id if apartment else None,
+        apartment_id=apartment.id,
         contract_number=contract_number,
         contract_date=contract_date,
         block_name=data.block,
@@ -700,9 +760,9 @@ async def download_contract_registry(jkName: str, db: Session = Depends(get_db))
     entries = (
         db.query(ContractRegistryEntry)
         .filter(ContractRegistryEntry.complex_id == complex_obj.id)
-        .order_by(ContractRegistryEntry.contract_date.desc(), ContractRegistryEntry.id.desc())
         .all()
     )
+    entries = _sort_registry_entries(entries)
 
     headers = [
         "№ Договора", "Дата Договора", "Блок", "Этаж", "№ КВ", "Кол-во ком",
@@ -758,9 +818,9 @@ async def get_contract_registry(jkName: str, db: Session = Depends(get_db)):
     entries = (
         db.query(ContractRegistryEntry)
         .filter(ContractRegistryEntry.complex_id == complex_obj.id)
-        .order_by(ContractRegistryEntry.contract_date.desc(), ContractRegistryEntry.id.desc())
         .all()
     )
+    entries = _sort_registry_entries(entries)
 
     registry_rows: List[Dict[str, Any]] = []
     for entry in entries:
