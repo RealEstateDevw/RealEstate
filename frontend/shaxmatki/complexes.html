@@ -3351,6 +3351,32 @@
             return globalRegistryContractsMap[key] || null;
         }
 
+        function extractApartmentOrder(value) {
+            if (value === undefined || value === null || value === "") {
+                return Number.POSITIVE_INFINITY;
+            }
+            const match = value.toString().match(/\d+/);
+            if (!match) {
+                return Number.POSITIVE_INFINITY;
+            }
+            const parsed = Number.parseInt(match[0], 10);
+            return Number.isNaN(parsed) ? Number.POSITIVE_INFINITY : parsed;
+        }
+
+        function sortApartmentRows(rows) {
+            if (!Array.isArray(rows)) return [];
+            return [...rows].sort((a, b) => {
+                const aOrder = extractApartmentOrder(a?.[4]);
+                const bOrder = extractApartmentOrder(b?.[4]);
+                if (aOrder !== bOrder) {
+                    return aOrder - bOrder;
+                }
+                const aLabel = (a?.[4] ?? '').toString();
+                const bLabel = (b?.[4] ?? '').toString();
+                return aLabel.localeCompare(bLabel, 'ru');
+            });
+        }
+
         function setViewMode(mode) {
             if (!mode || !Object.values(ViewModes).includes(mode)) {
                 mode = ViewModes.FACADES;
@@ -4008,6 +4034,9 @@
                 acc[key].push(row);
                 return acc;
             }, {});
+            Object.keys(floors).forEach(key => {
+                floors[key] = sortApartmentRows(floors[key]);
+            });
 
             const sortedFloors = Object.keys(floors).sort((a, b) => {
                 const numA = parseFloat(a);
@@ -4158,6 +4187,9 @@
                     acc[key].push(row);
                     return acc;
                 }, {});
+                Object.keys(floors).forEach(key => {
+                    floors[key] = sortApartmentRows(floors[key]);
+                });
 
                 const sortedFloors = Object.keys(floors).sort((a, b) => {
                     const numA = parseFloat(a);
@@ -4292,6 +4324,9 @@
                 acc[floorKey].push(row);
                 return acc;
             }, {});
+            Object.keys(floors).forEach(key => {
+                floors[key] = sortApartmentRows(floors[key]);
+            });
 
             const availableFloors = Object.keys(floors).filter(key => key && key.toLowerCase() !== 'none');
             const sortedFloors = [...availableFloors].sort((a, b) => {
