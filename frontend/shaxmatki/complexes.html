@@ -2477,12 +2477,29 @@
             line-height: 1.2;
         }
 
-        /* Нижняя строка: "47.6 м2" слева, "сум" справа */
+        /* Нижняя строка: площадь и дополнительные метки */
         .card-footer {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-size: 16px;
             font-weight: 500;
+            gap: 0.75rem;
+        }
+
+        .card-area {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .card-contract {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #1f2937;
         }
 
         .apartment-card.available {
@@ -3254,6 +3271,85 @@
         let controlledBackButton = null;
         let originalBackButtonHref = '/';
         let currentBackListener = null;
+        let globalRegistryContractsMap = {};
+
+        const CONTRACT_CYR_TO_LAT = {
+            "А": "A", "а": "a",
+            "В": "V", "в": "v",
+            "С": "S", "с": "s",
+            "Е": "E", "е": "e",
+            "К": "K", "к": "k",
+            "М": "M", "м": "m",
+            "Н": "N", "н": "n",
+            "О": "O", "о": "o",
+            "Р": "R", "р": "r",
+            "Т": "T", "т": "t",
+            "Х": "H", "х": "h",
+            "У": "U", "у": "u"
+        };
+
+        function normalizeBlockNameForContracts(value) {
+            if (value === undefined || value === null) return "";
+            return value
+                .toString()
+                .trim()
+                .split("")
+                .map(char => CONTRACT_CYR_TO_LAT[char] || char)
+                .join("")
+                .toLowerCase()
+                .replace(/[\s_–—-]+/g, "-");
+        }
+
+        function normalizeFloorValueForContracts(value) {
+            if (value === undefined || value === null || value === "") return "";
+            const numeric = Number(String(value).replace(",", "."));
+            if (!Number.isNaN(numeric)) {
+                return String(numeric);
+            }
+            return value.toString().trim();
+        }
+
+        function normalizeApartmentNumberForContracts(value) {
+            if (value === undefined || value === null) return "";
+            return value.toString().trim();
+        }
+
+        function buildContractLookupKey(block, floor, number) {
+            const normalizedBlock = normalizeBlockNameForContracts(block);
+            const normalizedFloor = normalizeFloorValueForContracts(floor);
+            const normalizedNumber = normalizeApartmentNumberForContracts(number);
+            if (!normalizedBlock || !normalizedFloor || !normalizedNumber) {
+                return "";
+            }
+            return `${normalizedBlock}|${normalizedFloor}|${normalizedNumber}`;
+        }
+
+        function buildRegistryContractsMap(entries = []) {
+            if (!Array.isArray(entries)) return {};
+            return entries.reduce((acc, entry) => {
+                const key = buildContractLookupKey(
+                    entry.blockNormalized ?? entry.block,
+                    entry.floor,
+                    entry.apartmentNumber
+                );
+                if (!key || !entry.contractNumber) {
+                    return acc;
+                }
+                acc[key] = entry.contractNumber;
+                return acc;
+            }, {});
+        }
+
+        function updateRegistryContracts(entries) {
+            globalRegistryContractsMap = buildRegistryContractsMap(entries);
+        }
+
+        function getContractNumberForRow(row) {
+            if (!globalRegistryContractsMap || !row) return null;
+            const key = buildContractLookupKey(row[0], row[6], row[4]);
+            if (!key) return null;
+            return globalRegistryContractsMap[key] || null;
+        }
 
         function setViewMode(mode) {
             if (!mode || !Object.values(ViewModes).includes(mode)) {
@@ -3432,25 +3528,22 @@
         }
 
         // Функция для выбора ЖК (кнопка "Выбрать квартиру")
-        function selectComplex(complexName) {
+        async function selectComplex(complexName) {
             console.log(`Выбран ЖК: ${complexName}`);
-            
-            // Загружаем данные ЖК и показываем блоки
-            fetch(`/api/complexes/jk/${complexName}`)
-                .then(response => response.json())
-                .then(result => {
-                    if (result.status === "success") {
-                        console.log("Данные ЖК:", result);
-                        // Показываем блоки используя существующую функцию
-                        showJKDetails(result.shaxmatka, result.render, complexName);
-                    } else {
-                        alert(`Ошибка: ${result.message}`);
-                    }
-                })
-                .catch(error => {
-                    console.error("Ошибка при загрузке данных ЖК:", error);
-                    alert('Ошибка при загрузке данных ЖК: ' + error.message);
-                });
+            try {
+                const response = await fetch(`/api/complexes/jk/${complexName}`);
+                const result = await response.json();
+                if (result.status === "success") {
+                    updateRegistryContracts(result.registryContracts || []);
+                    console.log("Данные ЖК:", result);
+                    showJKDetails(result.shaxmatka, result.render, complexName);
+                } else {
+                    alert(`Ошибка: ${result.message}`);
+                }
+            } catch (error) {
+                console.error("Ошибка при загрузке данных ЖК:", error);
+                alert('Ошибка при загрузке данных ЖК: ' + error.message);
+            }
         }
 
         // Функция для отображения информации о ЖК и карты
@@ -3744,21 +3837,7 @@
                 if (button) {
                     const jkName = card.getAttribute("data-jk-name");
                     console.log(`Выбран ЖК для выбора квартир: ${jkName}`);
-
-                    try {
-                        const response = await fetch(`/api/complexes/jk/${jkName}`);
-                        const result = await response.json();
-
-                        if (result.status === "success") {
-                            console.log("Данные ЖК:", result);
-                            // Открываем страницу с ЖК для выбора квартир
-                            showJKDetails(result.shaxmatka, result.render, jkName);
-                        } else {
-                            alert(`Ошибка: ${result.message}`);
-                        }
-                    } catch (error) {
-                        console.error("Ошибка при загрузке данных ЖК:", error);
-                    }
+                    await selectComplex(jkName);
                 }
                 // Если клик по карточке (но не по кнопке), показываем информацию снизу
                 else if (card) {
@@ -3770,6 +3849,7 @@
                         const result = await response.json();
 
                         if (result.status === "success") {
+                            updateRegistryContracts(result.registryContracts || []);
                             console.log("Данные ЖК:", result);
                             // Показываем информацию о ЖК снизу
                             showComplexInfo(result, jkName);
@@ -3973,11 +4053,19 @@
                     card.setAttribute('data-unitType', row[1]);
                     card.setAttribute('data-number', row[4]);
                     card.setAttribute('data-rooms', row[3] || '');
+                    const contractNumber = getContractNumberForRow(row);
+                    const showContractTag = contractNumber && mappedStatus === 'sold';
+                    if (showContractTag) {
+                        card.setAttribute('data-contract-number', contractNumber);
+                    }
 
                     const price = statusRaw === 'свободна' && row.length > 7 && row[7]
                         ? `от ${Number(String(row[7]).replace(/\s/g, '')).toLocaleString('ru-RU')}`
                         : '';
                     const cleanedPrice = price.replace(/от\s*/gi, '').trim();
+                    const areaLabel = row[5] ? `${row[5]} м²` : '— м²';
+                    const contractFooter = showContractTag ? `<span class="card-contract">Договор ${contractNumber}</span>` : '';
+                    const footerRight = (!showContractTag && cleanedPrice) ? '<span>сум</span>' : '';
 
                     card.innerHTML = `
                         <div class="card-header">
@@ -3986,8 +4074,11 @@
                         </div>
                         <div class="card-price">${cleanedPrice || (row[2] || 'Неизвестно')}</div>
                         <div class="card-footer">
-                            <span>${row[5] || '-'} м²</span>
-                            ${cleanedPrice ? '<span>сум</span>' : ''}
+                            <div class="card-area">
+                                <span>${areaLabel}</span>
+                                ${contractFooter}
+                            </div>
+                            ${footerRight}
                         </div>
                     `;
 
@@ -4158,6 +4249,10 @@
                             cell.setAttribute('data-unitType', row[1]);
                             cell.setAttribute('data-number', row[4]);
                             cell.setAttribute('data-rooms', row[3] || '');
+                            const contractNumber = getContractNumberForRow(row);
+                            if (contractNumber && statusClass === 'status-sold') {
+                                cell.setAttribute('data-contract-number', contractNumber);
+                            }
 
                             cellsWrap.appendChild(cell);
                         });
@@ -4410,6 +4505,10 @@
                 item.setAttribute('data-unitType', row[1]);
                 item.setAttribute('data-number', row[4]);
                 item.setAttribute('data-rooms', rooms);
+                const contractNumber = getContractNumberForRow(row);
+                if (contractNumber && mappedStatus === 'sold') {
+                    item.setAttribute('data-contract-number', contractNumber);
+                }
 
                 const priceRaw = row.length > 7 ? row[7] : null;
                 const numericPrice = priceRaw ? Number(String(priceRaw).replace(/\s/g, '').replace(/,/g, '.')) : null;

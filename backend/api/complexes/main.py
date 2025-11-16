@@ -14,7 +14,7 @@ from fastapi import APIRouter, HTTPException, Body, Query, UploadFile, File, For
 from starlette.responses import FileResponse
 
 from math import isfinite
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi_cache.decorator import cache
 
 from backend.core.google_sheets import (
@@ -28,7 +28,7 @@ from backend.core.excel_importer import (
     import_contract_registry_from_excel,
 )
 from backend.database import get_db
-from backend.database.models import ResidentialComplex
+from backend.database.models import ResidentialComplex, ContractRegistryEntry
 from backend.core.cache_utils import invalidate_complex_cache
 from backend.core.plan_cache import ensure_plan_image_cached
 
@@ -79,6 +79,116 @@ def _sanitize_shaxmatka_rows(rows: Any) -> Tuple[List[List[Any]], List[str], Lis
     return sanitized, sorted(blocks), sorted(floors)
 
 
+_CYR_TO_LAT = {
+    "А": "A", "а": "a",
+    "В": "V", "в": "v",
+    "С": "S", "с": "s",
+    "Е": "E", "е": "e",
+    "К": "K", "к": "k",
+    "М": "M", "м": "m",
+    "Н": "N", "н": "n",
+    "О": "O", "о": "o",
+    "Р": "R", "р": "r",
+    "Т": "T", "т": "t",
+    "Х": "H", "х": "h",
+    "У": "U", "у": "u",
+}
+
+
+def _normalize_block_name(value: Any) -> str:
+    if value is None:
+        return ""
+    text = str(value).strip()
+    text = "".join(_CYR_TO_LAT.get(ch, ch) for ch in text)
+    text = text.lower()
+    return re.sub(r"[\s_–—\-]+", "-", text)
+
+
+def _normalize_unit_number(value: Any) -> str:
+    if value is None:
+        return ""
+    return str(value).strip()
+
+
+def _coerce_int(value: Any) -> Optional[int]:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, float)):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+    cleaned = str(value).strip().replace(",", ".")
+    if not cleaned:
+        return None
+    try:
+        return int(float(cleaned))
+    except (TypeError, ValueError):
+        return None
+
+
+def _build_registry_contracts(db: Session, complex_id: int) -> List[Dict[str, Any]]:
+    entries = (
+        db.query(ContractRegistryEntry)
+        .filter(ContractRegistryEntry.complex_id == complex_id)
+        .options(joinedload(ContractRegistryEntry.apartment))
+        .all()
+    )
+
+    latest: Dict[Tuple[str, str, str], Dict[str, Any]] = {}
+    for entry in entries:
+        extra = entry.extra_data or {}
+
+        block_value = entry.block_name or extra.get("Блок")
+        if not block_value and entry.apartment:
+            block_value = entry.apartment.block_name
+
+        floor_value = entry.floor
+        if floor_value is None:
+            floor_value = _coerce_int(extra.get("Этаж"))
+        if floor_value is None and entry.apartment:
+            floor_value = entry.apartment.floor
+
+        apt_number = entry.apartment_number or extra.get("№ КВ")
+        if not apt_number and entry.apartment:
+            apt_number = entry.apartment.unit_number
+
+        normalized_block = _normalize_block_name(block_value)
+        normalized_number = _normalize_unit_number(apt_number)
+        if not normalized_block or floor_value is None or not normalized_number:
+            continue
+
+        key = (normalized_block, str(floor_value), normalized_number)
+        sort_key = (
+            entry.contract_date or datetime.min.date(),
+            entry.id or 0,
+        )
+
+        current = latest.get(key)
+        if current and current["__sort"] >= sort_key:
+            continue
+
+        latest[key] = {
+            "block": block_value,
+            "blockNormalized": normalized_block,
+            "floor": str(floor_value),
+            "apartmentNumber": normalized_number,
+            "contractNumber": entry.contract_number,
+            "contractDate": entry.contract_date.isoformat() if entry.contract_date else None,
+            "__sort": sort_key,
+        }
+
+    result: List[Dict[str, Any]] = []
+    for payload in latest.values():
+        payload.pop("__sort", None)
+        result.append(payload)
+
+    result.sort(key=lambda item: (item["blockNormalized"], item["floor"], item["apartmentNumber"]))
+    return result
+
+
 @router.get('/')
 @cache(expire=CACHE_TTL_SECONDS, namespace="complexes:list")
 async def get_complexes(db: Session = Depends(get_db)):
@@ -114,7 +224,7 @@ async def get_complexes(db: Session = Depends(get_db)):
 
 @router.get("/jk/{jk_name}")
 @cache(expire=CACHE_TTL_SECONDS, namespace="complexes:jk")
-async def get_jk_data(jk_name: str):
+async def get_jk_data(jk_name: str, db: Session = Depends(get_db)):
     try:
         shaxmatka_rows = await get_shaxmatka_data(jk_name)
     except HTTPException as exc:
@@ -127,12 +237,21 @@ async def get_jk_data(jk_name: str):
 
     renders = _collect_render_paths(jk_name)
     sanitized, blocks, floors = _sanitize_shaxmatka_rows(shaxmatka_rows)
+    registry_contracts: List[Dict[str, Any]] = []
+    complex_record = (
+        db.query(ResidentialComplex)
+        .filter(ResidentialComplex.name == jk_name)
+        .first()
+    )
+    if complex_record:
+        registry_contracts = _build_registry_contracts(db, complex_record.id)
     return {
         "status": "success",
         "shaxmatka": sanitized,
         "blocks": blocks,
         "floors": floors,
         "render": renders[1] if len(renders) > 1 else (renders[0] if renders else None),
+        "registryContracts": registry_contracts,
     }
 
 
