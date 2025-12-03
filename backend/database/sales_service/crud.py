@@ -1,3 +1,10 @@
+"""CRUD-логика для блока продаж и смешанных поисковых сценариев.
+
+Здесь собраны операции по лидовому флоу (назначение менеджеру, поиск, обновление),
+платежным сущностям и общему поиску по людям/лидам/расходам. Методы ожидают
+синхронную сессию SQLAlchemy, сами выполняют commit/rollback.
+"""
+
 import random
 from datetime import timedelta, datetime
 
@@ -5,7 +12,6 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy import desc, or_, func, and_, String, cast
 from sqlalchemy.orm import Session
-from datetime import datetime
 
 from typing import Optional, List, Dict, Any, Union
 from fastapi.encoders import jsonable_encoder
@@ -20,6 +26,8 @@ SALESPERSON_ROLE_NAME = "Продажник"
 
 
 class LeadCRUD:
+    """Операции над лидами: создание, поиск, назначение и обновление."""
+
     def get_random_salesperson_id(self, db: Session) -> int:
         """Находит ID случайного активного продажника."""
         # ... (код функции остается без изменений, как в предыдущем ответе) ...

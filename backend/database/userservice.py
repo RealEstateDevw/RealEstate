@@ -1,3 +1,10 @@
+"""Сервисные функции для работы с пользователями и ролями.
+
+Содержит операции создания/обновления/удаления пользователей, проверки
+рабочего дня и статуса посещаемости. Все функции открывают сессию через
+`get_db()` и сами выполняют commit/rollback.
+"""
+
 from datetime import date, datetime, time
 from typing import List
 
@@ -11,6 +18,7 @@ from fastapi.encoders import jsonable_encoder
 
 
 def parse_time(time_str: str) -> time:
+    """Преобразует строку 'HH:MM:SS' в объект time."""
     return datetime.strptime(time_str, "%H:%M:%S").time()
 
 
@@ -18,6 +26,7 @@ def parse_time(time_str: str) -> time:
 
 # Функция для добавления нового пользователя
 def add_user(user_data: UserCreate) -> User:
+    """Создаёт нового пользователя с дефолтными рабочими параметрами."""
     with next(get_db()) as db:
         try:
             work_days_list = [
@@ -63,8 +72,8 @@ def add_user(user_data: UserCreate) -> User:
 
 
 def get_user_by_id(user_id: int) -> User:
+    """Получить пользователя по ID."""
     with next(get_db()) as db:
-        """Получает пользователя по идентификатору."""
         return db.query(User).filter(User.id == user_id).first()
 
 
@@ -119,8 +128,8 @@ def is_user_at_work(user_id: int) -> bool:
 
 
 def get_all_users() -> List[dict]:
+    """Получить список всех активных пользователей (кроме роли 5) с рассчитанным статусом."""
     with next(get_db()) as db:
-        """Получает список всех пользователей."""
         users = db.query(User).filter(User.role_id != 5).all()
         users_data = []
         for user in users:
@@ -196,12 +205,9 @@ def add_role(name: str) -> Role:
 
 
 def get_user_by_login(login: str) -> User:
+    """Получить пользователя по логину (для аутентификации)."""
     with next(get_db()) as db:
-        """Получает пользователя по логину."""
         user = db.query(User).filter(User.login == login).first()
-        # user.last_login = datetime.utcnow()
-        # db.commit()
-        # db.refresh(user)
         return user
 
 

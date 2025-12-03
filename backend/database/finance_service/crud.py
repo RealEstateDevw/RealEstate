@@ -1,3 +1,10 @@
+"""Репозитории и задачи для финансового блока CRM.
+
+Содержит набор классов-репозиториев для работы с платежами, транзакциями,
+расходами и статистикой, а также Celery-таск для планового обновления
+статусов рассрочек. Все методы рассчитаны на синхронные сессии SQLAlchemy.
+"""
+
 import logging
 
 from celery.app import shared_task
@@ -11,6 +18,8 @@ from backend.database.models import Payment, Transaction, PaymentStatus, Install
 
 
 class LeadRepository:
+    """Запросы к лидам, использующимся в финансовых сценариях."""
+
     def __init__(self, db: Session):
         self.db = db
 
@@ -30,6 +39,8 @@ class LeadRepository:
 
 
 class PaymentRepository:
+    """CRUD по платежам (Payment) с утилитами поиска просрочек."""
+
     def __init__(self, db: Session):
         self.db = db
 
@@ -66,6 +77,8 @@ class PaymentRepository:
 
 
 class TransactionRepository:
+    """Создание и получение транзакций по лидy."""
+
     def __init__(self, db: Session):
         self.db = db
 
@@ -84,6 +97,8 @@ class TransactionRepository:
 
 
 class InstallmentPaymentRepository:
+    """Формирование графика рассрочки и получение платежей по лидам."""
+
     def __init__(self, db: Session):
         self.db = db
 
@@ -115,6 +130,8 @@ class InstallmentPaymentRepository:
 
 
 class ExpenseRepository:
+    """Работа с расходами (создание/список с фильтром по статусу)."""
+
     def __init__(self, db: Session):
         self.db = db
 
@@ -133,6 +150,8 @@ class ExpenseRepository:
 
 
 class FinanceStatisticsRepository:
+    """Сбор агрегированной статистики по менеджерам и просрочкам."""
+
     def __init__(self, db: Session):
         self.db = db
 

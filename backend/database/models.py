@@ -1,3 +1,16 @@
+"""ORM модели приложения (пользователи, лиды, платежи, интеграции и пр.).
+
+Файл содержит все основные таблицы CRM/маркетинга/финансов. Группы сущностей:
+- роли и пользователи (Role, User, Attendance);
+- CRM: Lead, Callback, Comment, ChatMessage, Deal-related данные;
+- Финансы: Contract, Payment, Transaction, InstallmentPayment, Expense;
+- Маркетинг/интеграции: InstagramSettings/Integration;
+- Справочники жилых комплексов/блоков/квартир для шахматок.
+
+Каждая модель использует Base из backend.database и определяет отношения
+через SQLAlchemy relationship для удобной навигации.
+"""
+
 import enum
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -47,6 +60,7 @@ class User(Base):
     leads = relationship("Lead", back_populates="user")
     comments = relationship("Comment", back_populates="author")
     expenses_created = relationship("Expense", back_populates="creator")
+    instagram_integrations = relationship("InstagramIntegration", back_populates="user")
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -513,6 +527,192 @@ class Campaign(Base):
         return (
             f"<Campaign(id={self.id}, name={self.name!r}, "
             f"platform={self.platform.value}, status={self.status.value})>"
+        )
+
+
+# =============================================================================
+# МОДЕЛИ INSTAGRAM ИНТЕГРАЦИИ
+# =============================================================================
+
+class InstagramSettings(Base):
+    """
+    Настройки интеграции Instagram API.
+    
+    Хранит данные приложения Meta for Developers, необходимые
+    для OAuth авторизации и работы с Instagram API.
+    
+    Таблица: instagram_settings
+    
+    Поля:
+        id (int): Первичный ключ
+        app_id (str): Instagram App ID из Meta for Developers
+        app_secret (str): Instagram App Secret (секретный ключ)
+        redirect_uri (str): URL для OAuth callback
+        is_active (bool): Флаг активности (только одна запись активна)
+        created_by (int, FK): ID админа, создавшего настройки
+        created_at (datetime): Дата создания
+        updated_at (datetime): Дата последнего обновления
+    
+    Особенности:
+        - В системе может быть только одна активная запись (is_active=True)
+        - При создании новых настроек старые деактивируются
+        - Soft delete: записи не удаляются, а деактивируются
+    
+    Связи:
+        - created_by -> users.id (опционально)
+    
+    Пример использования:
+        >>> settings = InstagramSettings(
+        ...     app_id="123456789",
+        ...     app_secret="abc123...",
+        ...     redirect_uri="https://example.com/callback",
+        ...     created_by=admin_user.id
+        ... )
+        >>> db.add(settings)
+        >>> db.commit()
+    """
+    __tablename__ = "instagram_settings"
+
+    # Первичный ключ
+    id = Column(Integer, primary_key=True)
+    
+    # Данные приложения Meta for Developers
+    app_id = Column(String, nullable=False)
+    """Instagram App ID — получить на developers.facebook.com"""
+    
+    app_secret = Column(String, nullable=False)
+    """Instagram App Secret — секретный ключ, не передавать на фронтенд!"""
+    
+    redirect_uri = Column(String, nullable=False)
+    """OAuth Redirect URI — должен совпадать с настройками в Meta"""
+    
+    # Флаг активности (только одна запись может быть активной)
+    is_active = Column(Boolean, default=True, nullable=False)
+    """Активны ли эти настройки (только одна запись активна)"""
+    
+    # Аудит
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    """ID администратора, создавшего настройки"""
+    
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(tz=ZoneInfo("UTC")))
+    """Дата и время создания записи (UTC)"""
+    
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(tz=ZoneInfo("UTC")),
+        onupdate=lambda: datetime.now(tz=ZoneInfo("UTC")),
+    )
+    """Дата и время последнего обновления (UTC)"""
+
+    def __repr__(self):
+        """Строковое представление для отладки."""
+        return f"<InstagramSettings(id={self.id}, app_id={self.app_id[:8]}..., active={self.is_active})>"
+
+
+class InstagramIntegration(Base):
+    """
+    Подключение Instagram аккаунта к системе.
+    
+    Хранит данные подключённого Instagram аккаунта, включая
+    access token и кэшированные данные профиля.
+    
+    Таблица: instagram_integrations
+    
+    Поля:
+        id (int): Первичный ключ
+        user_id (int, FK): ID администратора, подключившего аккаунт
+        instagram_user_id (str): Уникальный ID пользователя в Instagram
+        username (str): @username в Instagram
+        account_type (str): Тип аккаунта (BUSINESS, PERSONAL, MEDIA_CREATOR)
+        media_count (int): Количество публикаций (кэшируется)
+        access_token (str): OAuth access token для API
+        token_expires_at (datetime): Дата истечения токена
+        connected_at (datetime): Дата подключения аккаунта
+        is_active (bool): Активно ли подключение
+        created_at (datetime): Дата создания записи
+        updated_at (datetime): Дата последнего обновления
+    
+    Особенности:
+        - У каждого админа может быть только одно активное подключение
+        - access_token действует ~60 дней, автоматически обновляется
+        - При отключении токен очищается для безопасности
+        - Soft delete: записи деактивируются, не удаляются
+    
+    Связи:
+        - user_id -> users.id (обязательно)
+        - User.instagram_integrations -> список подключений
+    
+    Индексы:
+        - ix_instagram_integrations_user_id (user_id)
+        - UNIQUE (instagram_user_id)
+    
+    Пример использования:
+        >>> integration = InstagramIntegration(
+        ...     user_id=admin.id,
+        ...     instagram_user_id="17841400000000000",
+        ...     username="company_account",
+        ...     account_type="BUSINESS",
+        ...     access_token="IGQVJ...",
+        ...     token_expires_at=datetime(2025, 3, 1)
+        ... )
+        >>> db.add(integration)
+        >>> db.commit()
+    """
+    __tablename__ = "instagram_integrations"
+
+    # Первичный ключ
+    id = Column(Integer, primary_key=True)
+    
+    # Связь с администратором
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    """ID администратора, которому принадлежит подключение"""
+    
+    # Данные Instagram аккаунта
+    instagram_user_id = Column(String, unique=True, nullable=False)
+    """Уникальный ID пользователя Instagram (числовой идентификатор)"""
+    
+    username = Column(String, nullable=False)
+    """Имя пользователя в Instagram (@username)"""
+    
+    account_type = Column(String, nullable=True)
+    """Тип аккаунта: BUSINESS, PERSONAL, MEDIA_CREATOR"""
+    
+    media_count = Column(Integer, nullable=True)
+    """Количество публикаций (кэшируется при запросах к API)"""
+    
+    # OAuth данные
+    access_token = Column(String, nullable=False)
+    """OAuth access token — НЕ передавать на фронтенд!"""
+    
+    token_expires_at = Column(DateTime(timezone=True), nullable=False)
+    """Дата и время истечения access token (UTC)"""
+    
+    # Временные метки
+    connected_at = Column(DateTime(timezone=True), default=lambda: datetime.now(tz=ZoneInfo("UTC")))
+    """Дата и время подключения аккаунта (UTC)"""
+    
+    is_active = Column(Boolean, default=True, nullable=False)
+    """Активно ли подключение (только одно активное на пользователя)"""
+    
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(tz=ZoneInfo("UTC")))
+    """Дата и время создания записи (UTC)"""
+    
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(tz=ZoneInfo("UTC")),
+        onupdate=lambda: datetime.now(tz=ZoneInfo("UTC")),
+    )
+    """Дата и время последнего обновления (UTC)"""
+
+    # Связи
+    user = relationship("User", back_populates="instagram_integrations")
+    """Связь с моделью User (администратор)"""
+
+    def __repr__(self):
+        """Строковое представление для отладки."""
+        return (
+            f"<InstagramIntegration(id={self.id}, username={self.username!r}, "
+            f"active={self.is_active})>"
         )
 
 

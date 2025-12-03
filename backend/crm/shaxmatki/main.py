@@ -1,3 +1,11 @@
+"""Маршруты витрины по жилым комплексам и шахматкам.
+
+Сейчас модуль содержит только публичную страницу выбора ЖК. Закомментированные
+обработчики оставлены как заготовки для более детальной навигации по блокам,
+ЖК и квартирам. Такой скелет удобен, чтобы быстро включить/выключить страницы,
+не ломая маршруты, когда фронтенд ещё в разработке.
+"""
+
 from fastapi import Request, APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse
@@ -13,7 +21,7 @@ router = APIRouter(prefix="/complexes")
 
 @router.get("/", response_class=HTMLResponse, name="complexes")
 async def complexes_page(request: Request):
-    """Страница выбора ЖК"""
+    """Публичная страница со списком жилых комплексов и переходом внутрь."""
     return templates.TemplateResponse("/shaxmatki/complexes.html", {"request": request})
 
 

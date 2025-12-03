@@ -1,3 +1,11 @@
+"""Маршруты CRM для руководителей отдела продаж (ROP).
+
+Доступ ограничивается пользователями с ``role_id = 3``. Перед показом страниц
+фиксируем посещаемость через сервис учёта. Логика работы с лидами и данными
+остаётся в соответствующих сервисах, чтобы здесь были только проверки и возврат
+шаблонов.
+"""
+
 from fastapi import Request, APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse
@@ -14,6 +22,7 @@ router = APIRouter(prefix="/dashboard/rop")
 
 @router.get("/", response_class=HTMLResponse, name="rop_dashboard")
 async def mop_dashboard(request: Request, current_user=Depends(get_current_user_from_cookie)):
+    """Главная страница ROP: проверяем роль и отмечаем присутствие."""
     if current_user.role_id != 3:
         return templates.TemplateResponse("index.html", {"request": request, "user": current_user})
     if not has_user_checked_in(current_user.id):

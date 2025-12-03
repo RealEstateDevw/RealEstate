@@ -1,3 +1,5 @@
+"""Черновые/архивные модели, оставленные для参考 старой структуры (не используются)."""
+
 # from sqlalchemy import (
 #     Column, Integer, String, Float, Numeric, DateTime, ForeignKey, func
 # )

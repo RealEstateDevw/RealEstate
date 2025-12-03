@@ -1,3 +1,15 @@
+"""CRUD-слой для маркетинговых сущностей (розыгрыши и кампании).
+
+Содержит две группы операций:
+1) DrawUserCRUD — управление участниками розыгрышей (бот в Telegram);
+2) CampaignCRUD — управление маркетинговыми кампаниями в CRM.
+
+Все функции работают с синхронной сессией SQLAlchemy и выполняют
+commit/rollback внутри себя. Если нужно объединить несколько операций
+в одну транзакцию — расширяйте CRUD или следите, чтобы commit не
+выполнялся промежуточно.
+"""
+
 from datetime import date
 from typing import Optional, List, Dict, Any
 
@@ -11,6 +23,8 @@ from backend.database.models import DrawUser, UserLang, Campaign
 
 
 class DrawUserCRUD:
+    """Операции с участниками розыгрышей (DrawUser)."""
+
     def get_exact_draw_user(self, db: Session, telegram_id: int) -> DrawUser:
         """
         Возвращает одного пользователя DrawUser по telegram_id.
@@ -91,7 +105,10 @@ class DrawUserCRUD:
 
 
 class CampaignCRUD:
+    """CRUD-операции для маркетинговых кампаний."""
+
     def get_campaign(self, db: Session, campaign_id: int) -> Optional[Campaign]:
+        """Получить кампанию по ID или вернуть None, если не найдена."""
         return db.query(Campaign).filter(Campaign.id == campaign_id).first()
 
     def search_campaigns(
@@ -127,6 +144,10 @@ class CampaignCRUD:
             platform: Optional[str] = None,
             status: Optional[str] = None
     ) -> List[Campaign]:
+        """
+        Возвращает список кампаний с необязательной фильтрацией
+        по платформе и статусу, отсортированный по дате запуска.
+        """
         query = db.query(Campaign)
         if platform:
             query = query.filter(Campaign.platform == platform)
@@ -135,6 +156,7 @@ class CampaignCRUD:
         return query.order_by(desc(Campaign.launch_date)).offset(skip).limit(limit).all()
 
     def create_campaign(self, db: Session, campaign_in: CampaignCreate) -> Campaign:
+        """Создать кампанию из схемы CampaignCreate и вернуть сохранённый объект."""
         db_obj = Campaign(**campaign_in.dict())
         try:
             db.add(db_obj)
@@ -151,6 +173,10 @@ class CampaignCRUD:
             campaign_id: int,
             campaign_in: CampaignUpdate
     ) -> Optional[Campaign]:
+        """
+        Частично обновить кампанию.
+        Возвращает обновлённый объект или None, если не найдена.
+        """
         db_obj = self.get_campaign(db, campaign_id)
         if not db_obj:
             return None

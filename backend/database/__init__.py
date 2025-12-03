@@ -1,3 +1,14 @@
+"""Инициализация подключения к базе данных и базовые вспомогательные объекты.
+
+Содержимое модуля:
+- engine: SQLAlchemy engine с настройками для SQLite (WAL, foreign_keys, timeout)
+- SessionLocal: фабрика сессий, используемая в зависимостях FastAPI
+- Base: декларативная база для всех ORM моделей
+- get_db(): dependency, отдающая сессию с обработкой rollback/close
+
+Важно: для SQLite включены PRAGMA, которые улучшают целостность и производительность.
+"""
+
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.pool import StaticPool
@@ -40,7 +51,7 @@ SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 Base = declarative_base()
 
 def get_db():
-    """Dependency для получения сессии базы данных"""
+    """Dependency для получения сессии базы данных с автоматическим rollback/close."""
     db = SessionLocal()
     try:
         yield db
@@ -50,4 +61,3 @@ def get_db():
         raise
     finally:
         db.close()
-
