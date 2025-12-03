@@ -96,6 +96,11 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 # Telegram Bot
 BOT_TOKEN=your_bot_token_here
 
+# Instagram Integration
+INSTAGRAM_APP_ID=your_instagram_app_id
+INSTAGRAM_APP_SECRET=your_instagram_app_secret
+INSTAGRAM_REDIRECT_URI=http://localhost:8000/api/instagram/callback
+
 # Google Sheets
 GOOGLE_SHEETS_API_KEY=your_google_api_key
 GOOGLE_CREDENTIALS_PATH=path/to/credentials.json
@@ -118,6 +123,11 @@ DEBUG=True
 После запуска приложения API документация доступна по адресам:
 - **Swagger UI**: http://localhost:8000/api/docs
 - **ReDoc**: http://localhost:8000/api/redoc
+
+## 📱 Интеграция Instagram
+- Настройте переменные `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET`, `INSTAGRAM_REDIRECT_URI` и зарегистрируйте redirect URL в приложении Instagram.
+- В админке откройте `/dashboard/admin/marketing/instagram/connect`, нажмите «Подключить Instagram» и завершите авторизацию.
+- После подключения используйте дашборд `/dashboard/admin/marketing/instagram` для просмотра профиля и медиа.
 
 ## 🏗 Архитектура
 

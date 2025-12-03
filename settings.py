@@ -42,5 +42,11 @@ class Settings:
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
 
+    # Instagram Integration (настройки хранятся в БД, админ добавляет через панель)
+    # Эти переменные оставлены для обратной совместимости, но не используются
+    # INSTAGRAM_APP_ID: str = os.getenv("INSTAGRAM_APP_ID", "")
+    # INSTAGRAM_APP_SECRET: str = os.getenv("INSTAGRAM_APP_SECRET", "")
+    # INSTAGRAM_REDIRECT_URI: str = os.getenv("INSTAGRAM_REDIRECT_URI", "")
+
 # Создаем экземпляр настроек
 settings = Settings()

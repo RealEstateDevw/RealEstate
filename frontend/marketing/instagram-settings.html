@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройки Instagram API</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --primary: #216BF4;
+            --primary-dark: #1b58c4;
+            --danger: #e53935;
+            --border: #e5e7eb;
+            --success: #16a34a;
+        }
+        * { box-sizing: border-box; }
+        body {
+            position: relative;
+            margin: 0;
+            min-height: 100vh;
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}') lightgray 50% / cover no-repeat {% else %} var(--bg) {% endif %};
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text);
+        }
+       
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 32px 20px 48px;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .back-link:hover { color: var(--text); }
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .subtitle {
+            color: var(--muted);
+            margin-top: 6px;
+            font-size: 14px;
+        }
+        .card {
+            position: relative;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            background: rgba(33, 107, 244, 0.08);
+            color: var(--primary);
+            border: 1px solid rgba(33, 107, 244, 0.2);
+        }
+        .badge.success { color: #16a34a; background: rgba(22,163,74,0.08); border-color: rgba(22,163,74,0.2); }
+        .badge.error { color: #e53935; background: rgba(229,57,53,0.08); border-color: rgba(229,57,53,0.2); }
+        .badge.warning { color: #d97706; background: rgba(217,119,6,0.08); border-color: rgba(217,119,6,0.2); }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .field label {
+            font-size: 12px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 700;
+        }
+        .field .hint {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        .input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s ease, box-shadow 0.2s ease;
+        }
+        .input:focus {
+            border-color: rgba(33, 107, 244, 0.6);
+            box-shadow: 0 0 0 3px rgba(33,107,244,0.15);
+            background: #fff;
+        }
+        .input::placeholder { color: #9ca3af; }
+        .input:disabled { 
+            background: #e5e7eb; 
+            cursor: not-allowed; 
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+        .btn {
+            border: none;
+            border-radius: 14px;
+            padding: 12px 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+            font-size: 14px;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(33, 107, 244, 0.3);
+        }
+        .btn-secondary {
+            background: #eef2ff;
+            color: #1e3a8a;
+            border: 1px solid #c7d2fe;
+        }
+        .btn-danger {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+        .btn-danger:hover {
+            background: #fee2e2;
+        }
+        .alert {
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .alert.error {
+            border: 1px solid rgba(229,57,53,0.18);
+            background: rgba(229,57,53,0.08);
+            color: #b91c1c;
+        }
+        .alert.success {
+            border: 1px solid rgba(22,163,74,0.18);
+            background: rgba(22,163,74,0.08);
+            color: #166534;
+        }
+        .alert.show { display: block; }
+        
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .info-box h4 {
+            margin: 0 0 8px;
+            font-size: 14px;
+            color: #1e40af;
+        }
+        .info-box p {
+            margin: 0;
+            font-size: 13px;
+            color: #1e3a8a;
+            line-height: 1.5;
+        }
+        .info-box a {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+        .info-box ol {
+            margin: 8px 0 0;
+            padding-left: 20px;
+        }
+        .info-box li {
+            font-size: 13px;
+            color: #1e3a8a;
+            margin-bottom: 4px;
+        }
+        
+        .current-settings {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .current-settings h4 {
+            margin: 0 0 12px;
+            font-size: 14px;
+            color: #166534;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .current-settings .setting-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #dcfce7;
+            font-size: 13px;
+        }
+        .current-settings .setting-row:last-child {
+            border-bottom: none;
+        }
+        .current-settings .setting-label {
+            color: var(--muted);
+        }
+        .current-settings .setting-value {
+            color: var(--text);
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    {% include 'partials/admin-header.html' %}
+    
+    <div class="page">
+        <a href="/dashboard/admin/marketing" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Назад к маркетингу
+        </a>
+        
+        <div class="topbar">
+            <div>
+                <div class="title">Настройки Instagram API</div>
+                <div class="subtitle">Настройте подключение к Instagram через Meta for Developers</div>
+            </div>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <div class="info-box">
+            <h4>Как получить данные для интеграции?</h4>
+            <ol>
+                <li>Перейдите на <a href="https://developers.facebook.com/" target="_blank">developers.facebook.com</a></li>
+                <li>Создайте новое приложение (тип: Business)</li>
+                <li>Добавьте продукт "Instagram Basic Display"</li>
+                <li>В настройках OAuth добавьте Redirect URI (указан ниже)</li>
+                <li>Скопируйте App ID и App Secret из настроек приложения</li>
+            </ol>
+        </div>
+
+        <div id="currentSettings" class="current-settings" style="display: none;">
+            <h4>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22,4 12,14.01 9,11.01"/>
+                </svg>
+                Текущие настройки
+            </h4>
+            <div class="setting-row">
+                <span class="setting-label">App ID</span>
+                <span class="setting-value" id="currentAppId">—</span>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">App Secret</span>
+                <span class="setting-value" id="currentAppSecret">—</span>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">Redirect URI</span>
+                <span class="setting-value" id="currentRedirectUri">—</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="badge" id="statusBadge">Проверка</div>
+            <p class="subtitle" id="statusText" style="margin: 10px 0 0;">Загрузка настроек...</p>
+
+            <form id="settingsForm">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="appIdInput">Instagram App ID</label>
+                        <input class="input" id="appIdInput" type="text" placeholder="123456789012345" required>
+                        <span class="hint">Найдите в настройках приложения на Meta for Developers</span>
+                    </div>
+                    <div class="field">
+                        <label for="appSecretInput">Instagram App Secret</label>
+                        <input class="input" id="appSecretInput" type="password" placeholder="abc123def456..." required>
+                        <span class="hint">Секретный ключ из настроек приложения (не делитесь им!)</span>
+                    </div>
+                    <div class="field">
+                        <label for="redirectUriInput">OAuth Redirect URI</label>
+                        <input class="input" id="redirectUriInput" type="url" placeholder="https://yourdomain.com/api/instagram/callback" required>
+                        <span class="hint">Добавьте этот URL в Valid OAuth Redirect URIs на Meta for Developers</span>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary" id="saveBtn">Сохранить настройки</button>
+                    <button type="button" class="btn btn-secondary" id="testBtn" style="display: none;">Проверить подключение</button>
+                    <button type="button" class="btn btn-danger" id="deleteBtn" style="display: none;">Удалить настройки</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const alertBox = document.getElementById('alert');
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
+        const currentSettingsBlock = document.getElementById('currentSettings');
+        const appIdInput = document.getElementById('appIdInput');
+        const appSecretInput = document.getElementById('appSecretInput');
+        const redirectUriInput = document.getElementById('redirectUriInput');
+        const saveBtn = document.getElementById('saveBtn');
+        const testBtn = document.getElementById('testBtn');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const settingsForm = document.getElementById('settingsForm');
+
+        // Установка дефолтного Redirect URI
+        const defaultRedirectUri = window.location.origin + '/api/instagram/callback';
+        redirectUriInput.value = defaultRedirectUri;
+
+        function showAlert(message, isError = true) {
+            alertBox.textContent = message;
+            alertBox.className = isError ? 'alert error show' : 'alert success show';
+            setTimeout(() => alertBox.classList.remove('show'), 5000);
+        }
+
+        function setStatus(variant, text) {
+            const variants = {
+                success: { class: 'badge success', label: 'Настроено' },
+                error: { class: 'badge error', label: 'Не настроено' },
+                warning: { class: 'badge warning', label: 'Проверка' },
+            };
+            const preset = variants[variant] || variants.warning;
+            statusBadge.className = preset.class;
+            statusBadge.textContent = preset.label;
+            statusText.textContent = text;
+        }
+
+        async function fetchJson(url, options = {}) {
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                ...options,
+            });
+            if (!response.ok) {
+                let detail = 'Не удалось выполнить запрос.';
+                try {
+                    const errorData = await response.json();
+                    detail = errorData.detail || detail;
+                } catch (_) {}
+                throw new Error(detail);
+            }
+            return response.json();
+        }
+
+        function renderCurrentSettings(settings) {
+            if (!settings) {
+                currentSettingsBlock.style.display = 'none';
+                return;
+            }
+            currentSettingsBlock.style.display = 'block';
+            document.getElementById('currentAppId').textContent = settings.app_id;
+            document.getElementById('currentAppSecret').textContent = settings.app_secret_masked;
+            document.getElementById('currentRedirectUri').textContent = settings.redirect_uri;
+        }
+
+        async function loadSettings() {
+            setStatus('warning', 'Загрузка настроек...');
+            try {
+                const data = await fetchJson('/api/instagram/settings/status');
+                if (data.is_configured && data.settings) {
+                    setStatus('success', 'Instagram API настроен. Можно подключать аккаунты.');
+                    renderCurrentSettings(data.settings);
+                    appIdInput.value = data.settings.app_id;
+                    appIdInput.placeholder = data.settings.app_id;
+                    redirectUriInput.value = data.settings.redirect_uri;
+                    testBtn.style.display = 'inline-flex';
+                    deleteBtn.style.display = 'inline-flex';
+                } else {
+                    setStatus('error', 'Instagram API не настроен. Заполните форму ниже.');
+                    renderCurrentSettings(null);
+                    testBtn.style.display = 'none';
+                    deleteBtn.style.display = 'none';
+                }
+            } catch (error) {
+                setStatus('error', 'Ошибка загрузки настроек: ' + error.message);
+                renderCurrentSettings(null);
+            }
+        }
+
+        settingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Сохранение...';
+            
+            try {
+                const data = await fetchJson('/api/instagram/settings', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        app_id: appIdInput.value.trim(),
+                        app_secret: appSecretInput.value.trim(),
+                        redirect_uri: redirectUriInput.value.trim(),
+                    }),
+                });
+                showAlert('Настройки успешно сохранены!', false);
+                appSecretInput.value = '';
+                await loadSettings();
+            } catch (error) {
+                showAlert(error.message);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Сохранить настройки';
+            }
+        });
+
+        testBtn.addEventListener('click', async () => {
+            try {
+                const data = await fetchJson('/api/instagram/auth-url');
+                showAlert('Настройки валидны! URL авторизации получен.', false);
+            } catch (error) {
+                showAlert('Ошибка: ' + error.message);
+            }
+        });
+
+        deleteBtn.addEventListener('click', async () => {
+            if (!confirm('Вы уверены, что хотите удалить настройки Instagram? Все подключенные аккаунты перестанут работать.')) {
+                return;
+            }
+            try {
+                await fetchJson('/api/instagram/settings', { method: 'DELETE' });
+                showAlert('Настройки удалены.', false);
+                appIdInput.value = '';
+                appSecretInput.value = '';
+                redirectUriInput.value = defaultRedirectUri;
+                await loadSettings();
+            } catch (error) {
+                showAlert(error.message);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', loadSettings);
+    </script>
+</body>
+</html>
+

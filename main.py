@@ -57,6 +57,7 @@ from backend.api.draws.main import router as draw_users_router
 from backend.api.payment_options.main import router as payment_options_router
 # from backend.api.excel_utils import router as excel_router
 from backend.api.test_excel import router as test_excel
+from backend.api.instagram.main import router as instagram_router
 
 # Инициализация логирования
 setup_logging()
@@ -97,6 +98,7 @@ app.include_router(draw_users_router)
 app.include_router(payment_options_router)
 # app.include_router(excel_router)
 app.include_router(test_excel)
+app.include_router(instagram_router)
 
 app.mount(
     "/media",
