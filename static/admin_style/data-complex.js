@@ -92,7 +92,7 @@ ${/contract_registry\.xlsx$/i.test(fname)
           fileType = 'jk_data';
         } else if (/price_shaxamtka\.xlsx$/i.test(fname)) {
           fileType = 'price';
-        } else if (/contract_template\.docx$/i.test(fname)) {
+        } else if (/contract_template.*\.docx$/i.test(fname)) {
           fileType = 'template';
         } else if (/contract_registry\.xlsx$/i.test(fname)) {   // NEW
           fileType = 'registry';

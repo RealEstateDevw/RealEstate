@@ -48,8 +48,8 @@ async def load_payment_options_for_complex(complex_name: str, floor: str = "5") 
         else:  # ЖК_Рассвет
             base_price = 6_400_000
             start_date = datetime(2025, 10, 1)
-            end_date = start_date + relativedelta(months=21)
-            installment_months = 20
+            end_date = start_date + relativedelta(months=36)
+            installment_months = 36
 
         # Текущая дата
         today = datetime.today()

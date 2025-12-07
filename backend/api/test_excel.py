@@ -596,7 +596,7 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
 
     else:
         start_date = datetime(2025, 10, 1)
-        end_date = start_date + relativedelta(months=21)
+        end_date = start_date + relativedelta(months=36)
 
     # Текущая дата (сегодня)
     today = datetime.today()

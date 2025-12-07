@@ -53,7 +53,7 @@ class LanguageSwitcher {
                 // Conditions section
                 'conditions.title': 'Условия покупки — удобно и с выгодой',
                 'conditions.installment.title': 'Рассрочка',
-                'conditions.installment.desc': 'До 24 месяцев',
+                'conditions.installment.desc': 'До 36 месяцев',
                 'conditions.hybrid.title': 'Гибридная рассрочка',
                 'conditions.hybrid.desc': 'С отложенным платежом до 30%',
                 'conditions.mortgage.title': 'Переход на ипотеку',
