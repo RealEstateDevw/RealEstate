@@ -1,8 +1,11 @@
 import os
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Dict, Any
+from sqlalchemy.orm import Session
 from backend.core.google_sheets import get_price_data_for_sheet
 from backend.api.complexes.main import extract_price_value
+from backend.database import get_db
+from backend.database.models import ResidentialComplex
 
 router = APIRouter(prefix="/api/payment-options")
 
@@ -12,7 +15,7 @@ def format_number(num):
         return "0"
     return f"{int(num):,}".replace(",", " ")
 
-async def load_payment_options_for_complex(complex_name: str, floor: str = "5") -> Dict[str, Any]:
+async def load_payment_options_for_complex(complex_name: str, floor: str = "5", db: Session = None) -> Dict[str, Any]:
     """
     Загружает данные о способах оплаты для конкретного комплекса из тех же Excel файлов, что и цены
     """
@@ -20,7 +23,7 @@ async def load_payment_options_for_complex(complex_name: str, floor: str = "5") 
         # Получаем цены из тех же файлов, что и в apartment-info
         price_keys = {
             "100": f"{complex_name}_5_100",
-            "70": f"{complex_name}_5_70", 
+            "70": f"{complex_name}_5_70",
             "50": f"{complex_name}_5_50",
             "30": f"{complex_name}_5_30"
         }
@@ -36,20 +39,32 @@ async def load_payment_options_for_complex(complex_name: str, floor: str = "5") 
 
         # Берем цену за 30% как базовую для расчетов
         base_price = prices["30"]
-        
+
         # Вычисляем оставшиеся месяцы (как в apartment-info)
         from datetime import datetime
         from dateutil.relativedelta import relativedelta
-        
-        if complex_name == "ЖК_Бахор":
-            start_date = datetime(2025, 10, 1)
-            end_date = start_date + relativedelta(months=24)
-            installment_months = 24
-        else:  # ЖК_Рассвет
-            base_price = 6_400_000
-            start_date = datetime(2025, 10, 1)
-            end_date = start_date + relativedelta(months=36)
+
+        # Получаем настройки рассрочки из базы данных
+        if db:
+            complex_record = (
+                db.query(ResidentialComplex)
+                .filter(ResidentialComplex.name == complex_name)
+                .first()
+            )
+
+            if complex_record and complex_record.installment_start_date:
+                start_date = datetime.combine(complex_record.installment_start_date, datetime.min.time())
+                installment_months = complex_record.installment_months
+            else:
+                # Значения по умолчанию
+                start_date = datetime(2025, 12, 1)
+                installment_months = 36
+        else:
+            # Если db не передана, используем значения по умолчанию
+            start_date = datetime(2025, 12, 1)
             installment_months = 36
+
+        end_date = start_date + relativedelta(months=installment_months)
 
         # Текущая дата
         today = datetime.today()
@@ -133,18 +148,18 @@ async def load_payment_options_for_complex(complex_name: str, floor: str = "5") 
         raise HTTPException(status_code=500, detail=f"Ошибка обработки данных: {str(e)}")
 
 @router.get("/")
-async def get_payment_options() -> Dict[str, Any]:
+async def get_payment_options(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     Возвращает данные о способах оплаты для всех комплексов из Excel файлов
     """
     result = {}
-    
+
     # Список комплексов для обработки
     complexes = ["ЖК_Рассвет", "ЖК_Бахор"]
-    
+
     for complex_name in complexes:
         try:
-            result[complex_name] = await load_payment_options_for_complex(complex_name)
+            result[complex_name] = await load_payment_options_for_complex(complex_name, db=db)
         except HTTPException as e:
             # Если данные не найдены, пропускаем этот комплекс
             if e.status_code == 404:
@@ -154,15 +169,16 @@ async def get_payment_options() -> Dict[str, Any]:
             # Логируем ошибку, но продолжаем обработку других комплексов
             print(f"Ошибка загрузки данных для {complex_name}: {e}")
             continue
-    
+
     return result
 
 @router.get("/{complex_name}")
 async def get_payment_options_for_complex_endpoint(
-    complex_name: str, 
-    floor: str = Query("5", description="Этаж для расчета цен")
+    complex_name: str,
+    floor: str = Query("5", description="Этаж для расчета цен"),
+    db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """
     Возвращает данные о способах оплаты для конкретного комплекса
     """
-    return await load_payment_options_for_complex(complex_name, floor)
+    return await load_payment_options_for_complex(complex_name, floor, db=db)

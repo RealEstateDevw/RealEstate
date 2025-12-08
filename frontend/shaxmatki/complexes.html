@@ -4948,7 +4948,9 @@
                             pricePerM2_30 = 0,
                             total_price = 0, // Используем это как базовую цену "от"
                             status = "неизвестно",
-                            months_left = 36
+                            months_left = 36,
+                            hybrid_installment_enabled = false,
+                            installment_months = 36
                         } = apartmentInfo.data;
 
 
@@ -5289,8 +5291,8 @@
                                 }
                             });
 
-                            const allowedHybrid = ["ЖК_Рассвет", "ЖК_Бахор"];
-                            if (allowedHybrid.includes(jkName)) {
+                            // Показываем кнопку гибридной рассрочки только если она включена
+                            if (hybrid_installment_enabled) {
                                 appendPaymentButton('Гибридная рассрочка', () => {
                                     clearSubOptions();
                                     const options = document.createElement('div');

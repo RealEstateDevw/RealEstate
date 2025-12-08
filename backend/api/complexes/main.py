@@ -601,7 +601,8 @@ async def get_apartment_info(
         blockName: str = Query(..., alias="blockName"),
         apartmentSize: str = Query(..., alias="apartmentSize"),
         floor: str = Query(..., alias="floor"),
-        apartmentNumber: str = Query(..., alias="apartmentNumber")
+        apartmentNumber: str = Query(..., alias="apartmentNumber"),
+        db: Session = Depends(get_db)
 ):
     print(
         f"Запрос к /api/apartment-info: jk_name={jkName}, block_name={blockName}, "
@@ -672,12 +673,23 @@ async def get_apartment_info(
         return {"status": "error", "message": "Квартира не найдена"}
 
     try:
-        if jkName == "ЖК_Бахор":
-            start_date = datetime(2025, 10, 1)
-            end_date = start_date + relativedelta(months=24)
+        # Получаем настройки рассрочки из базы данных
+        complex_record = (
+            db.query(ResidentialComplex)
+            .filter(ResidentialComplex.name == jkName)
+            .first()
+        )
+
+        if complex_record and complex_record.installment_start_date:
+            from datetime import datetime as dt
+            start_date = dt.combine(complex_record.installment_start_date, dt.min.time())
+            installment_months = complex_record.installment_months
         else:
-            start_date = datetime(2025, 10, 1)
-            end_date = start_date + relativedelta(months=21)
+            # Значения по умолчанию, если не найдено в БД
+            start_date = datetime(2025, 12, 1)
+            installment_months = 36
+
+        end_date = start_date + relativedelta(months=installment_months)
 
         today = datetime.today()
         diff_years = end_date.year - today.year
@@ -722,6 +734,8 @@ async def get_apartment_info(
         "months_left": months_left,
         "roomsCount": target_rooms,  # Всегда включаем roomsCount в ответ
         "unitType": target_unit_type,  # Тип помещения (жилой/нежилой)
+        "hybrid_installment_enabled": complex_record.hybrid_installment_enabled if complex_record else False,
+        "installment_months": complex_record.installment_months if complex_record else 36,
     }
     
     return {
@@ -810,5 +824,85 @@ async def add_complex(
         "imported": {
             "apartments": apartments,
             "prices": prices,
+        }
+    }
+
+
+@router.post("/clear-cache")
+async def clear_cache():
+    """Очистить кеш комплексов (для разработки)."""
+    await invalidate_complex_cache()
+    return {"status": "success", "message": "Кеш успешно очищен"}
+
+
+@router.get("/installment-settings/{jk_name}")
+async def get_installment_settings(jk_name: str, db: Session = Depends(get_db)):
+    """Получить настройки рассрочки для жилого комплекса."""
+    complex_record = (
+        db.query(ResidentialComplex)
+        .filter(ResidentialComplex.name == jk_name)
+        .first()
+    )
+
+    if not complex_record:
+        raise HTTPException(status_code=404, detail=f"Жилой комплекс {jk_name} не найден")
+
+    return {
+        "status": "success",
+        "data": {
+            "installment_months": complex_record.installment_months,
+            "installment_start_date": complex_record.installment_start_date.isoformat() if complex_record.installment_start_date else None,
+            "hybrid_installment_enabled": complex_record.hybrid_installment_enabled,
+        }
+    }
+
+
+@router.put("/installment-settings/{jk_name}")
+async def update_installment_settings(
+    jk_name: str,
+    installment_months: int = Body(...),
+    installment_start_date: str = Body(...),
+    hybrid_installment_enabled: bool = Body(...),
+    db: Session = Depends(get_db),
+):
+    """Обновить настройки рассрочки для жилого комплекса."""
+    complex_record = (
+        db.query(ResidentialComplex)
+        .filter(ResidentialComplex.name == jk_name)
+        .first()
+    )
+
+    if not complex_record:
+        raise HTTPException(status_code=404, detail=f"Жилой комплекс {jk_name} не найден")
+
+    # Обновляем настройки
+    complex_record.installment_months = installment_months
+
+    # Парсим дату
+    from datetime import datetime as dt
+    try:
+        parsed_date = dt.strptime(installment_start_date, "%Y-%m-%d").date()
+        complex_record.installment_start_date = parsed_date
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Неверный формат даты. Используйте YYYY-MM-DD")
+
+    complex_record.hybrid_installment_enabled = hybrid_installment_enabled
+
+    try:
+        db.commit()
+        db.refresh(complex_record)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка при обновлении: {str(e)}")
+
+    await invalidate_complex_cache()
+
+    return {
+        "status": "success",
+        "message": "Настройки рассрочки успешно обновлены",
+        "data": {
+            "installment_months": complex_record.installment_months,
+            "installment_start_date": complex_record.installment_start_date.isoformat(),
+            "hybrid_installment_enabled": complex_record.hybrid_installment_enabled,
         }
     }

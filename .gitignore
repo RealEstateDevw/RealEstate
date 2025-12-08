@@ -103,7 +103,11 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# SQLite database files
 data.db
+data.db-shm
+data.db-wal
 
 # Spyder project settings
 .spyderproject
@@ -144,7 +148,7 @@ Thumbs.db
 # Docker
 .dockerignore
 
-# Alembic
-alembic/versions/*.py
-!alembic/versions/.gitkeep
+# Alembic - игнорируем автогенерированные миграции, но добавляем важные вручную
+# alembic/versions/*.py
+# !alembic/versions/.gitkeep
 

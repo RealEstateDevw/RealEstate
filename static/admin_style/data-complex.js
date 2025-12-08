@@ -23,6 +23,30 @@ async function openComplexDetails(jkName) {
     // (опционально) дата добавления
     // document.querySelector('.form-info-data .text-profile.gray').textContent = 'Дата: ' + someDate;
 
+    // Загружаем настройки рассрочки
+    try {
+        const settingsResp = await fetch(`/api/complexes/installment-settings/${encodeURIComponent(jkName)}`);
+        if (settingsResp.ok) {
+            const { data } = await settingsResp.json();
+            console.log('Настройки рассрочки:', data);
+            document.getElementById('installment_months').value = data.installment_months ?? 36;
+            document.getElementById('installment_start_date').value = data.installment_start_date ?? '2025-12-01';
+            document.getElementById('hybrid_installment_enabled').checked = data.hybrid_installment_enabled ?? false;
+        } else {
+            // Если ЖК не найден, показываем значения по умолчанию
+            console.warn('ЖК не найден, используем значения по умолчанию');
+            document.getElementById('installment_months').value = 36;
+            document.getElementById('installment_start_date').value = '2025-12-01';
+            document.getElementById('hybrid_installment_enabled').checked = false;
+        }
+    } catch (err) {
+        console.error('Ошибка загрузки настроек рассрочки:', err);
+        // Показываем значения по умолчанию при ошибке
+        document.getElementById('installment_months').value = 36;
+        document.getElementById('installment_start_date').value = '2025-12-01';
+        document.getElementById('hybrid_installment_enabled').checked = false;
+    }
+
     try {
         // 4) Получаем список файлов
         const resp = await fetch(`/excel/complexes/${encodeURIComponent(jkName)}/files`);
@@ -504,6 +528,69 @@ function openReplaceModal(jkName, oldFilename) {
 
 // Вызываем при старте:
 document.addEventListener('DOMContentLoaded', loadComplexes);
+
+// Обработчик сохранения настроек рассрочки
+document.addEventListener('click', async (e) => {
+    if (e.target && e.target.id === 'saveInstallmentBtn') {
+        const jkName = document.getElementById('userId').value;
+        if (!jkName) {
+            alert('Не выбран жилой комплекс');
+            return;
+        }
+
+        const installment_months = parseInt(document.getElementById('installment_months').value);
+        const installment_start_date = document.getElementById('installment_start_date').value;
+        const hybrid_installment_enabled = document.getElementById('hybrid_installment_enabled').checked;
+
+        if (!installment_months || installment_months < 1) {
+            alert('Укажите корректный срок рассрочки');
+            return;
+        }
+
+        if (!installment_start_date) {
+            alert('Укажите дату начала рассрочки');
+            return;
+        }
+
+        const btn = e.target;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Сохранение...';
+
+        try {
+            const resp = await fetch(`/api/complexes/installment-settings/${encodeURIComponent(jkName)}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    installment_months,
+                    installment_start_date,
+                    hybrid_installment_enabled
+                })
+            });
+
+            if (!resp.ok) {
+                const errorData = await resp.json().catch(() => ({}));
+                throw new Error(errorData.detail || 'Ошибка сохранения');
+            }
+
+            btn.textContent = 'Сохранено ✅';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 2000);
+
+            showNotification('Настройки рассрочки успешно обновлены. Кеш очищен.', true);
+        } catch (err) {
+            console.error('Ошибка сохранения настроек рассрочки:', err);
+            btn.textContent = 'Ошибка ❌';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 2000);
+            showNotification('Ошибка сохранения настроек: ' + err.message, false);
+        }
+    }
+});
 /**
  * Открывает модальное окно для редактирования прайса ЖК
  * @param {string} jkName - имя ЖК

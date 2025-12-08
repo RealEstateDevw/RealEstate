@@ -12,7 +12,7 @@
 """
 
 import enum
-from datetime import datetime
+from datetime import datetime, date
 from zoneinfo import ZoneInfo
 
 from backend.api.finance.schemas import PaymentStatus, PaymentType
@@ -725,6 +725,12 @@ class ResidentialComplex(Base):
     city = Column(String, nullable=True)
     address = Column(String, nullable=True)
     description = Column(Text, nullable=True)
+
+    # Настройки рассрочки
+    installment_months = Column(Integer, nullable=False, default=36)
+    installment_start_date = Column(Date, nullable=False, default=date(2025, 12, 1))
+    hybrid_installment_enabled = Column(Boolean, nullable=False, default=False)
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

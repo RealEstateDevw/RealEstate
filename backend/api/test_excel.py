@@ -488,7 +488,7 @@ async def generate_contract(
 
         # Подготовка контекста (словаря) для Jinja2
         # Имена ключей должны ТОЧНО соответствовать плейсхолдерам БЕЗ {{ }}
-        context = _prepare_context_for_tpl(data)
+        context = _prepare_context_for_tpl(data, db)
         floorplan_images = FLOORPLAN_IMAGES.get(data.jkName, [])
         img_index = data.floor - 1
         if 0 <= img_index < len(floorplan_images):
@@ -578,7 +578,7 @@ def _generate_contract_number(db: Session, complex_obj: ResidentialComplex) -> s
     return f"Д-{str(next_seq).zfill(4)}"
 
 
-def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
+def _prepare_context_for_tpl(data: ContractData, db: Session) -> Dict[str, any]:
     """Подготовка словаря (контекста) для docxtpl."""
     total_amount = clean_number(data.totalPrice)
     initial_payment = clean_number(data.initialPayment)
@@ -590,13 +590,23 @@ def _prepare_context_for_tpl(data: ContractData) -> Dict[str, any]:
     # Осторожно с делением на 0, если total_amount может быть 0
     contract_date = parse_date(data.contractDate)  # Предполагаем, что parse_date возвращает datetime объект
     print(data.contractDate)
-    if data.jkName == "ЖК_Бахор":
-        start_date = datetime(2025, 10, 1)
-        end_date = start_date + relativedelta(months=24)
 
+    # Получаем настройки рассрочки из базы данных
+    complex_record = (
+        db.query(ResidentialComplex)
+        .filter(ResidentialComplex.name == data.jkName)
+        .first()
+    )
+
+    if complex_record and complex_record.installment_start_date:
+        start_date = datetime.combine(complex_record.installment_start_date, datetime.min.time())
+        installment_months = complex_record.installment_months
     else:
-        start_date = datetime(2025, 10, 1)
-        end_date = start_date + relativedelta(months=36)
+        # Значения по умолчанию
+        start_date = datetime(2025, 12, 1)
+        installment_months = 36
+
+    end_date = start_date + relativedelta(months=installment_months)
 
     # Текущая дата (сегодня)
     today = datetime.today()
