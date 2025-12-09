@@ -92,7 +92,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 class DatabaseConnectionMiddleware(BaseHTTPMiddleware):
     """Middleware для проверки соединения с базой данных"""
-    
+
     async def dispatch(self, request: Request, call_next):
         # Проверяем соединение с БД только для API запросов
         if request.url.path.startswith("/api/"):
@@ -108,5 +108,34 @@ class DatabaseConnectionMiddleware(BaseHTTPMiddleware):
                     status_code=503,
                     media_type="application/json"
                 )
-        
+
         return await call_next(request)
+
+
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    """Middleware для контроля кеширования API запросов"""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+
+        # Для критичных эндпоинтов которые часто меняются админом - требуем ревалидацию
+        critical_paths = [
+            "/api/complexes/apartment-info",
+            "/api/complexes/jk/",
+            "/api/complexes/aggregate",
+        ]
+
+        is_critical = any(request.url.path.startswith(path) for path in critical_paths)
+
+        if request.url.path.startswith("/api/"):
+            if is_critical:
+                # Для критичных данных: браузер может кешировать, но ДОЛЖЕН проверять
+                # актуальность на сервере при КАЖДОМ запросе
+                response.headers["Cache-Control"] = "no-cache, must-revalidate"
+            else:
+                # Для остальных API: кешируем на 5 минут
+                response.headers["Cache-Control"] = "public, max-age=300, must-revalidate"
+
+            response.headers["Vary"] = "Accept-Encoding"
+
+        return response

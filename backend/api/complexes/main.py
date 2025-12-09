@@ -35,7 +35,7 @@ from backend.core.plan_cache import ensure_plan_image_cached
 router = APIRouter(prefix='/api/complexes')
 
 BASE_COMPLEX_STATIC = Path('static') / 'Жилые_Комплексы'
-CACHE_TTL_SECONDS = 900  # 15 минут
+CACHE_TTL_SECONDS = 300  # 5 минут
 
 
 def _collect_render_paths(complex_name: str) -> List[str]:

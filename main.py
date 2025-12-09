@@ -36,7 +36,8 @@ from backend.core.exceptions import (
 from backend.core.middleware import (
     LoggingMiddleware,
     SecurityHeadersMiddleware,
-    DatabaseConnectionMiddleware
+    DatabaseConnectionMiddleware,
+    NoCacheMiddleware
 )
 from backend.core.static import CachedStaticFiles
 from backend.core.rate_limiter import RateLimitMiddleware
@@ -73,6 +74,7 @@ app = FastAPI(
 # Добавляем middleware (порядок важен!)
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(NoCacheMiddleware)  # Предотвращаем кеширование API в браузере
 app.add_middleware(DatabaseConnectionMiddleware)
 app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
 
@@ -145,7 +147,7 @@ async def on_startup():
     asyncio.create_task(_periodic_cache_warmup())
 
 
-async def _periodic_cache_warmup(interval_seconds: int = 900) -> None:
+async def _periodic_cache_warmup(interval_seconds: int = 300) -> None:
     """Re-populates caches on a rolling schedule to keep landing data fresh."""
     while True:
         await asyncio.sleep(interval_seconds)
