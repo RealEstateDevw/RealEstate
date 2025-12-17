@@ -35,7 +35,8 @@ from backend.core.plan_cache import ensure_plan_image_cached
 router = APIRouter(prefix='/api/complexes')
 
 BASE_COMPLEX_STATIC = Path('static') / 'Жилые_Комплексы'
-CACHE_TTL_SECONDS = 300  # 5 минут
+CACHE_TTL_SECONDS = 300  # 5 минут для админских endpoints
+CACHE_TTL_LANDING_SECONDS = 3600  # 1 час для публичных landing pages
 
 
 def _collect_render_paths(complex_name: str) -> List[str]:
@@ -223,7 +224,7 @@ async def get_complexes(db: Session = Depends(get_db)):
 
 
 @router.get("/jk/{jk_name}")
-@cache(expire=CACHE_TTL_SECONDS, namespace="complexes:jk")
+@cache(expire=CACHE_TTL_LANDING_SECONDS, namespace="complexes:jk")
 async def get_jk_data(jk_name: str, db: Session = Depends(get_db)):
     try:
         shaxmatka_rows = await get_shaxmatka_data(jk_name)
@@ -595,7 +596,7 @@ async def get_blocks(jk_name: str):
 
 
 @router.get("/apartment-info")
-@cache(expire=CACHE_TTL_SECONDS, namespace="complexes:apartment-info")
+@cache(expire=CACHE_TTL_LANDING_SECONDS, namespace="complexes:apartment-info")
 async def get_apartment_info(
         jkName: str = Query(..., alias="jkName"),
         blockName: str = Query(..., alias="blockName"),

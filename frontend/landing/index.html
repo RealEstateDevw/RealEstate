@@ -1871,16 +1871,70 @@
                 }
             }
 
+            // Cache configuration
+            const CACHE_VERSION = 'v1';
+            const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+
+            function getCacheKey(jkName) {
+                return `apartments_${jkName}_${CACHE_VERSION}`;
+            }
+
+            function getCachedData(jkName) {
+                try {
+                    const cacheKey = getCacheKey(jkName);
+                    const cached = localStorage.getItem(cacheKey);
+                    if (!cached) return null;
+
+                    const { data, timestamp } = JSON.parse(cached);
+                    const now = Date.now();
+
+                    if (now - timestamp < CACHE_DURATION) {
+                        console.log('[Cache] Using cached apartment data for', jkName);
+                        return data;
+                    }
+
+                    localStorage.removeItem(cacheKey);
+                    return null;
+                } catch (error) {
+                    console.error('[Cache] Error reading cache:', error);
+                    return null;
+                }
+            }
+
+            function setCachedData(jkName, data) {
+                try {
+                    const cacheKey = getCacheKey(jkName);
+                    localStorage.setItem(cacheKey, JSON.stringify({
+                        data: data,
+                        timestamp: Date.now()
+                    }));
+                    console.log('[Cache] Data cached for', jkName);
+                } catch (error) {
+                    console.error('[Cache] Error setting cache:', error);
+                }
+            }
+
             async function loadApartments(jkName, roomsFilter = null) {
                 try {
-                    const response = await fetch(`/api/complexes/jk/${jkName}`);
-                    
-                    if (!response.ok) {
-                        console.warn(`API вернул ошибку ${response.status} для ЖК ${jkName}`);
-                        return [];
+                    // Try cache first
+                    let data = getCachedData(jkName);
+
+                    if (!data) {
+                        console.log('[API] Fetching apartment data from server for', jkName);
+                        const response = await fetch(`/api/complexes/jk/${jkName}`);
+
+                        if (!response.ok) {
+                            console.warn(`API вернул ошибку ${response.status} для ЖК ${jkName}`);
+                            return [];
+                        }
+
+                        data = await response.json();
+
+                        // Cache successful response
+                        if (data.status === 'success') {
+                            setCachedData(jkName, data);
+                        }
                     }
-                    
-                    const data = await response.json();
                     if (data.status !== 'success') {
                         console.warn('Ошибка загрузки данных ЖК:', data.message || 'Неизвестная ошибка');
                         return [];
@@ -1938,18 +1992,67 @@
                 return 4;
             }
 
+            function getApartmentDetailsCacheKey(jkName, apartment) {
+                return `apartment_details_${jkName}_${apartment.blockName}_${apartment.floor}_${apartment.apartmentNumber}_${CACHE_VERSION}`;
+            }
+
+            function getCachedApartmentDetails(jkName, apartment) {
+                try {
+                    const cacheKey = getApartmentDetailsCacheKey(jkName, apartment);
+                    const cached = localStorage.getItem(cacheKey);
+                    if (!cached) return null;
+
+                    const { data, timestamp } = JSON.parse(cached);
+                    const now = Date.now();
+
+                    if (now - timestamp < CACHE_DURATION) {
+                        return data;
+                    }
+
+                    localStorage.removeItem(cacheKey);
+                    return null;
+                } catch (error) {
+                    console.error('[Cache] Error reading apartment details cache:', error);
+                    return null;
+                }
+            }
+
+            function setCachedApartmentDetails(jkName, apartment, data) {
+                try {
+                    const cacheKey = getApartmentDetailsCacheKey(jkName, apartment);
+                    localStorage.setItem(cacheKey, JSON.stringify({
+                        data: data,
+                        timestamp: Date.now()
+                    }));
+                } catch (error) {
+                    console.error('[Cache] Error setting apartment details cache:', error);
+                }
+            }
+
             async function loadApartmentDetails(jkName, apartment) {
                 try {
-                    const response = await fetch(`/api/complexes/apartment-info?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(apartment.blockName ?? '')}&apartmentSize=${apartment.size}&floor=${apartment.floor}&apartmentNumber=${apartment.apartmentNumber}`);
-                    
-                    if (!response.ok) {
-                        console.warn(`API вернул ошибку ${response.status} для квартиры ${apartment.apartmentNumber}`);
+                    // Try cache first
+                    let details = getCachedApartmentDetails(jkName, apartment);
+
+                    if (!details) {
+                        const response = await fetch(`/api/complexes/apartment-info?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(apartment.blockName ?? '')}&apartmentSize=${apartment.size}&floor=${apartment.floor}&apartmentNumber=${apartment.apartmentNumber}`);
+
+                        if (!response.ok) {
+                            console.warn(`API вернул ошибку ${response.status} для квартиры ${apartment.apartmentNumber}`);
+                            return null;
+                        }
+
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            details = data.data;
+                            // Cache the details
+                            setCachedApartmentDetails(jkName, apartment, details);
+                            return details;
+                        }
                         return null;
                     }
-                    
-                    const data = await response.json();
-                    if (data.status === 'success') return data.data;
-                    return null;
+
+                    return details;
                 } catch (error) {
                     console.warn('Ошибка загрузки деталей квартиры:', error);
                     return null;

@@ -12,7 +12,7 @@ class Settings:
     # JWT Settings
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your_secret_key_here_change_in_production")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "600"))  # 10 часов
     
     # Telegram Bot
     BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
