@@ -1,7 +1,7 @@
 import shutil
 from datetime import datetime
 
-from fastapi import APIRouter, Query, Depends, HTTPException, Body, Form, UploadFile, File
+from fastapi import APIRouter, Query, Depends, HTTPException, Body, Form, UploadFile, File, Response
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from starlette import status
@@ -67,7 +67,11 @@ async def create_lead(lead: LeadCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{lead_id}", response_model=LeadInDB)
-async def get_lead(lead_id: int, db: Session = Depends(get_db)):
+async def get_lead(response: Response, lead_id: int, db: Session = Depends(get_db)):
+    # Отключаем кеширование для real-time данных
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     db_lead = lead_crud.get_lead(db, lead_id)
     if not db_lead:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -76,6 +80,7 @@ async def get_lead(lead_id: int, db: Session = Depends(get_db)):
 
 @router.get("/", response_model=List[LeadInDB])
 async def get_leads(
+        response: Response,
         skip: int = 0,
         limit: int = 100,
         status: Optional[LeadStatus] = None,
@@ -84,6 +89,10 @@ async def get_leads(
         payment_type: Optional[str] = None,
         db: Session = Depends(get_db)
 ):
+    # Отключаем кеширование для real-time данных
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     return lead_crud.get_leads(db, skip, limit, status, state, region, payment_type)
 
 
@@ -104,8 +113,18 @@ async def delete_lead(lead_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/user/{user_id}")
-async def get_user_leads(user_id: int, include_callbacks: bool = False, skip: int = 0, limit: int = 100,
-                         db: Session = Depends(get_db)):
+async def get_user_leads(
+        response: Response,
+        user_id: int,
+        include_callbacks: bool = False,
+        skip: int = 0,
+        limit: int = 100,
+        db: Session = Depends(get_db)
+):
+    # Отключаем кеширование для real-time данных
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     leads = lead_crud.get_leads_by_user(db, user_id, include_callbacks, skip, limit)
     
     # Если лидов нет, возвращаем пустой массив вместо ошибки 404

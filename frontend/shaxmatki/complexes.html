@@ -3557,7 +3557,7 @@
         async function selectComplex(complexName) {
             console.log(`Выбран ЖК: ${complexName}`);
             try {
-                const response = await fetch(`/api/complexes/jk/${complexName}`);
+                const response = await fetch(`/api/complexes/nocache/jk/${complexName}`);
                 const result = await response.json();
                 if (result.status === "success") {
                     updateRegistryContracts(result.registryContracts || []);
@@ -3871,7 +3871,7 @@
                     console.log(`Выбран ЖК для показа информации: ${jkName}`);
 
                     try {
-                        const response = await fetch(`/api/complexes/jk/${jkName}`);
+                        const response = await fetch(`/api/complexes/nocache/jk/${jkName}`);
                         const result = await response.json();
 
                         if (result.status === "success") {
@@ -4933,8 +4933,8 @@
                     const planImagePath = await fetchPlanImage(jkName, blockName, apartmentSize);
                     console.log(`Путь к изображению: ${planImagePath}`);
 
-                    // 2. Получаем данные о квартире
-                    const apiUrl = `/api/complexes/apartment-info?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(blockName)}&apartmentSize=${encodeURIComponent(apartmentSize)}&floor=${encodeURIComponent(floor)}&apartmentNumber=${encodeURIComponent(apartmentNumber)}`;
+                    // 2. Получаем данные о квартире (без кеша для CRM)
+                    const apiUrl = `/api/complexes/nocache/apartment-info?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(blockName)}&apartmentSize=${encodeURIComponent(apartmentSize)}&floor=${encodeURIComponent(floor)}&apartmentNumber=${encodeURIComponent(apartmentNumber)}`;
                     const apartmentInfo = await fetchData(apiUrl, "Ошибка получения информации о квартире");
                     if (apartmentInfo.status !== "success") {
                         alert(apartmentInfo.message || "Ошибка при получении информации о квартире.");

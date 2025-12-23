@@ -1688,9 +1688,9 @@
         // Функция для выбора ЖК (кнопка "Выбрать квартиру")
         function selectComplex(complexName) {
             console.log(`Выбран ЖК: ${complexName}`);
-            
-            // Загружаем данные ЖК и показываем блоки
-            fetch(`/api/complexes/jk/${complexName}`)
+
+            // Загружаем данные ЖК и показываем блоки (без кеша для CRM)
+            fetch(`/api/complexes/nocache/jk/${complexName}`)
                 .then(response => response.json())
                 .then(result => {
                     if (result.status === "success") {
@@ -1912,7 +1912,7 @@
                     console.log(`Выбран ЖК: ${jkName}`);
 
                     try {
-                        const response = await fetch(`/api/complexes/jk/${jkName}`);
+                        const response = await fetch(`/api/complexes/nocache/jk/${jkName}`);
                         const result = await response.json();
 
                         if (result.status === "success") {
@@ -2208,8 +2208,8 @@
                     const planImagePath = await fetchPlanImage(jkName, blockName, apartmentSize);
                     console.log(`Путь к изображению: ${planImagePath}`);
 
-                    // 2. Получаем данные о квартире
-                    const apiUrl = `/api/complexes/apartment-info?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(blockName)}&apartmentSize=${encodeURIComponent(apartmentSize)}&floor=${encodeURIComponent(floor)}&apartmentNumber=${encodeURIComponent(apartmentNumber)}`;
+                    // 2. Получаем данные о квартире (без кеша для CRM)
+                    const apiUrl = `/api/complexes/nocache/apartment-info?jkName=${encodeURIComponent(jkName)}&blockName=${encodeURIComponent(blockName)}&apartmentSize=${encodeURIComponent(apartmentSize)}&floor=${encodeURIComponent(floor)}&apartmentNumber=${encodeURIComponent(apartmentNumber)}`;
                     const apartmentInfo = await fetchData(apiUrl, "Ошибка получения информации о квартире");
                     if (apartmentInfo.status === "success") {
                         const {

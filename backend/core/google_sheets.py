@@ -3,13 +3,10 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException
-from fastapi_cache.decorator import cache
 from sqlalchemy.orm import Session
 
 from backend.database import SessionLocal
 from backend.database.models import ResidentialComplex, ApartmentUnit, ChessboardPriceEntry
-
-CACHE_TTL_SECONDS = 900  # 15 minutes
 
 
 def _get_complex(session: Session, jk_name: str) -> ResidentialComplex:
@@ -65,7 +62,6 @@ def _build_price_matrix(entries: List[ChessboardPriceEntry]) -> List[List[Any]]:
     return matrix
 
 
-@cache(expire=CACHE_TTL_SECONDS, namespace="complexes:shaxmatka")
 async def get_shaxmatka_data(jk_name: str) -> List[List[Any]]:
     session = SessionLocal()
     try:
@@ -81,7 +77,6 @@ async def get_shaxmatka_data(jk_name: str) -> List[List[Any]]:
         session.close()
 
 
-@cache(expire=CACHE_TTL_SECONDS, namespace="complexes:price-by-key")
 async def get_price_data_for_sheet(jk_floor_key: str) -> List[List[Any]]:
     components = jk_floor_key.split('_')
     if len(components) < 3:
@@ -101,7 +96,6 @@ async def get_price_data_for_sheet(jk_floor_key: str) -> List[List[Any]]:
         session.close()
 
 
-@cache(expire=CACHE_TTL_SECONDS, namespace="complexes:price-all")
 async def get_price_data_for_sheet_all(sheet_name: str) -> List[List[Any]]:
     session = SessionLocal()
     try:

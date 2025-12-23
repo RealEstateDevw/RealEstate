@@ -147,8 +147,8 @@ async def on_startup():
     asyncio.create_task(_periodic_cache_warmup())
 
 
-async def _periodic_cache_warmup(interval_seconds: int = 300) -> None:
-    """Re-populates caches on a rolling schedule to keep landing data fresh."""
+async def _periodic_cache_warmup(interval_seconds: int = 900) -> None:
+    """Re-populates caches on a rolling schedule to keep landing data fresh (every 15 minutes)."""
     while True:
         await asyncio.sleep(interval_seconds)
         try:

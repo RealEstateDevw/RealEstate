@@ -1535,7 +1535,7 @@ function openContractModal(prefilledData) {
           floor: floor.toString(),
           apartmentNumber: apartmentNumber.toString()
         });
-        const apartmentInfoRes = await fetch(`/api/complexes/apartment-info?${apartmentInfoParams.toString()}`);
+        const apartmentInfoRes = await fetch(`/api/complexes/nocache/apartment-info?${apartmentInfoParams.toString()}`);
         if (apartmentInfoRes.ok) {
           const apartmentInfoData = await apartmentInfoRes.json();
           if (apartmentInfoData.status === 'success' && apartmentInfoData.data) {

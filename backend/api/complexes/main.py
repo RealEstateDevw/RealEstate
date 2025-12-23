@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import fitz
 from dateutil.relativedelta import relativedelta
-from fastapi import APIRouter, HTTPException, Body, Query, UploadFile, File, Form, Depends
+from fastapi import APIRouter, HTTPException, Body, Query, UploadFile, File, Form, Depends, Response
 from starlette.responses import FileResponse
 
 from math import isfinite
@@ -35,8 +35,7 @@ from backend.core.plan_cache import ensure_plan_image_cached
 router = APIRouter(prefix='/api/complexes')
 
 BASE_COMPLEX_STATIC = Path('static') / 'Жилые_Комплексы'
-CACHE_TTL_SECONDS = 300  # 5 минут для админских endpoints
-CACHE_TTL_LANDING_SECONDS = 3600  # 1 час для публичных landing pages
+CACHE_TTL_LANDING_SECONDS = 3600  # 1 hour for landing pages
 
 
 def _collect_render_paths(complex_name: str) -> List[str]:
@@ -190,9 +189,8 @@ def _build_registry_contracts(db: Session, complex_id: int) -> List[Dict[str, An
     return result
 
 
-@router.get('/')
-@cache(expire=CACHE_TTL_SECONDS, namespace="complexes:list")
-async def get_complexes(db: Session = Depends(get_db)):
+async def _get_complexes_impl(db: Session) -> Dict[str, Any]:
+    """Internal implementation for getting complexes list (shared by cached and non-cached endpoints)."""
     complexes = (
         db.query(ResidentialComplex)
         .order_by(ResidentialComplex.name.asc())
@@ -223,9 +221,25 @@ async def get_complexes(db: Session = Depends(get_db)):
     return {"status": "success", "complexes": response}
 
 
-@router.get("/jk/{jk_name}")
-@cache(expire=CACHE_TTL_LANDING_SECONDS, namespace="complexes:jk")
-async def get_jk_data(jk_name: str, db: Session = Depends(get_db)):
+@router.get('/')
+@cache(expire=CACHE_TTL_LANDING_SECONDS, namespace="complexes:list")
+async def get_complexes(db: Session = Depends(get_db)):
+    """Get complexes list WITH CACHING - for landing pages."""
+    return await _get_complexes_impl(db)
+
+
+@router.get('/nocache/')
+async def get_complexes_nocache(response: Response, db: Session = Depends(get_db)):
+    """Get complexes list WITHOUT CACHING - for CRM real-time updates."""
+    # Отключаем кеширование браузера
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return await _get_complexes_impl(db)
+
+
+async def _get_jk_data_impl(jk_name: str, db: Session) -> Dict[str, Any]:
+    """Internal implementation for getting JK data (shared by cached and non-cached endpoints)."""
     try:
         shaxmatka_rows = await get_shaxmatka_data(jk_name)
     except HTTPException as exc:
@@ -256,8 +270,24 @@ async def get_jk_data(jk_name: str, db: Session = Depends(get_db)):
     }
 
 
+@router.get("/jk/{jk_name}")
+@cache(expire=CACHE_TTL_LANDING_SECONDS, namespace="complexes:jk")
+async def get_jk_data(jk_name: str, db: Session = Depends(get_db)):
+    """Get JK data WITH CACHING - for landing pages."""
+    return await _get_jk_data_impl(jk_name, db)
+
+
+@router.get("/nocache/jk/{jk_name}")
+async def get_jk_data_nocache(response: Response, jk_name: str, db: Session = Depends(get_db)):
+    """Get JK data WITHOUT CACHING - for CRM real-time updates."""
+    # Отключаем кеширование браузера
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return await _get_jk_data_impl(jk_name, db)
+
+
 @router.get("/aggregate", summary="Получить агрегированные данные по ЖК")
-@cache(expire=CACHE_TTL_SECONDS, namespace="complexes:aggregate")
 async def get_complexes_aggregate(db: Session = Depends(get_db)):
     complexes = (
         db.query(ResidentialComplex)
@@ -583,9 +613,8 @@ async def get_floor_plan(
     raise HTTPException(status_code=404, detail="План этажа не найден")
 
 
-@router.get("/blocks/{jk_name}")
-@cache(expire=CACHE_TTL_SECONDS, namespace="complexes:blocks")
-async def get_blocks(jk_name: str):
+async def _get_blocks_impl(jk_name: str) -> Dict[str, Any]:
+    """Internal implementation for getting blocks (shared by cached and non-cached endpoints)."""
     try:
         shaxmatka_rows = await get_shaxmatka_data(jk_name)
     except Exception as exc:
@@ -595,21 +624,32 @@ async def get_blocks(jk_name: str):
     return {"status": "success", "blocks": blocks}
 
 
-@router.get("/apartment-info")
-@cache(expire=CACHE_TTL_LANDING_SECONDS, namespace="complexes:apartment-info")
-async def get_apartment_info(
-        jkName: str = Query(..., alias="jkName"),
-        blockName: str = Query(..., alias="blockName"),
-        apartmentSize: str = Query(..., alias="apartmentSize"),
-        floor: str = Query(..., alias="floor"),
-        apartmentNumber: str = Query(..., alias="apartmentNumber"),
-        db: Session = Depends(get_db)
-):
-    print(
-        f"Запрос к /api/apartment-info: jk_name={jkName}, block_name={blockName}, "
-        f"apartment_size={apartmentSize}, floor={floor}, apartment_number={apartmentNumber}"
-    )
+@router.get("/blocks/{jk_name}")
+@cache(expire=CACHE_TTL_LANDING_SECONDS, namespace="complexes:blocks")
+async def get_blocks(jk_name: str):
+    """Get blocks WITH CACHING - for landing pages."""
+    return await _get_blocks_impl(jk_name)
 
+
+@router.get("/nocache/blocks/{jk_name}")
+async def get_blocks_nocache(response: Response, jk_name: str):
+    """Get blocks WITHOUT CACHING - for CRM real-time updates."""
+    # Отключаем кеширование браузера
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return await _get_blocks_impl(jk_name)
+
+
+async def _get_apartment_info_impl(
+        jkName: str,
+        blockName: str,
+        apartmentSize: str,
+        floor: str,
+        apartmentNumber: str,
+        db: Session
+) -> Dict[str, Any]:
+    """Internal implementation for getting apartment info (shared by cached and non-cached endpoints)."""
     if not all([jkName, blockName, apartmentSize, floor, apartmentNumber]):
         return {"status": "error", "message": "Отсутствуют обязательные параметры"}
 
@@ -649,32 +689,25 @@ async def get_apartment_info(
             row_number == target_number
         ):
             target_status = row[2]
-            # Извлекаем тип помещения из row[1]
-            # По структуре данных: row[0]=block, row[1]=unit_type, row[2]=status, row[3]=rooms, row[4]=number, row[5]=size, row[6]=floor
             if len(row) > 1:
                 target_unit_type = row[1] if row[1] is not None else None
-            # Извлекаем количество комнат из row[3]
             if len(row) > 3:
                 rooms_value = row[3]
                 if rooms_value is not None:
                     try:
-                        # Пытаемся преобразовать в int, если это число
                         target_rooms = int(float(str(rooms_value).replace(',', '.')))
                     except (ValueError, TypeError):
-                        # Если не число, оставляем как есть
                         target_rooms = rooms_value
                 else:
                     target_rooms = None
             else:
                 target_rooms = None
-            print(f"[apartment-info] Найдена квартира: rooms={target_rooms}, unit_type={target_unit_type}, row={row}")
             break
 
     if target_status is None:
         return {"status": "error", "message": "Квартира не найдена"}
 
     try:
-        # Получаем настройки рассрочки из базы данных
         complex_record = (
             db.query(ResidentialComplex)
             .filter(ResidentialComplex.name == jkName)
@@ -686,7 +719,6 @@ async def get_apartment_info(
             start_date = dt.combine(complex_record.installment_start_date, dt.min.time())
             installment_months = complex_record.installment_months
         else:
-            # Значения по умолчанию, если не найдено в БД
             start_date = datetime(2025, 12, 1)
             installment_months = 36
 
@@ -733,16 +765,48 @@ async def get_apartment_info(
         "size": apartmentSize,
         "apartment_number": apartmentNumber,
         "months_left": months_left,
-        "roomsCount": target_rooms,  # Всегда включаем roomsCount в ответ
-        "unitType": target_unit_type,  # Тип помещения (жилой/нежилой)
+        "roomsCount": target_rooms,
+        "unitType": target_unit_type,
         "hybrid_installment_enabled": complex_record.hybrid_installment_enabled if complex_record else False,
         "installment_months": complex_record.installment_months if complex_record else 36,
     }
-    
+
     return {
         "status": "success",
         "data": response_data
     }
+
+
+@router.get("/apartment-info")
+@cache(expire=CACHE_TTL_LANDING_SECONDS, namespace="complexes:apartment-info")
+async def get_apartment_info(
+        jkName: str = Query(..., alias="jkName"),
+        blockName: str = Query(..., alias="blockName"),
+        apartmentSize: str = Query(..., alias="apartmentSize"),
+        floor: str = Query(..., alias="floor"),
+        apartmentNumber: str = Query(..., alias="apartmentNumber"),
+        db: Session = Depends(get_db)
+):
+    """Get apartment info WITH CACHING - for landing pages."""
+    return await _get_apartment_info_impl(jkName, blockName, apartmentSize, floor, apartmentNumber, db)
+
+
+@router.get("/nocache/apartment-info")
+async def get_apartment_info_nocache(
+        response: Response,
+        jkName: str = Query(..., alias="jkName"),
+        blockName: str = Query(..., alias="blockName"),
+        apartmentSize: str = Query(..., alias="apartmentSize"),
+        floor: str = Query(..., alias="floor"),
+        apartmentNumber: str = Query(..., alias="apartmentNumber"),
+        db: Session = Depends(get_db)
+):
+    """Get apartment info WITHOUT CACHING - for CRM real-time updates."""
+    # Отключаем кеширование браузера
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return await _get_apartment_info_impl(jkName, blockName, apartmentSize, floor, apartmentNumber, db)
 
 
 
