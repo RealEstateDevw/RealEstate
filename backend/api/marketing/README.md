@@ -459,3 +459,11 @@ def update_campaign_metrics():
 **Автор:** RealEstate CRM Team  
 **Дата:** 2025
 
+
+
+
+
+
+
+
+

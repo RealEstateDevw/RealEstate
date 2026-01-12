@@ -108,6 +108,11 @@ venv.bak/
 data.db
 data.db-shm
 data.db-wal
+*.db.backup*
+*.db.before-restore*
+*.db.corrupted-backup
+data_fixed.db
+data_snapshot.db*
 
 # Spyder project settings
 .spyderproject

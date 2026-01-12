@@ -16,41 +16,45 @@ depends_on = None
 
 
 def upgrade():
-    with op.batch_alter_table('instagram_integrations') as batch_op:
-        batch_op.add_column(sa.Column('user_id', sa.Integer(), nullable=True))
-        batch_op.create_foreign_key(
-            'fk_instagram_integrations_user_id_users',
-            'users',
-            ['user_id'],
-            ['id'],
-        )
-        batch_op.create_index(
-            'ix_instagram_integrations_user_id',
-            ['user_id'],
-            unique=False,
-        )
-
     conn = op.get_bind()
-    admin_id = conn.execute(
-        sa.text(
-            """
-            SELECT u.id
-            FROM users u
-            JOIN roles r ON u.role_id = r.id
-            WHERE r.name = :role
-            ORDER BY u.id ASC
-            LIMIT 1
-            """
-        ),
-        {"role": "Админ"},
-    ).scalar()
-    if admin_id is not None:
-        conn.execute(
+
+    # Check if user_id column already exists
+    result = conn.execute(sa.text("PRAGMA table_info(instagram_integrations)")).fetchall()
+    column_names = [row[1] for row in result]
+
+    if 'user_id' not in column_names:
+        # Use raw SQL to avoid circular dependency issues in SQLite
+        conn.execute(sa.text("ALTER TABLE instagram_integrations ADD COLUMN user_id INTEGER"))
+
+        # Create index
+        conn.execute(sa.text(
+            "CREATE INDEX IF NOT EXISTS ix_instagram_integrations_user_id ON instagram_integrations (user_id)"
+        ))
+
+        # Get admin user ID and update records
+        admin_id = conn.execute(
             sa.text(
-                "UPDATE instagram_integrations SET user_id = :uid WHERE user_id IS NULL"
+                """
+                SELECT u.id
+                FROM users u
+                JOIN roles r ON u.role_id = r.id
+                WHERE r.name = :role
+                ORDER BY u.id ASC
+                LIMIT 1
+                """
             ),
-            {"uid": admin_id},
-        )
+            {"role": "Админ"},
+        ).scalar()
+
+        if admin_id is not None:
+            conn.execute(
+                sa.text(
+                    "UPDATE instagram_integrations SET user_id = :uid WHERE user_id IS NULL"
+                ),
+                {"uid": admin_id},
+            )
+
+        conn.commit()
 
 
 def downgrade():

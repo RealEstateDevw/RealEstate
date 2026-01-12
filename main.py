@@ -146,6 +146,11 @@ async def on_startup():
         logger.warning(f"Cache warmup failed: {exc}")
     asyncio.create_task(_periodic_cache_warmup())
 
+    # Запуск Telegram бота в фоне
+    if settings.BOT_TOKEN:
+        asyncio.create_task(run_bot())
+        logger.info("Telegram bot started in background")
+
 
 async def _periodic_cache_warmup(interval_seconds: int = 900) -> None:
     """Re-populates caches on a rolling schedule to keep landing data fresh (every 15 minutes)."""
@@ -269,98 +274,98 @@ async def logout():
     return response
 
 
-@app.middleware("http")
-async def auth_middleware(request: Request, call_next):
-    path = request.url.path
-    logger.info(f"Request path: {path}")
+# @app.middleware("http")
+# async def auth_middleware(request: Request, call_next):
+#     path = request.url.path
+#     logger.info(f"Request path: {path}")
 
-    # --- Публичные пути ---
-    # Пути, которые НЕ требуют аутентификации
-    # Используем startswith для /static и /docs и т.д.
-    public_paths_exact = {"/", "/login", "/register", "/api/auth/login", "/api/auth/register", "/complexes", "/rassvet", "/bahor"}
-    public_paths_startswith = {"/static", "/docs",
-                               "/openapi.json", "/complexes", "/api/complexes",
-                               "/excel", "/shaxmatki", "/api/shaxmatki",
-                               "/webhook", "/api/payment-options"}  # Добавь сюда /docs и /openapi.json, если используешь Swagger/OpenAPI UI
+#     # --- Публичные пути ---
+#     # Пути, которые НЕ требуют аутентификации
+#     # Используем startswith для /static и /docs и т.д.
+#     public_paths_exact = {"/", "/login", "/register", "/api/auth/login", "/api/auth/register", "/complexes", "/rassvet", "/bahor"}
+#     public_paths_startswith = {"/static", "/docs",
+#                                "/openapi.json", "/complexes", "/api/complexes",
+#                                "/excel", "/shaxmatki", "/api/shaxmatki",
+#                                "/webhook", "/api/payment-options"}  # Добавь сюда /docs и /openapi.json, если используешь Swagger/OpenAPI UI
 
-    is_public = False
-    if path in public_paths_exact:
-        is_public = True
-    else:
-        for public_prefix in public_paths_startswith:
-            if path.startswith(public_prefix):
-                is_public = True
-                break
+#     is_public = False
+#     if path in public_paths_exact:
+#         is_public = True
+#     else:
+#         for public_prefix in public_paths_startswith:
+#             if path.startswith(public_prefix):
+#                 is_public = True
+#                 break
 
-    if is_public:
-        logger.info(f"Public path accessed: {path}")
-        response = await call_next(request)
-        return response
+#     if is_public:
+#         logger.info(f"Public path accessed: {path}")
+#         response = await call_next(request)
+#         return response
 
-    # --- Логика для защищенных путей ---
-    token = request.cookies.get("access_token")
-    logger.info(f"Cookie token: {'Token found' if token else 'No token'}")  # Не логируй сам токен целиком в продакшене
+#     # --- Логика для защищенных путей ---
+#     token = request.cookies.get("access_token")
+#     logger.info(f"Cookie token: {'Token found' if token else 'No token'}")  # Не логируй сам токен целиком в продакшене
 
-    if not token:
-        logger.info("No token found for protected path, redirecting to login")
-        return RedirectResponse(url="/login", status_code=303)
+#     if not token:
+#         logger.info("No token found for protected path, redirecting to login")
+#         return RedirectResponse(url="/login", status_code=303)
 
-    try:
-        # Извлекаем токен из формата "Bearer {token}", если он есть
-        # В твоем случае токен берется из cookie, префикс "Bearer " маловероятен,
-        # но оставим на всякий случай, если источник токена изменится.
-        if token.startswith("Bearer "):
-            token = token.split(" ")[1]
-            logger.info("Extracted token from Bearer format.")
+#     try:
+#         # Извлекаем токен из формата "Bearer {token}", если он есть
+#         # В твоем случае токен берется из cookie, префикс "Bearer " маловероятен,
+#         # но оставим на всякий случай, если источник токена изменится.
+#         if token.startswith("Bearer "):
+#             token = token.split(" ")[1]
+#             logger.info("Extracted token from Bearer format.")
 
-        # Проверяем токен
-        payload = jwt.decode(
-            token,
-            SECRET_KEY
-        )
-        logger.info(f"Token payload: {payload}")  # Будь осторожен с логированием payload в продакшене
+#         # Проверяем токен
+#         payload = jwt.decode(
+#             token,
+#             SECRET_KEY
+#         )
+#         logger.info(f"Token payload: {payload}")  # Будь осторожен с логированием payload в продакшене
 
-        # Проверяем срок действия (exp)
-        exp = payload.get("exp")
-        # Используем timezone-aware datetime для корректного сравнения
-        current_time = datetime.now(timezone.utc).timestamp()
+#         # Проверяем срок действия (exp)
+#         exp = payload.get("exp")
+#         # Используем timezone-aware datetime для корректного сравнения
+#         current_time = datetime.now(timezone.utc).timestamp()
 
-        # Логируем время для отладки
-        logger.debug(f"Token expires at (timestamp): {exp}")
-        logger.debug(f"Current time (timestamp): {current_time}")
-        if exp:
-            logger.info(f"Token expires at (datetime): {datetime.fromtimestamp(exp, timezone.utc)}")
-            logger.info(f"Current time (datetime): {datetime.fromtimestamp(current_time, timezone.utc)}")
+#         # Логируем время для отладки
+#         logger.debug(f"Token expires at (timestamp): {exp}")
+#         logger.debug(f"Current time (timestamp): {current_time}")
+#         if exp:
+#             logger.info(f"Token expires at (datetime): {datetime.fromtimestamp(exp, timezone.utc)}")
+#             logger.info(f"Current time (datetime): {datetime.fromtimestamp(current_time, timezone.utc)}")
 
-        # if not exp or exp < current_time:
-        #     logger.info("Token expired")
-        #     response = RedirectResponse(url="/login", status_code=303)
-        #     response.delete_cookie("access_token", path="/", domain=None, secure=True, httponly=True)  # Указывай параметры cookie для надежного удаления
-        #     return response
+#         # if not exp or exp < current_time:
+#         #     logger.info("Token expired")
+#         #     response = RedirectResponse(url="/login", status_code=303)
+#         #     response.delete_cookie("access_token", path="/", domain=None, secure=True, httponly=True)  # Указывай параметры cookie для надежного удаления
+#         #     return response
 
-        # Добавляем информацию о пользователе в request.state для использования в эндпоинтах
-        request.state.user = payload
-        logger.info("Token validated successfully")
+#         # Добавляем информацию о пользователе в request.state для использования в эндпоинтах
+#         request.state.user = payload
+#         logger.info("Token validated successfully")
 
-        # Передаем запрос дальше по цепочке (к эндпоинту или другому middleware)
-        response = await call_next(request)
-        return response
+#         # Передаем запрос дальше по цепочке (к эндпоинту или другому middleware)
+#         response = await call_next(request)
+#         return response
 
-    except JWTError as e:
-        logger.error(f"JWT Error: {str(e)}")
-        # Если токен невалиден (ошибка подписи, неверный формат и т.д.), перенаправляем на логин
-        response = RedirectResponse(url="/login", status_code=303)
-        response.delete_cookie("access_token", path="/", domain=None, secure=True,
-                               httponly=True)  # Удаляем невалидный куки
-        return response
+#     except JWTError as e:
+#         logger.error(f"JWT Error: {str(e)}")
+#         # Если токен невалиден (ошибка подписи, неверный формат и т.д.), перенаправляем на логин
+#         response = RedirectResponse(url="/login", status_code=303)
+#         response.delete_cookie("access_token", path="/", domain=None, secure=True,
+#                                httponly=True)  # Удаляем невалидный куки
+#         return response
 
-    except Exception as e:
-        # Ловим другие возможные ошибки во время обработки
-        logger.error(f"Auth middleware error: {str(e)}", exc_info=True)  # exc_info=True добавит traceback в лог
-        # В случае неожиданной ошибки лучше вернуть 500 или перенаправить на страницу ошибки,
-        # но для простоты пока оставим редирект на логин.
-        # Consider returning Response("Internal Server Error", status_code=500)
-        response = RedirectResponse(url="/login", status_code=303)  # Или на страницу ошибки
-        response.delete_cookie("access_token", path="/", domain=None, secure=True, httponly=True,
-                               samesite='Lax')  # Попытаемся удалить куки на всякий случай
-        return response
+#     except Exception as e:
+#         # Ловим другие возможные ошибки во время обработки
+#         logger.error(f"Auth middleware error: {str(e)}", exc_info=True)  # exc_info=True добавит traceback в лог
+#         # В случае неожиданной ошибки лучше вернуть 500 или перенаправить на страницу ошибки,
+#         # но для простоты пока оставим редирект на логин.
+#         # Consider returning Response("Internal Server Error", status_code=500)
+#         response = RedirectResponse(url="/login", status_code=303)  # Или на страницу ошибки
+#         response.delete_cookie("access_token", path="/", domain=None, secure=True, httponly=True,
+#                                samesite='Lax')  # Попытаемся удалить куки на всякий случай
+#         return response

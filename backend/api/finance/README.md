@@ -539,3 +539,11 @@ def calculate_seller_commission(db, seller_id, date_from, date_to):
 **Автор:** RealEstate CRM Team  
 **Дата:** 2025
 
+
+
+
+
+
+
+
+

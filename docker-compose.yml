@@ -1,21 +1,48 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: realestate
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   # Основное приложение
   app:
     build: .
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
     volumes:
       - .:/app
       - ./logs:/app/logs
-      - ./data.db:/app/data.db
+      - ./media:/app/media
+      - ./static:/app/static
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=sqlite:///data.db
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/realestate
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - DEBUG=True
       - ENVIRONMENT=development
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
   # Redis для Celery и кэширования
@@ -34,12 +61,21 @@ services:
     volumes:
       - .:/app
       - ./logs:/app/logs
+      - ./media:/app/media
+      - ./static:/app/static
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=sqlite:///data.db
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/realestate
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - DEBUG=True
       - ENVIRONMENT=development
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
   # Celery beat (планировщик)
@@ -49,13 +85,23 @@ services:
     volumes:
       - .:/app
       - ./logs:/app/logs
+      - ./media:/app/media
+      - ./static:/app/static
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=sqlite:///data.db
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/realestate
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - DEBUG=True
       - ENVIRONMENT=development
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
   redis_data:
+  postgres_data:

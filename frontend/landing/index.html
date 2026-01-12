@@ -324,7 +324,8 @@
         .footer-location a svg { width: 16px; height: 16px; }
         .footer-map {
             position: relative;
-            flex: 1 1 360px;
+            flex: 1 1 400px;
+            min-height: 400px;
             border-radius: 24px;
             overflow: hidden;
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
@@ -711,6 +712,31 @@
                 font-size: 14px;
             }
         }
+
+        /* Full-screen sections */
+        section.section,
+        section.hero,
+        .landing-footer {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            section.section,
+            section.hero,
+            .landing-footer {
+                min-height: 100vh;
+                padding: 60px 0;
+            }
+        }
+
+        /* Mobile menu left alignment */
+        .mobile-menu-link {
+            justify-content: flex-start !important;
+            text-align: left !important;
+        }
     </style>
 </head>
 <body class="landing rassvet" data-current-complex="rassvet">
@@ -720,12 +746,6 @@
                 <span class="logo-text">ISMConstructions</span>
             </a>
             <div class="header-buttons">
-                <a href="#footer" class="header-btn header-btn--phone">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="#216BF4"/>
-                    </svg>
-                    <span data-translate="header.contacts">Контакты</span>
-                </a>
                 <a href="#conditions" class="header-btn header-btn--conditions">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                         <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#216BF4"/>
@@ -740,6 +760,19 @@
                     </svg>
                     <span data-translate="header.pricing">Стоимость квартир</span>
                 </a>
+                <a href="/complexes" class="header-btn header-btn--cta" data-role="cta-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7 5H11C12.8856 5 13.8284 5 14.4142 5.58579C15 6.17157 15 7.11438 15 9V21.25H16.5H21H22C22.4142 21.25 22.75 21.5858 22.75 22C22.75 22.4142 22.4142 22.75 22 22.75H2C1.58579 22.75 1.25 22.4142 1.25 22C1.25 21.5858 1.58579 21.25 2 21.25H3V9C3 7.11438 3 6.17157 3.58579 5.58579C4.17157 5 5.11438 5 7 5ZM5.25 8C5.25 7.58579 5.58579 7.25 6 7.25H12C12.4142 7.25 12.75 7.58579 12.75 8C12.75 8.41421 12.4142 8.75 12 8.75H6C5.58579 8.75 5.25 8.41421 5.25 8ZM5.25 11C5.25 10.5858 5.58579 10.25 6 10.25H12C12.4142 10.25 12.75 10.5858 12.75 11C12.75 11.4142 12.4142 11.75 12 11.75H6C5.58579 11.75 5.25 11.4142 5.25 11ZM5.25 14C5.25 13.5858 5.58579 13.25 6 13.25H12C12.4142 13.25 12.75 13.5858 12.75 14C12.75 14.4142 12.4142 14.75 12 14.75H6C5.58579 14.75 5.25 14.4142 5.25 14ZM9 18.25C9.41421 18.25 9.75 18.5858 9.75 19V21.25H8.25V19C8.25 18.5858 8.58579 18.25 9 18.25Z" fill="white"/>
+                        <path opacity="0.5" d="M15 2H17C18.8856 2 19.8284 2 20.4142 2.58579C21 3.17157 21 4.11438 21 6V21.25H15V9C15 7.11438 15 6.17157 14.4142 5.58579C13.8416 5.01319 12.9279 5.0003 11.126 5.00001V3.49999C11.2103 3.11275 11.351 2.82059 11.5858 2.58579C12.1715 2 13.1144 2 15 2Z" fill="white"/>
+                    </svg>
+                    <span data-translate="header.select_apartment">Выбрать квартиру</span>
+                </a>
+                <a href="#footer" class="header-btn header-btn--phone">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="#216BF4"/>
+                    </svg>
+                    <span data-translate="header.contacts">Контакты</span>
+                </a>
                 <button class="header-btn header-btn--lang" type="button">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="10" stroke="#216BF4" stroke-width="2"/>
@@ -748,14 +781,6 @@
                     </svg>
                     <span data-translate="header.lang">RU</span>
                 </button>
-                
-                <a href="/complexes" class="header-btn header-btn--cta" data-role="cta-link">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7 5H11C12.8856 5 13.8284 5 14.4142 5.58579C15 6.17157 15 7.11438 15 9V21.25H16.5H21H22C22.4142 21.25 22.75 21.5858 22.75 22C22.75 22.4142 22.4142 22.75 22 22.75H2C1.58579 22.75 1.25 22.4142 1.25 22C1.25 21.5858 1.58579 21.25 2 21.25H3V9C3 7.11438 3 6.17157 3.58579 5.58579C4.17157 5 5.11438 5 7 5ZM5.25 8C5.25 7.58579 5.58579 7.25 6 7.25H12C12.4142 7.25 12.75 7.58579 12.75 8C12.75 8.41421 12.4142 8.75 12 8.75H6C5.58579 8.75 5.25 8.41421 5.25 8ZM5.25 11C5.25 10.5858 5.58579 10.25 6 10.25H12C12.4142 10.25 12.75 10.5858 12.75 11C12.75 11.4142 12.4142 11.75 12 11.75H6C5.58579 11.75 5.25 11.4142 5.25 11ZM5.25 14C5.25 13.5858 5.58579 13.25 6 13.25H12C12.4142 13.25 12.75 13.5858 12.75 14C12.75 14.4142 12.4142 14.75 12 14.75H6C5.58579 14.75 5.25 14.4142 5.25 14ZM9 18.25C9.41421 18.25 9.75 18.5858 9.75 19V21.25H8.25V19C8.25 18.5858 8.58579 18.25 9 18.25Z" fill="white"/>
-                        <path opacity="0.5" d="M15 2H17C18.8856 2 19.8284 2 20.4142 2.58579C21 3.17157 21 4.11438 21 6V21.25H15V9C15 7.11438 15 6.17157 14.4142 5.58579C13.8416 5.01319 12.9279 5.0003 11.126 5.00001V3.49999C11.2103 3.11275 11.351 2.82059 11.5858 2.58579C12.1715 2 13.1144 2 15 2Z" fill="white"/>
-                    </svg>
-                    <span data-translate="header.select_apartment">Выбрать квартиру</span>
-                </a>
             </div>
             <button class="mobile-menu-btn header-item--mobile" onclick="toggleMobileMenu()" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -871,6 +896,9 @@
                     <button class="apartment-filter__btn active" data-rooms="all" type="button">
                         <span data-translate="pricing.all_apartments">Все квартиры</span>
                     </button>
+                    <button class="apartment-filter__btn" data-rooms="0" type="button">
+                        <span data-translate="pricing.non_residential">Не жилое</span>
+                    </button>
                     <button class="apartment-filter__btn" data-rooms="1" type="button">
                         <span data-translate="pricing.1_room">1 комната</span>
                     </button>
@@ -976,32 +1004,18 @@
             </div>
         </section>
 
-        <section class="section booking">
-            <div class="container booking__grid">
-                <div class="booking__info">
-                    <h2 class="booking__title" data-translate="booking.title">Забронируйте свою квартиру уже сегодня</h2>
-                    <p class="booking__text" data-translate="booking.text">Выберите подходящий вариант, узнайте все детали и оформите бронь онлайн — просто и удобно</p>
-                    <a href="/complexes" class="btn btn--primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M7 5H11C12.8856 5 13.8284 5 14.4142 5.58579C15 6.17157 15 7.11438 15 9V21.25H16.5H21H22C22.4142 21.25 22.75 21.5858 22.75 22C22.75 22.4142 22.4142 22.75 22 22.75H2C1.58579 22.75 1.25 22.4142 1.25 22C1.25 21.5858 1.58579 21.25 2 21.25H3V9C3 7.11438 3 6.17157 3.58579 5.58579C4.17157 5 5.11438 5 7 5ZM5.25 8C5.25 7.58579 5.58579 7.25 6 7.25H12C12.4142 7.25 12.75 7.58579 12.75 8C12.75 8.41421 12.4142 8.75 12 8.75H6C5.58579 8.75 5.25 8.41421 5.25 8ZM5.25 11C5.25 10.5858 5.58579 10.25 6 10.25H12C12.4142 10.25 12.75 10.5858 12.75 11C12.75 11.4142 12.4142 11.75 12 11.75H6C5.58579 11.75 5.25 11.4142 5.25 11ZM5.25 14C5.25 13.5858 5.58579 13.25 6 13.25H12C12.4142 13.25 12.75 13.5858 12.75 14C12.75 14.4142 12.4142 14.75 12 14.75H6C5.58579 14.75 5.25 14.4142 5.25 14ZM9 18.25C9.41421 18.25 9.75 18.5858 9.75 19V21.25H8.25V19C8.25 18.5858 8.58579 18.25 9 18.25Z" fill="white"/>
-                            <path opacity="0.5" d="M15 2H17C18.8856 2 19.8284 2 20.4142 2.58579C21 3.17157 21 4.11438 21 6V21.25H15V9C15 7.11438 15 6.17157 14.4142 5.58579C13.8416 5.01319 12.9279 5.0003 11.126 5.00001V3.49999C11.2103 3.11275 11.351 2.82059 11.5858 2.58579C12.1715 2 13.1144 2 15 2Z" fill="white"/>
-                          </svg> <span data-translate="header.select_apartment">Выбрать квартиру</span>
-                    </a>
-                </div>
-                <div class="booking__shahmatka">
-                    <!-- Сюда будет вставлен или загружен компонент "Шахматка" -->
-                    <div class="shahmatka-placeholder">
-                         <img src="/static/images/шахматка.png" alt="Шахматка квартир">
-                         <p style="text-align: center; color: #888; margin-top: 10px;">Компонент "Шахматка"</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        
-    </main>
     <footer class="landing-footer" id="footer">
         <div class="container">
+            <div class="booking-footer-merge" style="margin-bottom: 60px; text-align: center;">
+                <h2 class="booking__title" data-translate="booking.title" style="color: #d2ae6d; margin-bottom: 20px;">Забронируйте свою квартиру уже сегодня</h2>
+                <p class="booking__text" data-translate="booking.text" style="color: rgba(243, 239, 227, 0.85); margin-bottom: 30px; max-width: 800px; margin-left: auto; margin-right: auto;">Выберите подходящий вариант, узнайте все детали и оформите бронь онлайн — просто и удобно</p>
+                <a href="/complexes" class="btn btn--primary" style="background: #d2ae6d; color: #040819;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7 5H11C12.8856 5 13.8284 5 14.4142 5.58579C15 6.17157 15 7.11438 15 9V21.25H16.5H21H22C22.4142 21.25 22.75 21.5858 22.75 22C22.75 22.4142 22.4142 22.75 22 22.75H2C1.58579 22.75 1.25 22.4142 1.25 22C1.25 21.5858 1.58579 21.25 2 21.25H3V9C3 7.11438 3 6.17157 3.58579 5.58579C4.17157 5 5.11438 5 7 5ZM5.25 8C5.25 7.58579 5.58579 7.25 6 7.25H12C12.4142 7.25 12.75 7.58579 12.75 8C12.75 8.41421 12.4142 8.75 12 8.75H6C5.58579 8.75 5.25 8.41421 5.25 8ZM5.25 11C5.25 10.5858 5.58579 10.25 6 10.25H12C12.4142 10.25 12.75 10.5858 12.75 11C12.75 11.4142 12.4142 11.75 12 11.75H6C5.58579 11.75 5.25 11.4142 5.25 11ZM5.25 14C5.25 13.5858 5.58579 13.25 6 13.25H12C12.4142 13.25 12.75 13.5858 12.75 14C12.75 14.4142 12.4142 14.75 12 14.75H6C5.58579 14.75 5.25 14.4142 5.25 14ZM9 18.25C9.41421 18.25 9.75 18.5858 9.75 19V21.25H8.25V19C8.25 18.5858 8.58579 18.25 9 18.25Z" fill="currentColor"/>
+                        <path opacity="0.5" d="M15 2H17C18.8856 2 19.8284 2 20.4142 2.58579C21 3.17157 21 4.11438 21 6V21.25H15V9C15 7.11438 15 6.17157 14.4142 5.58579C13.8416 5.01319 12.9279 5.0003 11.126 5.00001V3.49999C11.2103 3.11275 11.351 2.82059 11.5858 2.58579C12.1715 2 13.1144 2 15 2Z" fill="currentColor"/>
+                    </svg> <span data-translate="header.select_apartment">Выбрать квартиру</span>
+                </a>
+            </div>
             <div class="footer-main">
                 <div class="footer-info">
                     <h2 class="footer-title" data-translate="footer.sales_departments">Отделы продаж</h2>
@@ -1083,7 +1097,10 @@
             </div>
             <div class="footer-copy">
                 <p>© 2025 ISMConstructions. Все права защищены.</p>
-                <p>Разработка: внутренняя команда ISM</p>
+                <div class="footer-links">
+                    <a href="/privacy-policy" style="margin-right: 20px; color: rgba(243, 239, 227, 0.7); text-decoration: underline;" data-translate="footer.privacy_policy">Политика конфиденциальности</a>
+                    <a href="/terms-of-service" style="color: rgba(243, 239, 227, 0.7); text-decoration: underline;" data-translate="footer.terms_of_service">Пользовательское соглашение</a>
+                </div>
             </div>
         </div>
     </footer>
@@ -1822,7 +1839,7 @@
                                     </div>
                                 ` : ''}
                             </div>
-                            <button class="apartment-card__button" type="button">
+                            <button class="apartment-card__button" type="button" onclick="window.open('https://t.me/ISMRASSVET', '_blank')">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                                     <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
@@ -1951,14 +1968,23 @@
                         const row = shaxmatka[i];
                         if (!row || row.length < 7) continue;
                         const blockName = row[0];
+                        const unitType = (row[1] || '').toString().toLowerCase();
                         const status = row[2];
+                        const roomCountRaw = row[3];
                         const apartmentNumber = row[4];
                         const size = parseFloat(row[5]);
                         const floor = parseInt(row[6], 10);
                         if (Number.isNaN(size) || Number.isNaN(floor)) continue;
-                        if (roomsFilter) {
-                            const roomCount = getRoomCountFromSize(size);
-                            if (roomCount !== roomsFilter) continue;
+
+                        let rooms = getRoomCountFromSize(size);
+                        if (unitType.includes('нежилое') || unitType.includes('не жилое')) {
+                            rooms = 0;
+                        } else if (roomCountRaw != null && !Number.isNaN(parseInt(roomCountRaw, 10))) {
+                            rooms = parseInt(roomCountRaw, 10);
+                        }
+
+                        if (roomsFilter !== null) {
+                            if (rooms !== roomsFilter) continue;
                         }
                         if (typeof status === 'string' && status.toLowerCase().includes('занят')) continue;
                         apartments.push({
@@ -1967,7 +1993,7 @@
                             apartmentNumber,
                             size,
                             floor,
-                            rooms: getRoomCountFromSize(size)
+                            rooms: rooms
                         });
                     }
                     return apartments;

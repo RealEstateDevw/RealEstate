@@ -19,19 +19,26 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Создаём таблицу instagram_settings
-    op.create_table('instagram_settings',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('app_id', sa.String(), nullable=False),
-    sa.Column('app_secret', sa.String(), nullable=False),
-    sa.Column('redirect_uri', sa.String(), nullable=False),
-    sa.Column('is_active', sa.Boolean(), nullable=False),
-    sa.Column('created_by', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
-    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
+    # Проверяем, существует ли таблица
+    conn = op.get_bind()
+    result = conn.execute(sa.text(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='instagram_settings'"
+    )).fetchone()
+
+    if result is None:
+        # Создаём таблицу instagram_settings только если она не существует
+        op.create_table('instagram_settings',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('app_id', sa.String(), nullable=False),
+        sa.Column('app_secret', sa.String(), nullable=False),
+        sa.Column('redirect_uri', sa.String(), nullable=False),
+        sa.Column('is_active', sa.Boolean(), nullable=False),
+        sa.Column('created_by', sa.Integer(), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+        sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+        sa.PrimaryKeyConstraint('id')
+        )
     # Пропускаем alter_column для SQLite (не поддерживается)
     # и drop_table для lost_and_found (служебная таблица SQLite)
 

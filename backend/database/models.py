@@ -19,7 +19,7 @@ from backend.api.finance.schemas import PaymentStatus, PaymentType
 from backend.api.leads.schemas import LeadState, LeadStatus
 from backend.api.rop.schemas import ExpenseCategory
 from backend.database import Base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Time, ARRAY, Date, JSON, Float, Enum, Text, \
+from sqlalchemy import Column, Integer, BigInteger, String, DateTime, ForeignKey, Time, ARRAY, Date, JSON, Float, Enum, Text, \
     Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
 
@@ -148,6 +148,10 @@ class Lead(Base):
     # Additional fields for lead management
     notes = Column(String, nullable=True)  # For storing additional information
     next_contact_date = Column(DateTime, nullable=True)
+
+    # Telegram Mini App integration
+    telegram_user_id = Column(BigInteger, nullable=True, index=True)  # Telegram user ID from Mini App
+    interest_score_snapshot = Column(Integer, nullable=True)  # Interest score at lead creation
 
     messages = relationship("ChatMessage", back_populates="lead", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="lead", cascade="all, delete-orphan")
@@ -466,7 +470,7 @@ class DrawUser(Base):
     __tablename__ = 'draw_users'
 
     id = Column(Integer, primary_key=True)
-    telegram_id = Column(Integer, unique=True, nullable=False, index=True)
+    telegram_id = Column(BigInteger, unique=True, nullable=False, index=True)
     first_name = Column(String)
     last_name = Column(String)
     phone = Column(String, unique=True, nullable=False, index=True)
@@ -834,3 +838,168 @@ class ChessboardPriceEntry(Base):
             f"<ChessboardPriceEntry(id={self.id}, complex={self.complex_id}, floor={self.floor}, "
             f"category={self.category_key!r})>"
         )
+
+
+# =============================================================================
+# TELEGRAM MINI APP MODELS
+# =============================================================================
+
+class TelegramMiniAppUser(Base):
+    """
+    Пользователи Telegram Mini App.
+    Связывает Telegram ID с источником рекламы (PAYLOAD).
+    """
+    __tablename__ = 'telegram_miniapp_users'
+
+    id = Column(Integer, primary_key=True)
+    telegram_id = Column(BigInteger, unique=True, nullable=False, index=True)
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    username = Column(String, nullable=True)
+    phone = Column(String, nullable=True)
+    source_payload = Column(String(100), nullable=False, default="telegram")  # PAYLOAD из рекламы
+    lead_id = Column(Integer, ForeignKey("leads_prototype.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_active_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    interest_scores = relationship("ApartmentInterestScore", back_populates="user", cascade="all, delete-orphan")
+    lead_requests = relationship("MiniAppLeadRequest", back_populates="user", cascade="all, delete-orphan")
+    lead = relationship("Lead", backref="telegram_miniapp_user")
+
+    def __repr__(self):
+        return f"<TelegramMiniAppUser(id={self.id}, telegram_id={self.telegram_id})>"
+
+
+class ApartmentInterestScore(Base):
+    """
+    Скоринг интересов по квартирам для каждого пользователя.
+
+    Система баллов:
+    - +1 за каждый просмотр карточки
+    - +1 за каждые 10 секунд на карточке (max +12)
+    - +5 за добавление в избранное
+    - +3 за просмотр условий оплаты
+    - +2 за просмотр на карте
+    """
+    __tablename__ = 'apartment_interest_scores'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('telegram_miniapp_users.id', ondelete='CASCADE'), nullable=False, index=True)
+
+    # Apartment identification
+    complex_name = Column(String, nullable=False, index=True)
+    block_name = Column(String, nullable=False)
+    floor = Column(Integer, nullable=False)
+    unit_number = Column(String, nullable=False)
+    area_sqm = Column(Float, nullable=True)
+    rooms = Column(Integer, nullable=True)
+
+    # Score components
+    view_count = Column(Integer, nullable=False, default=0)        # +1 за просмотр
+    time_score = Column(Integer, nullable=False, default=0)        # +1/10сек, max 12
+    favorites_bonus = Column(Integer, nullable=False, default=0)   # +5
+    payment_view_bonus = Column(Integer, nullable=False, default=0)  # +3
+    map_view_bonus = Column(Integer, nullable=False, default=0)    # +2
+    total_score = Column(Integer, nullable=False, default=0)
+
+    # Timing
+    last_viewed_at = Column(DateTime, nullable=True)
+    total_time_seconds = Column(Integer, nullable=False, default=0)  # max 180
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+
+    # Relationships
+    user = relationship("TelegramMiniAppUser", back_populates="interest_scores")
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'complex_name', 'block_name', 'floor', 'unit_number',
+                         name='uq_interest_user_apartment'),
+    )
+
+    def __repr__(self):
+        return f"<ApartmentInterestScore(user={self.user_id}, apartment={self.unit_number}, score={self.total_score})>"
+
+    def recalculate_total(self):
+        """Пересчитать total_score с учетом freshness bonus."""
+        base_score = (
+            self.view_count +
+            self.time_score +
+            self.favorites_bonus +
+            self.payment_view_bonus +
+            self.map_view_bonus
+        )
+
+        # Freshness bonus
+        freshness_bonus = 0
+        if self.last_viewed_at:
+            now = datetime.utcnow()
+            hours_since = (now - self.last_viewed_at).total_seconds() / 3600
+            if hours_since < 1:
+                freshness_bonus = 3
+            elif hours_since < 24:
+                freshness_bonus = 2
+            elif hours_since < 168:  # 7 days
+                freshness_bonus = 1
+
+        self.total_score = base_score + freshness_bonus
+        return self.total_score
+
+
+class MiniAppLeadRequestType(enum.Enum):
+    """Тип заявки из Mini App."""
+    LEAVE_REQUEST = "leave_request"  # Оставить заявку
+    BOOK = "book"                    # Забронировать
+    QUESTION = "question"            # Есть вопрос
+
+
+class MiniAppLeadRequestStatus(enum.Enum):
+    """Статус заявки из Mini App."""
+    PENDING = "pending"      # Ожидает подтверждения в боте
+    CONFIRMED = "confirmed"  # Пользователь подтвердил
+    DECLINED = "declined"    # Пользователь отказался
+    CONVERTED = "converted"  # Конвертирован в Lead
+
+
+class MiniAppLeadRequest(Base):
+    """
+    Заявки из Mini App.
+    Связывает действие пользователя в Mini App с ботом и CRM.
+    """
+    __tablename__ = 'miniapp_lead_requests'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('telegram_miniapp_users.id', ondelete='CASCADE'), nullable=False, index=True)
+
+    # Request type and status
+    request_type = Column(Enum(MiniAppLeadRequestType), nullable=False)
+    status = Column(Enum(MiniAppLeadRequestStatus), nullable=False, default=MiniAppLeadRequestStatus.PENDING)
+
+    # Apartment context (optional for "question" type)
+    complex_name = Column(String, nullable=True)
+    block_name = Column(String, nullable=True)
+    floor = Column(Integer, nullable=True)
+    unit_number = Column(String, nullable=True)
+    area_sqm = Column(Float, nullable=True)
+    rooms = Column(Integer, nullable=True)
+    price_snapshot = Column(Float, nullable=True)
+    payment_type_interest = Column(String, nullable=True)  # какой тип оплаты смотрел
+
+    # Interest score at request time
+    interest_score = Column(Integer, nullable=True)
+
+    # Resulting lead
+    lead_id = Column(Integer, ForeignKey("leads_prototype.id"), nullable=True)
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    confirmed_at = Column(DateTime, nullable=True)
+    converted_at = Column(DateTime, nullable=True)
+
+    # Relationships
+    user = relationship("TelegramMiniAppUser", back_populates="lead_requests")
+    lead = relationship("Lead", backref="miniapp_requests")
+
+    def __repr__(self):
+        return f"<MiniAppLeadRequest(id={self.id}, type={self.request_type.value}, status={self.status.value})>"

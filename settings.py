@@ -7,7 +7,25 @@ load_dotenv()
 
 class Settings:
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///data.db")
+    DB_TYPE: str = os.getenv("DB_TYPE", "sqlite")  # Options: sqlite, postgres
+    
+    # Postgres Settings
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "postgres")
+    POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
+    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "realestate")
+
+    @property
+    def DATABASE_URL(self) -> str:
+        url = os.getenv("DATABASE_URL")
+        if url:
+            return url
+            
+        if self.DB_TYPE == "postgres":
+            return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        
+        return "sqlite:///data.db"
     
     # JWT Settings
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your_secret_key_here_change_in_production")
@@ -16,6 +34,8 @@ class Settings:
     
     # Telegram Bot
     BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
+    BOT_USERNAME: str = os.getenv("BOT_USERNAME", "BahorJkbot")  # Bot username without @
+    MINIAPP_URL: str = os.getenv("MINIAPP_URL", "")  # Base URL for Mini App (e.g., https://your-domain.com)
     
     # Google Sheets
     GOOGLE_SHEETS_API_KEY: str = os.getenv("GOOGLE_SHEETS_API_KEY", "")

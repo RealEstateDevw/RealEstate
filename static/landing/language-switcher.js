@@ -82,6 +82,8 @@ class LanguageSwitcher {
                 'footer.email_desc': 'Ответим в течение рабочего дня',
                 'footer.note': 'Если у вас остались вопросы или вы хотите записаться на просмотр квартир, пожалуйста, позвоните нам или оставьте заявку на сайте — менеджер свяжется с вами в ближайшее время.',
                 'footer.copyright': '© 2025 ISMConstructions. Все права защищены.',
+                'footer.privacy_policy': 'Политика конфиденциальности',
+                'footer.terms_of_service': 'Пользовательское соглашение',
                 'footer.development': 'Разработка: внутренняя команда ISM',
                 
                 // Mobile menu
@@ -102,6 +104,7 @@ class LanguageSwitcher {
                 'header.jk_bahor': 'ЖК Бахор',
                 
                 // Pricing filters
+                'pricing.non_residential': 'Не жилое',
                 'pricing.1_room': '1 комната',
                 'pricing.2_rooms': '2 комнаты',
                 'pricing.3_rooms': '3 комнаты',
@@ -190,6 +193,8 @@ class LanguageSwitcher {
                 'footer.email_desc': 'Ish kuni davomida javob beramiz',
                 'footer.note': 'Agar sizda savollar qolgan bo\'lsa yoki kvartiralarni ko\'rish uchun ro\'yxatdan o\'tmoqchi bo\'lsangiz, iltimos, bizga qo\'ng\'iroq qiling yoki saytda ariza qoldiring — menejer tez orada siz bilan bog\'lanadi.',
                 'footer.copyright': '© 2025 ISMConstructions. Barcha huquqlar himoyalangan.',
+                'footer.privacy_policy': 'Maxfiylik siyosati',
+                'footer.terms_of_service': 'Foydalanish shartlari',
                 'footer.development': 'Ishlab chiqish: ISM ichki jamoasi',
                 
                 // Mobile menu
@@ -210,6 +215,7 @@ class LanguageSwitcher {
                 'header.jk_bahor': 'JK Bahor',
                 
                 // Pricing filters
+                'pricing.non_residential': 'No-turar joy',
                 'pricing.1_room': '1 xona',
                 'pricing.2_rooms': '2 xona',
                 'pricing.3_rooms': '3 xona',

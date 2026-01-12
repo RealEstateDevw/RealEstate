@@ -755,3 +755,6 @@ class LeadDetailService:
             "next_due_date": next_due_date,
             "is_next_due_date_overdue": is_next_due_date_overdue
         }
+
+
+lead_crud = LeadCRUD()
