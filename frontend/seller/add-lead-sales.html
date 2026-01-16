@@ -96,7 +96,7 @@
         <div class="info-grid">
             <div class="info-item">
                 <label class="info-label" for="regionSelect">Выберите регион</label>
-                <div class="dropdown-container info-input" id="regionContainer" onclick="toggleRegionDropdown()">
+                <div class="dropdown-container info-input custom-stylish-input" id="regionContainer" onclick="toggleRegionDropdown()">
                   <span id="selectedRegion">Выберите регион</span>
                   <i class="fas fa-chevron-down dropdown-icon"></i>
                   <ul id="regionList" class="dropdown-list hidden"></ul>
@@ -104,7 +104,7 @@
             </div>
             <div class="info-item">
                 <label class="info-label">Телефон</label>
-                <input type="text" class="info-input" placeholder="+XXX (XX) XXX XX XX" onkeydown="this.style.width = ((this.value.length + 1) * 8) + 'px';" required id="phone">
+                <input type="text" class="info-input custom-stylish-input" placeholder="+XXX (XX) XXX XX XX" onkeydown="this.style.width = ((this.value.length + 1) * 8) + 'px';" required id="phone">
             </div>
             
         </div>
@@ -120,19 +120,19 @@
         <div class="option-grid">
             <div class="option-item">
                 <span class="label">Метров²</span>
-                <input type="float" required class="value" min="1" placeholder="180">
+                <input type="float" required class="value custom-stylish-input" min="1" placeholder="180">
             </div>
             <div class="option-item">
                 <span class="label">Количество комнат</span>
-                <input type="number" required class="value" min="1" placeholder="5">
+                <input type="number" required class="value custom-stylish-input" min="1" placeholder="5">
             </div>
             <div class="option-item">
                 <span class="label">Этаж</span>
-                <input type="number" required class="value gray" placeholder="0">
+                <input type="number" required class="value gray custom-stylish-input" placeholder="0">
             </div>
             <div class="option-item">
                 <span class="label">Номер квартиры</span>
-                <input type="number" required class="value" placeholder="98">
+                <input type="number" required class="value custom-stylish-input" placeholder="98">
             </div>
         </div>
 
@@ -140,7 +140,7 @@
             <div class="payment-section">
                 <h2 class="section-title">Предварительная сумма <span>(без рассрочки)</span></h2>
                 <div class="payment-sec">
-                <input type="text" id="amountInput" class="amount-display-input" value="1,430,000,000" oninput="formatAmount(this)">
+                <input type="text" id="amountInput" class="amount-display-input custom-stylish-input" value="1,430,000,000" oninput="formatAmount(this)">
                 <div class="currency-toggle">
                     <button class="currency-button active" data-currency="UZS" type="button">UZS</button>
                     <button class="currency-button" data-currency="USD" type="button">USD</button>
@@ -172,7 +172,7 @@
             </div>
             <div class="manual-input">
                 <label>Вписать вручную:</label>
-                <input type="number" id="manualMonthsInput" min="0" placeholder="0">
+                <input type="number" id="manualMonthsInput" min="0" placeholder="0" class="custom-stylish-input">
             </div>
         </div>
         </div>
