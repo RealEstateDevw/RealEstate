@@ -716,3 +716,26 @@ backdrop-filter: blur(25px);
             object-fit: cover;
         }
 
+        .stylish-input, .filter-select, .dynamicInput, .password-input {
+            padding: 12px 20px;
+            border: 1px solid #d1d5db;
+            border-radius: 25px;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #1f2937;
+            background-color: #fff;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+        
+        .stylish-input::placeholder, .filter-select::placeholder, .dynamicInput::placeholder, .password-input::placeholder {
+            color: #9ca3af;
+            opacity: 1;
+        }
+        
+        .stylish-input:focus, .filter-select:focus, .dynamicInput:focus, .password-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
