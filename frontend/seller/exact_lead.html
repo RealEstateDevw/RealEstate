@@ -525,6 +525,149 @@
       margin: 0;
     }
 
+    /* Стили для калькулятора рассрочки */
+    .calc-section {
+      margin-top: 16px;
+    }
+
+    .payment-type-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .payment-type-btn {
+      flex: 1;
+      padding: 10px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #64748b;
+    }
+
+    .payment-type-btn:hover {
+      border-color: #1877F2;
+      color: #1877F2;
+    }
+
+    .payment-type-btn.active {
+      border-color: #1877F2;
+      background: #eff6ff;
+      color: #1877F2;
+    }
+
+    .calc-row {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .calc-hybrid-row {
+      gap: 8px;
+    }
+
+    .calc-field {
+      flex: 1;
+    }
+
+    .calc-field-small {
+      flex: 0 1 auto;
+      min-width: 80px;
+    }
+
+    .calc-field label {
+      display: block;
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .calc-input-group {
+      display: flex;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      transition: border-color 0.2s;
+    }
+
+    .calc-input-group:focus-within {
+      border-color: #1877F2;
+      box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.1);
+    }
+
+    .calc-percent-input,
+    .calc-months-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1e293b;
+      width: 50px;
+      outline: none;
+    }
+
+    .calc-suffix {
+      font-size: 14px;
+      color: #94a3b8;
+      font-weight: 500;
+      margin-left: 4px;
+    }
+
+    .calc-percent-warning {
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #92400e;
+    }
+
+    .calc-results {
+      margin-top: 16px;
+    }
+
+    .calc-result-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .calc-result-item:last-child {
+      border-bottom: none;
+    }
+
+    .calc-result-label {
+      flex: 1;
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    .calc-result-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1877F2;
+      margin-right: 6px;
+    }
+
+    .calc-result-currency {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .calc-result-final .calc-result-value {
+      color: #059669;
+    }
+
     /* Стили для редактирования клиента */
     .client-header-container {
       display: flex;
@@ -768,12 +911,17 @@
                 <div class="info-action-hint">Закрепить квартиру к лиду</div>
             </div>
           
-<div class="price-card"
+<div class="price-card" id="calculatorCard"
      data-payment-type="{{ lead.payment_type or '' }}"
-     data-payment-choice="{{ lead.down_payment_percent or '' }}"
-     data-final-payment="{{ '{:,.0f}'.format(lead.hybrid_final_payment or 0)|replace(',', ' ') }}">
+     data-initial-total="{{ lead.total_price or 0 }}"
+     data-initial-price-m2="{{ lead.square_meters_price or 0 }}"
+     data-initial-down="{{ lead.down_payment or 0 }}"
+     data-initial-monthly="{{ lead.monthly_payment or 0 }}"
+     data-initial-final="{{ lead.hybrid_final_payment or 0 }}">
   <input type="hidden" id="squareMeters" value="{{ lead.square_meters or 0 }}">
-  <input type="hidden" id="installmentPeriod" value="{{ lead.installment_period or 1 }}">
+  <input type="hidden" id="leadId" value="{{ lead.id }}">
+
+  <!-- Стоимость квартиры -->
   <div class="price-title">Стоимость квартиры</div>
   <div class="price-main">
     <input type="text" id="totalPriceInput" class="price-input"
@@ -781,32 +929,102 @@
     <span>сум</span>
   </div>
   <hr class="divider">
+
+  <!-- Стоимость 1м² -->
   <div class="price-subtitle">Стоимость 1м²</div>
   <div class="price-value">
     <input type="text" id="pricePerM2Input" class="price-input"
            value="{{ '{:,.0f}'.format(lead.square_meters_price or 0)|replace(',', ' ') }}" />
     <span>сум/м²</span>
   </div>
-  <div class="price-extra" data-section="installment" style="display:none;">
-    <div class="price-subtitle">Первоначальный взнос</div>
-    <div class="price-value">
-      <span id="downPaymentDisplay" class="price-display">{{ '{:,.0f}'.format(lead.down_payment or 0)|replace(',', ' ') }}</span>
-      <span>сум</span>
+  <hr class="divider">
+
+  <!-- Тип оплаты -->
+  <div class="calc-section">
+    <div class="price-subtitle">Тип оплаты</div>
+    <div class="payment-type-selector">
+      <button type="button" class="payment-type-btn" data-type="100">100%</button>
+      <button type="button" class="payment-type-btn" data-type="installment">Рассрочка</button>
+      <button type="button" class="payment-type-btn" data-type="hybrid">Гибрид</button>
     </div>
   </div>
-  <div class="price-extra" data-section="installment" style="display:none;">
-    <div class="price-subtitle">Ежемесячная оплата</div>
-    <div class="price-value">
-      <span id="monthlyPaymentDisplay" class="price-display">{{ '{:,.0f}'.format(lead.monthly_payment or 0)|replace(',', ' ') }}</span>
-      <span>сум/мес</span>
+
+  <!-- Настройки рассрочки (показывается для рассрочки) -->
+  <div class="calc-section calc-installment-settings" style="display:none;">
+    <div class="calc-row">
+      <div class="calc-field">
+        <label>Первоначальный взнос</label>
+        <div class="calc-input-group">
+          <input type="number" id="downPaymentPercent" value="30" min="0" max="100" class="calc-percent-input">
+          <span class="calc-suffix">%</span>
+        </div>
+      </div>
+      <div class="calc-field">
+        <label>Срок рассрочки</label>
+        <div class="calc-input-group">
+          <input type="number" id="installmentMonths" value="{{ lead.installment_period or 36 }}" min="1" max="120" class="calc-months-input">
+          <span class="calc-suffix">мес</span>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="price-extra" data-section="hybrid" style="display:none;">
-    <div class="price-subtitle">Остаток на последний месяц</div>
-    <div class="price-value">
-      <input type="text" id="finalPaymentInput" class="price-input"
-             value="{{ '{:,.0f}'.format(lead.hybrid_final_payment or 0)|replace(',', ' ') }}" />
-      <span>сум</span>
+
+  <!-- Настройки гибридной рассрочки (показывается для гибрида) -->
+  <div class="calc-section calc-hybrid-settings" style="display:none;">
+    <div class="calc-row calc-hybrid-row">
+      <div class="calc-field calc-field-small">
+        <label>ПВ</label>
+        <div class="calc-input-group">
+          <input type="number" id="hybridFirstPercent" value="30" min="0" max="100" class="calc-percent-input">
+          <span class="calc-suffix">%</span>
+        </div>
+      </div>
+      <div class="calc-field calc-field-small">
+        <label>Рассрочка</label>
+        <div class="calc-input-group">
+          <input type="number" id="hybridMiddlePercent" value="40" min="0" max="100" class="calc-percent-input">
+          <span class="calc-suffix">%</span>
+        </div>
+      </div>
+      <div class="calc-field calc-field-small">
+        <label>Остаток</label>
+        <div class="calc-input-group">
+          <input type="number" id="hybridLastPercent" value="30" min="0" max="100" class="calc-percent-input">
+          <span class="calc-suffix">%</span>
+        </div>
+      </div>
+    </div>
+    <div class="calc-row">
+      <div class="calc-field">
+        <label>Срок рассрочки</label>
+        <div class="calc-input-group">
+          <input type="number" id="hybridMonths" value="{{ lead.installment_period or 36 }}" min="1" max="120" class="calc-months-input">
+          <span class="calc-suffix">мес</span>
+        </div>
+      </div>
+    </div>
+    <div class="calc-percent-warning" id="percentWarning" style="display:none;">
+      ⚠️ Сумма процентов должна быть 100%
+    </div>
+  </div>
+
+  <!-- Результаты расчёта -->
+  <div class="calc-results" id="calcResults" style="display:none;">
+    <hr class="divider">
+    <div class="calc-result-item">
+      <span class="calc-result-label">Первоначальный взнос:</span>
+      <span class="calc-result-value" id="resultDownPayment">0</span>
+      <span class="calc-result-currency">сум</span>
+    </div>
+    <div class="calc-result-item">
+      <span class="calc-result-label">Ежемесячный платёж:</span>
+      <span class="calc-result-value" id="resultMonthlyPayment">0</span>
+      <span class="calc-result-currency">сум/мес</span>
+    </div>
+    <div class="calc-result-item calc-result-final" id="resultFinalRow" style="display:none;">
+      <span class="calc-result-label">Остаток (последний платёж):</span>
+      <span class="calc-result-value" id="resultFinalPayment">0</span>
+      <span class="calc-result-currency">сум</span>
     </div>
   </div>
 </div>
@@ -1292,6 +1510,14 @@ function openContractModal(prefilledData) {
                 <label for="initialPayment" style="font-weight: 500;">Первоначальный взнос</label>
                 <input type="text" id="initialPayment" name="initialPayment" class="contract-input" value="${prefilledData.initialPayment || ''}" required style="width: 100%; margin-bottom: 8px;">
             </div>
+            <div>
+                <label for="monthlyPayment" style="font-weight: 500;">Ежемесячный платёж</label>
+                <input type="text" id="monthlyPayment" name="monthlyPayment" class="contract-input" value="${prefilledData.monthlyPayment || ''}" style="width: 100%; margin-bottom: 8px;">
+            </div>
+            <div>
+                <label for="finalPayment" style="font-weight: 500;">Остаток (для гибрида)</label>
+                <input type="text" id="finalPayment" name="finalPayment" class="contract-input" value="${prefilledData.finalPayment || ''}" style="width: 100%; margin-bottom: 8px;">
+            </div>
             <div style="grid-column: 1/3; border-top: 1px solid #eee; margin-top: 8px; padding-top: 12px;"></div>
             <div>
                 <label for="fullName" style="font-weight: 500;">ФИО</label>
@@ -1349,9 +1575,9 @@ function openContractModal(prefilledData) {
 
         const totalSource = document.getElementById('totalPriceInput');
         const priceSource = document.getElementById('pricePerM2Input');
-        const downSource = document.getElementById('downPaymentDisplay');
-        const monthlySource = document.getElementById('monthlyPaymentDisplay');
-        const finalSource = document.getElementById('finalPaymentInput');
+        const downSource = document.getElementById('resultDownPayment');
+        const monthlySource = document.getElementById('resultMonthlyPayment');
+        const finalSource = document.getElementById('resultFinalPayment');
 
         if (totalField && totalSource) {
             totalField.value = totalSource.value;
@@ -1370,7 +1596,7 @@ function openContractModal(prefilledData) {
             monthlyField.value = monthlySource.textContent || '0';
         }
         if (finalField && finalSource) {
-            finalField.value = finalSource.value || '0';
+            finalField.value = finalSource.textContent || '0';
         }
 
         const formData = new FormData(form);
@@ -1548,15 +1774,33 @@ function openContractModal(prefilledData) {
 
       const totalInputEl = document.getElementById('totalPriceInput');
       const priceInputEl = document.getElementById('pricePerM2Input');
-      const downDisplayEl = document.getElementById('downPaymentDisplay');
-      const monthlyDisplayEl = document.getElementById('monthlyPaymentDisplay');
-      const finalInputEl = document.getElementById('finalPaymentInput');
+      const downDisplayEl = document.getElementById('resultDownPayment');
+      const monthlyDisplayEl = document.getElementById('resultMonthlyPayment');
+      const finalDisplayEl = document.getElementById('resultFinalPayment');
+
+      // Определяем выбранный тип оплаты из калькулятора
+      const activePaymentBtn = document.querySelector('.payment-type-btn.active');
+      let selectedPaymentType = '100%';
+      if (activePaymentBtn) {
+        const type = activePaymentBtn.dataset.type;
+        if (type === 'installment') {
+          const percent = document.getElementById('downPaymentPercent')?.value || '30';
+          const months = document.getElementById('installmentMonths')?.value || '36';
+          selectedPaymentType = `Рассрочка ${percent}% на ${months} мес`;
+        } else if (type === 'hybrid') {
+          const first = document.getElementById('hybridFirstPercent')?.value || '30';
+          const middle = document.getElementById('hybridMiddlePercent')?.value || '40';
+          const last = document.getElementById('hybridLastPercent')?.value || '30';
+          const months = document.getElementById('hybridMonths')?.value || '36';
+          selectedPaymentType = `Гибрид ${first}/${middle}/${last} на ${months} мес`;
+        }
+      }
 
       const totalPriceValue = totalInputEl ? totalInputEl.value : '0';
       const pricePerM2Value = priceInputEl ? priceInputEl.value : '0';
       const downPaymentValue = downDisplayEl ? downDisplayEl.textContent : '';
       const monthlyPaymentValue = monthlyDisplayEl ? monthlyDisplayEl.textContent : '0';
-      const finalPaymentValue = finalInputEl ? finalInputEl.value : '0';
+      const finalPaymentValue = finalDisplayEl ? finalDisplayEl.textContent : '0';
 
       const normalizeDigits = (value) => (value || '').replace(/[^\d]/g, '');
       const hasDownPayment = normalizeDigits(downPaymentValue) !== '' && normalizeDigits(downPaymentValue) !== '0';
@@ -1572,7 +1816,7 @@ function openContractModal(prefilledData) {
         size,
         totalPrice: totalPriceValue,
         pricePerM2: pricePerM2Value,
-        paymentChoice,
+        paymentChoice: selectedPaymentType,
         initialPayment: initialPaymentValue,
         monthlyPayment: monthlyPaymentValue,
         finalPayment: finalPaymentValue,
@@ -1822,217 +2066,215 @@ document.addEventListener('DOMContentLoaded', async function() {
 <script src="/static/notification_scripts.js"></script>
 
   <script>
+  // ========================================
+  // КАЛЬКУЛЯТОР РАССРОЧКИ
+  // ========================================
   document.addEventListener('DOMContentLoaded', function() {
-    const priceCard = document.querySelector('.price-card');
-    if (!priceCard) {
-      return;
-    }
+    const calculatorCard = document.getElementById('calculatorCard');
+    if (!calculatorCard) return;
 
+    // Утилиты форматирования
     const formatter = new Intl.NumberFormat('ru-RU');
     const parseNumber = (value) => {
-      if (value === null || value === undefined) {
-        return 0;
-      }
-      const trimmed = String(value)
-        .replace(/\s/g, '')
-        .replace(/\u00A0/g, '');
-
-      const commaCount = (trimmed.match(/,/g) || []).length;
-      const dotCount = (trimmed.match(/\./g) || []).length;
-      let normalized = trimmed;
-
-      if (commaCount > 0 && dotCount > 0) {
-        if (trimmed.lastIndexOf(',') > trimmed.lastIndexOf('.')) {
-          normalized = trimmed.replace(/\./g, '').replace(/,/g, '.');
-        } else {
-          normalized = trimmed.replace(/,/g, '');
-        }
-      } else if (commaCount > 1) {
-        normalized = trimmed.replace(/,/g, '');
-      } else if (dotCount > 1) {
-        normalized = trimmed.replace(/\./g, '');
-      } else if (commaCount === 1) {
-        normalized = trimmed.replace(/,/g, '.');
-      } else {
-        normalized = trimmed;
-      }
-
-      let sanitized = normalized.replace(/[^0-9.\-]/g, '');
-      const dotIndex = sanitized.indexOf('.');
-      if (dotIndex !== -1) {
-        sanitized = sanitized.slice(0, dotIndex + 1) + sanitized.slice(dotIndex + 1).replace(/\./g, '');
-      }
-
+      if (value === null || value === undefined) return 0;
+      const trimmed = String(value).replace(/\s/g, '').replace(/\u00A0/g, '');
+      let normalized = trimmed.replace(/,/g, '.');
+      const sanitized = normalized.replace(/[^0-9.\-]/g, '');
       const parsed = parseFloat(sanitized);
       return Number.isFinite(parsed) ? parsed : 0;
     };
     const formatValue = (value) => formatter.format(Math.max(Math.round(value || 0), 0));
 
-    // Функция для установки размера инпута на основе его содержимого
+    // Функция для установки размера инпута
     function adjustInputSize(input) {
       if (!input) return;
-      // Создаем временный span для измерения ширины текста
       const tempSpan = document.createElement('span');
       tempSpan.style.visibility = 'hidden';
       tempSpan.style.position = 'absolute';
       tempSpan.style.whiteSpace = 'pre';
       tempSpan.style.font = window.getComputedStyle(input).font;
-      tempSpan.style.fontWeight = window.getComputedStyle(input).fontWeight;
-      tempSpan.style.fontSize = window.getComputedStyle(input).fontSize;
       tempSpan.textContent = input.value || input.placeholder || '0';
       document.body.appendChild(tempSpan);
       const width = tempSpan.offsetWidth;
       document.body.removeChild(tempSpan);
-      // Устанавливаем ширину с небольшим запасом
       input.style.width = Math.max(width + 4, 20) + 'px';
     }
 
-    const paymentTypeLabel = (priceCard.dataset.paymentType || '').toLowerCase();
-    const isHybrid = paymentTypeLabel.includes('гибрид');
-    const isInstallment = isHybrid || paymentTypeLabel.includes('рассроч');
-    const paymentChoiceRaw = priceCard.dataset.paymentChoice || '';
-    const percentMatches = paymentChoiceRaw.match(/(\d+(?:[.,]\d+)?)\s*%/g) || [];
-    const percentValues = percentMatches
-      .map((match) => parseFloat(match.replace('%', '').replace(',', '.')))
-      .filter((value) => Number.isFinite(value));
-    const downPercentFromChoice = percentValues.length > 0 ? percentValues[0] / 100 : null;
-    const finalPercentFromChoice = isHybrid && percentValues.length > 1 ? percentValues[1] / 100 : null;
-
-    const squareMeters = parseFloat(document.getElementById('squareMeters').value) || 0;
-    const installmentPeriod = parseInt(document.getElementById('installmentPeriod').value, 10) || 1;
-
+    // Элементы DOM
     const totalInput = document.getElementById('totalPriceInput');
     const priceInput = document.getElementById('pricePerM2Input');
-    const downPaymentDisplay = document.getElementById('downPaymentDisplay');
-    const monthlyPaymentDisplay = document.getElementById('monthlyPaymentDisplay');
-    const finalPaymentInput = document.getElementById('finalPaymentInput');
-    const datasetFinalPayment = parseNumber(priceCard.dataset.finalPayment || 0);
+    const squareMeters = parseFloat(document.getElementById('squareMeters').value) || 0;
 
-    priceCard.querySelectorAll('.price-extra').forEach((section) => {
-      const sectionType = section.dataset.section;
-      const shouldShow = sectionType === 'installment' ? isInstallment : isHybrid;
-      section.style.display = shouldShow ? 'block' : 'none';
-    });
+    // Кнопки выбора типа оплаты
+    const paymentTypeBtns = document.querySelectorAll('.payment-type-btn');
+    const installmentSettings = document.querySelector('.calc-installment-settings');
+    const hybridSettings = document.querySelector('.calc-hybrid-settings');
+    const calcResults = document.getElementById('calcResults');
+    const percentWarning = document.getElementById('percentWarning');
 
-    [totalInput, priceInput, finalPaymentInput].forEach((input) => {
-      if (input) {
-        input.value = formatValue(parseNumber(input.value));
-        adjustInputSize(input);
-      }
-    });
-    
-    if (downPaymentDisplay) {
-      downPaymentDisplay.textContent = formatValue(parseNumber(downPaymentDisplay.textContent));
+    // Поля ввода для рассрочки
+    const downPaymentPercent = document.getElementById('downPaymentPercent');
+    const installmentMonths = document.getElementById('installmentMonths');
+
+    // Поля ввода для гибрида
+    const hybridFirstPercent = document.getElementById('hybridFirstPercent');
+    const hybridMiddlePercent = document.getElementById('hybridMiddlePercent');
+    const hybridLastPercent = document.getElementById('hybridLastPercent');
+    const hybridMonths = document.getElementById('hybridMonths');
+
+    // Поля результатов
+    const resultDownPayment = document.getElementById('resultDownPayment');
+    const resultMonthlyPayment = document.getElementById('resultMonthlyPayment');
+    const resultFinalPayment = document.getElementById('resultFinalPayment');
+    const resultFinalRow = document.getElementById('resultFinalRow');
+
+    // Текущий тип оплаты
+    let currentPaymentType = '100';
+
+    // Инициализация - определяем тип оплаты из данных лида
+    const initialPaymentType = (calculatorCard.dataset.paymentType || '').toLowerCase();
+    if (initialPaymentType.includes('гибрид')) {
+      currentPaymentType = 'hybrid';
+    } else if (initialPaymentType.includes('рассроч')) {
+      currentPaymentType = 'installment';
+    } else {
+      currentPaymentType = '100';
     }
-    if (monthlyPaymentDisplay) {
-      monthlyPaymentDisplay.textContent = formatValue(parseNumber(monthlyPaymentDisplay.textContent));
-    }
 
-    if (priceInput && parseNumber(priceInput.value) === 0 && squareMeters) {
-      const computedPrice = parseNumber(totalInput.value) / squareMeters;
-      priceInput.value = computedPrice ? formatValue(computedPrice) : '0';
+    // Форматируем начальные значения
+    if (totalInput) {
+      totalInput.value = formatValue(parseNumber(totalInput.value));
+      adjustInputSize(totalInput);
+    }
+    if (priceInput) {
+      priceInput.value = formatValue(parseNumber(priceInput.value));
       adjustInputSize(priceInput);
     }
 
-    if (isInstallment) {
-      updateInstallmentDerived();
-    } else if (finalPaymentInput) {
-      finalPaymentInput.value = '0';
-      adjustInputSize(finalPaymentInput);
+    // Активируем кнопку текущего типа оплаты
+    function activatePaymentType(type) {
+      currentPaymentType = type;
+
+      paymentTypeBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.type === type);
+      });
+
+      // Показываем/скрываем настройки
+      installmentSettings.style.display = type === 'installment' ? 'block' : 'none';
+      hybridSettings.style.display = type === 'hybrid' ? 'block' : 'none';
+      calcResults.style.display = type !== '100' ? 'block' : 'none';
+      resultFinalRow.style.display = type === 'hybrid' ? 'flex' : 'none';
+
+      calculateInstallment();
     }
 
+    // Обработчики кнопок типа оплаты
+    paymentTypeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        activatePaymentType(btn.dataset.type);
+      });
+    });
+
+    // Расчёт рассрочки
+    function calculateInstallment() {
+      const total = parseNumber(totalInput.value);
+
+      if (currentPaymentType === '100' || total <= 0) {
+        return;
+      }
+
+      let downPayment = 0;
+      let monthlyPayment = 0;
+      let finalPayment = 0;
+
+      if (currentPaymentType === 'installment') {
+        // Обычная рассрочка
+        const downPercent = parseFloat(downPaymentPercent.value) || 0;
+        const months = parseInt(installmentMonths.value) || 36;
+
+        downPayment = total * (downPercent / 100);
+        const remaining = total - downPayment;
+        monthlyPayment = months > 0 ? remaining / months : 0;
+
+      } else if (currentPaymentType === 'hybrid') {
+        // Гибридная рассрочка
+        const firstPercent = parseFloat(hybridFirstPercent.value) || 0;
+        const middlePercent = parseFloat(hybridMiddlePercent.value) || 0;
+        const lastPercent = parseFloat(hybridLastPercent.value) || 0;
+        const months = parseInt(hybridMonths.value) || 36;
+
+        // Проверка суммы процентов
+        const totalPercent = firstPercent + middlePercent + lastPercent;
+        if (Math.abs(totalPercent - 100) > 0.01) {
+          percentWarning.style.display = 'block';
+        } else {
+          percentWarning.style.display = 'none';
+        }
+
+        downPayment = total * (firstPercent / 100);
+        const installmentAmount = total * (middlePercent / 100);
+        finalPayment = total * (lastPercent / 100);
+        monthlyPayment = months > 0 ? installmentAmount / months : 0;
+      }
+
+      // Отображаем результаты
+      resultDownPayment.textContent = formatValue(downPayment);
+      resultMonthlyPayment.textContent = formatValue(monthlyPayment);
+      resultFinalPayment.textContent = formatValue(finalPayment);
+    }
+
+    // Обработчики изменения общей стоимости
     totalInput.addEventListener('input', () => {
       adjustInputSize(totalInput);
       const total = parseNumber(totalInput.value);
-      if (priceInput && squareMeters) {
+      if (priceInput && squareMeters > 0) {
         const price = total / squareMeters;
         priceInput.value = price ? formatValue(price) : '0';
         adjustInputSize(priceInput);
       }
-      updateInstallmentDerived();
+      calculateInstallment();
     });
+
     totalInput.addEventListener('blur', () => {
       totalInput.value = formatValue(parseNumber(totalInput.value));
       adjustInputSize(totalInput);
     });
 
+    // Обработчики изменения цены за м²
     if (priceInput) {
       priceInput.addEventListener('input', () => {
         adjustInputSize(priceInput);
         const price = parseNumber(priceInput.value);
-        if (squareMeters) {
+        if (squareMeters > 0) {
           const total = price * squareMeters;
           totalInput.value = total ? formatValue(total) : '0';
           adjustInputSize(totalInput);
         }
-        updateInstallmentDerived();
+        calculateInstallment();
       });
+
       priceInput.addEventListener('blur', () => {
         priceInput.value = formatValue(parseNumber(priceInput.value));
         adjustInputSize(priceInput);
       });
     }
 
-
-    if (finalPaymentInput) {
-      finalPaymentInput.addEventListener('input', () => {
-        adjustInputSize(finalPaymentInput);
-        if (!finalPercentFromChoice) {
-          finalPaymentInput.value = formatValue(parseNumber(finalPaymentInput.value));
-          adjustInputSize(finalPaymentInput);
-          updateInstallmentDerived();
-        }
-      });
-      finalPaymentInput.addEventListener('blur', () => {
-        finalPaymentInput.value = formatValue(parseNumber(finalPaymentInput.value));
-        adjustInputSize(finalPaymentInput);
-        updateInstallmentDerived();
-      });
-    }
-
-    function updateInstallmentDerived() {
-      if (!isInstallment) {
-        return;
+    // Обработчики изменения параметров рассрочки
+    [downPaymentPercent, installmentMonths].forEach(input => {
+      if (input) {
+        input.addEventListener('input', calculateInstallment);
       }
+    });
 
-      const total = parseNumber(totalInput.value);
-      let downPayment = downPaymentDisplay ? parseNumber(downPaymentDisplay.textContent) : 0;
-
-      if ((!downPayment || downPayment === 0) && total && downPercentFromChoice !== null) {
-        downPayment = total * downPercentFromChoice;
-        if (downPaymentDisplay) {
-          downPaymentDisplay.textContent = formatValue(downPayment);
-        }
+    // Обработчики изменения параметров гибрида
+    [hybridFirstPercent, hybridMiddlePercent, hybridLastPercent, hybridMonths].forEach(input => {
+      if (input) {
+        input.addEventListener('input', calculateInstallment);
       }
+    });
 
-      let targetFinalPayment = 0;
-      if (isHybrid) {
-        if (finalPercentFromChoice !== null && total) {
-          targetFinalPayment = total * finalPercentFromChoice;
-          if (finalPaymentInput) {
-            finalPaymentInput.value = formatValue(targetFinalPayment);
-            finalPaymentInput.readOnly = true;
-            adjustInputSize(finalPaymentInput);
-          }
-        } else {
-          targetFinalPayment = finalPaymentInput ? parseNumber(finalPaymentInput.value) : 0;
-          if ((!targetFinalPayment || targetFinalPayment === 0) && datasetFinalPayment) {
-            targetFinalPayment = datasetFinalPayment;
-          }
-          if (finalPaymentInput) {
-            finalPaymentInput.value = formatValue(targetFinalPayment);
-            finalPaymentInput.readOnly = false;
-            adjustInputSize(finalPaymentInput);
-          }
-        }
-      } else if (finalPaymentInput) {
-        finalPaymentInput.value = '0';
-        finalPaymentInput.readOnly = true;
-        adjustInputSize(finalPaymentInput);
-      }
-
-      // Ежемесячная оплата не пересчитывается автоматически - остается неизменной
-    }
+    // Инициализация
+    activatePaymentType(currentPaymentType);
   });
 
   // Функции для редактирования клиента

@@ -1,594 +1,475 @@
-<html lang="en">
-
+<!DOCTYPE html>
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CRM Form</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/register-employer-style.css">
-  <link rel="stylesheet" href="/static/add-lead-style.css">
-  <link rel="stylesheet" href="/static/sales-dashboard-style.css">
-  <link rel="stylesheet" href="/static/sales_style/complex.css">
-  <link rel="stylesheet" href="/static/sales_style/header-sales.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создать кампанию</title>
+    <link rel="stylesheet" href="/static/marekting-style/main-style.css">
+    <style>
+        body {
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}') lightgray 50% / cover no-repeat {% else %} #f5f7fa {% endif %};
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #333;
+        }
 
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
 
-  <style>
-    body {
-        background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
-        transition: background 0.5s ease;
-    }
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #216BF4;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
 
-    .dropdown-container {
-      position: relative;
-      cursor: pointer;
-    }
+        .back-btn:hover {
+            background: #f0f4ff;
+        }
 
-    .dropdown-container .dropdown-icon {
-      margin-left: 8px;
-    }
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
 
-    .dropdown-list {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      max-height: 200px;
-      overflow-y: auto;
-      list-style: none;
-      padding: 0;
-      margin: 4px 0 0;
-    }
+        .form-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
 
-    .dropdown-list.hidden {
-      display: none;
-    }
+        .form-section {
+            margin-bottom: 28px;
+        }
 
-    .dropdown-list.visible {
-      display: block;
-    }
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
 
-    .dropdown-list li {
-      padding: 8px 12px;
-      cursor: pointer;
-    }
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-    .dropdown-list li:hover {
-      background: #f0f0f0;
-    }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
 
-    .apt-card.available {
-      background-color: #e6ffed;
-      /* light green */
-      border: 1px solid #28a745;
-      /* green border */
-    }
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
 
-    .apt-card.sold {
-      background-color: #ffe6e6;
-      /* light red */
-      border: 1px solid #dc3545;
-      /* red border */
-    }
+        .form-group {
+            margin-bottom: 16px;
+        }
 
-    .apt-card.booked {
-      background-color: #fff4e5;
-      /* light orange */
-      border: 1px solid #ffc107;
-      /* orange border */
-    }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 6px;
+        }
 
-    /* Adaptive Campaign Form Styles */
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
 
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #216BF4;
+            box-shadow: 0 0 0 3px rgba(33, 107, 244, 0.1);
+        }
 
-    .creatives-section {
-      margin: 24px 0;
-    }
+        .form-group input::placeholder {
+            color: #a0aec0;
+        }
 
-    .creatives-section .section-title {
-      margin-bottom: 12px;
-    }
+        .platform-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
 
-    .creatives-grid {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: flex-start;
-    }
+        .platform-btn {
+            padding: 10px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    .creative-item,
-    .creative-upload {
-      position: relative;
-      width: 150px;
-      height: 200px;
-      border-radius: 20px;
-      background: #fff;
-      overflow: hidden;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+        .platform-btn:hover {
+            border-color: #216BF4;
+        }
 
-    .creative-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+        .platform-btn.active {
+            border-color: #216BF4;
+            background: #f0f4ff;
+            color: #216BF4;
+        }
 
-    .creative-close-btn {
-      position: absolute;
-      top: 6px;
-      left: 6px;
-      background: rgba(255, 255, 255, 0.8);
-      border: none;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+        .platform-btn svg {
+            width: 20px;
+            height: 20px;
+        }
 
-    .creative-upload {
-      background: #fff;
-      border: 1px dashed #ccc;
-      flex-direction: column;
-    }
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: #216BF4;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
 
-    .creative-upload .upload-icon {
-      font-size: 24px;
-      color: #007bff;
-    }
+        .submit-btn:hover {
+            background: #1d5ed9;
+        }
 
-    .creative-upload .upload-text {
-      margin-top: 4px;
-      font-size: 14px;
-      color: #007bff;
-    }
+        .submit-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
 
-    .description-and-type {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      
-    }
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: 500;
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
 
-    .description-input {
-      flex: 1;
-      min-width: 200px;
-      max-width: 50%;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 999px;
-    }
+        .notification.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
 
-    .campaign-type-tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+        .notification.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
 
-    .type-button {
-      padding: 12px 37px;
-      border: none;
-      border-radius: 999px;
-      background: #f0f0f0;
-      cursor: pointer;
-    }
+        .notification.show {
+            display: block;
+        }
 
-    .type-button.active {
-      background: #006bff;
-      color: #fff;
-    }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
 
-    .additional-info .section-title {
-      margin-bottom: 20px;
-    }
+        /* UTM Preview */
+        .utm-preview {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px dashed #e2e8f0;
+        }
 
-    .additional-info .info-grid {
-      display: grid;
+        .utm-preview-title {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
 
-      gap: 12px;
-    }
+        .utm-preview-link {
+            font-family: monospace;
+            font-size: 13px;
+            color: #334155;
+            word-break: break-all;
+        }
 
-    .info-item {
-      display: flex;
-      align-items: center;
-      background: #fff;
-      padding: 12px;
-      border-radius: 999px;
-    }
-
-    .info-item label {
-      margin-right: 8px;
-      white-space: nowrap;
-    }
-
-    .date-input,
-    .budget-input {
-      flex: 1;
-      border: none;
-      font-size: 16px;
-    }
-
-    .budget-input-container {
-      display: flex;
-      align-items: center;
-      flex: 1;
-    }
-
-    .currency {
-      margin-left: 8px;
-      font-weight: 600;
-    }
-
-    .platform-buttons {
-      display: flex;
-      background: #f0f0f0;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .platform-button {
-      flex: 1;
-      padding: 8px 16px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-    }
-
-    .platform-button.active {
-      background: #e0f7ff;
-      color: #007bff;
-    }
-
-    .create-button-container {
-      margin-top: 32px;
-    }
-
-    .create-button {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 999px;
-      background: #006bff;
-      color: #fff;
-      font-size: 18px;
-      cursor: pointer;
-    }
-
-    /* Image Viewer Modal */
-    .image-viewer-modal {
-      display: none;
-      position: fixed;
-      z-index: 100;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.8);
-      align-items: center;
-      justify-content: center;
-    }
-
-    .image-viewer-modal.active {
-      display: flex;
-    }
-
-    .image-viewer-img {
-      max-width: 90%;
-      max-height: 90%;
-      border-radius: 8px;
-    }
-
-    .image-viewer-close {
-      position: absolute;
-      top: 16px;
-      right: 32px;
-      font-size: 32px;
-      color: #fff;
-      cursor: pointer;
-    }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-
-      .description-and-type,
-      .additional-info .info-grid {
-        flex-direction: column;
-        grid-template-columns: 1fr !important;
-      }
-    }
-
-    .back-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 18px; /* Adjusted padding */
-    background-color: #f0f0f0;
-    border: 1px solid #1a73e8;
-    color: #333; /* Darker text */
-    border-radius: 50px; /* Pill shape */
-    text-decoration: none;
-    font-size: 1rem; /* Base font size */
-    font-weight: 500;
-    white-space: nowrap; /* Subtle border */
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-.back-button-text{
-  color: #1a73e8;
-}
-  </style>
-
-
+        .info-text {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+    </style>
 </head>
-
 <body>
-  <div id="notification" class="notification" style="display: none;">
-    <span id="notification-message"></span>
-    <button id="close-notification" class="close-btn">&times;</button>
-  </div>
-  {% include 'partials/header.html' %}
-  <main>
-    {% block content %}{% endblock %}
-  </main>
+    <div id="notification" class="notification"></div>
 
+    <div class="container">
+        <div class="header">
+            <a href="/dashboard/admin/marketing" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Назад
+            </a>
+            <div class="header-title">Новая кампания</div>
+            <div style="width: 80px;"></div>
+        </div>
 
-  <form class="main-form" id="employeeForm">
-    <div class="input-row">
-      <input type="text" class="input-field" placeholder="Название кампании" id="fullName" required>
+        <div class="form-card">
+            <form id="campaignForm">
+                <!-- Основная информация -->
+                <div class="form-section">
+                    <div class="section-title">Основная информация</div>
 
+                    <div class="form-group">
+                        <label for="name">Название кампании *</label>
+                        <input type="text" id="name" name="name" placeholder="Например: Реклама ЖК Бахор Январь" required>
+                    </div>
 
-      <div class="input-field dropdown-container" onclick="toggleDropdown()" id="dropdownContainer">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33" fill="none">
-          <path
-            d="M16.0001 13.8333C18.9456 13.8333 21.3334 11.4455 21.3334 8.49999C21.3334 5.55447 18.9456 3.16666 16.0001 3.16666C13.0546 3.16666 10.6667 5.55447 10.6667 8.49999C10.6667 11.4455 13.0546 13.8333 16.0001 13.8333Z"
-            fill="black" />
-          <path fill-rule="evenodd" clip-rule="evenodd"
-            d="M21.9999 29.8333C19.8001 29.8333 18.7001 29.8333 18.0167 29.1499C17.3333 28.4665 17.3333 27.3665 17.3333 25.1667C17.3333 22.9668 17.3333 21.8668 18.0167 21.1835C18.7001 20.5 19.8001 20.5 21.9999 20.5C24.1998 20.5 25.2998 20.5 25.9831 21.1835C26.6666 21.8668 26.6666 22.9668 26.6666 25.1667C26.6666 27.3665 26.6666 28.4665 25.9831 29.1499C25.2998 29.8333 24.1998 29.8333 21.9999 29.8333ZM24.6239 24.1611C24.9277 23.8573 24.9277 23.3649 24.6239 23.0612C24.3202 22.7573 23.8278 22.7573 23.5241 23.0612L20.9629 25.6223L20.4758 25.1352C20.1721 24.8315 19.6797 24.8315 19.3759 25.1352C19.0722 25.4389 19.0722 25.9315 19.3759 26.2352L20.4129 27.2721C20.7166 27.576 21.2091 27.576 21.5129 27.2721L24.6239 24.1611Z"
-            fill="black" />
-          <path opacity="0.5"
-            d="M24.1263 20.5416C23.5599 20.5 22.865 20.5 22.0001 20.5C19.8002 20.5 18.7002 20.5 18.0169 21.1835C17.3334 21.8668 17.3334 22.9668 17.3334 25.1667C17.3334 26.7217 17.3334 27.7272 17.5749 28.4244C17.0629 28.4741 16.5367 28.5 16.0001 28.5C10.8454 28.5 6.66675 26.1121 6.66675 23.1667C6.66675 20.2212 10.8454 17.8333 16.0001 17.8333C19.4846 17.8333 22.5233 18.9245 24.1263 20.5416Z"
-            fill="black" />
-        </svg>
-        <span id="selectedRole">Аккаунт продвижения</span>
-        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    <div class="form-group">
+                        <label for="account">Аккаунт продвижения</label>
+                        <input type="text" id="account" name="account" placeholder="@bahor_lc или ads@company.com">
+                    </div>
+                </div>
 
+                <!-- Платформа -->
+                <div class="form-section">
+                    <div class="section-title">Платформа *</div>
+                    <div class="platform-selector">
+                        <button type="button" class="platform-btn" data-platform="INSTAGRAM">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                            Instagram
+                        </button>
+                        <button type="button" class="platform-btn" data-platform="FACEBOOK">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                            Facebook
+                        </button>
+                        <button type="button" class="platform-btn" data-platform="TELEGRAM">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                            </svg>
+                            Telegram
+                        </button>
+                        <button type="button" class="platform-btn" data-platform="GOOGLE">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            Google
+                        </button>
+                        <button type="button" class="platform-btn" data-platform="TIKTOK">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                            </svg>
+                            TikTok
+                        </button>
+                    </div>
+                    <input type="hidden" id="platform" name="platform" value="">
+                </div>
 
-        <ul id="dropdownList" class="dropdown-list hidden">
-          <li data-value="1" onclick="selectRole('Telegram', 1)"><svg xmlns="http://www.w3.org/2000/svg" width="32"
-              height="32" viewBox="0 0 32 32" fill="none">
-              <path opacity="0.5"
-                d="M7.83832 3.8382C6.66675 5.00977 6.66675 6.89539 6.66675 10.6666V21.3333C6.66675 25.1045 6.66675 26.9901 7.83832 28.1617C9.00989 29.3333 10.8955 29.3333 14.6667 29.3333H17.3334C21.1046 29.3333 22.9902 29.3333 24.1618 28.1617C25.3334 26.9901 25.3334 25.1045 25.3334 21.3333V10.6666C25.3334 6.89539 25.3334 5.00977 24.1618 3.8382C22.9902 2.66663 21.1046 2.66663 17.3334 2.66663H14.6667C10.8955 2.66663 9.00989 2.66663 7.83832 3.8382Z"
-                fill="#216BF4" />
-              <path
-                d="M12.6667 24.3334C12.1145 24.3334 11.6667 24.7811 11.6667 25.3334C11.6667 25.8856 12.1145 26.3334 12.6667 26.3334H19.3334C19.8857 26.3334 20.3334 25.8856 20.3334 25.3334C20.3334 24.7811 19.8857 24.3334 19.3334 24.3334H12.6667Z"
-                fill="#216BF4" />
-              <path fill-rule="evenodd" clip-rule="evenodd"
-                d="M2.21975 7.10579C2.71374 6.8588 3.3144 7.05903 3.56139 7.553L4.59659 9.62339C4.92503 10.2803 4.92503 11.0535 4.59659 11.7104L3.85954 13.1845C3.81262 13.2783 3.81262 13.3888 3.85954 13.4827L4.59659 14.9567C4.92503 15.6136 4.92503 16.3868 4.59659 17.0437L3.85954 18.5179C3.81262 18.6116 3.81262 18.7221 3.85954 18.816L4.59659 20.29C4.92503 20.9469 4.92503 21.7201 4.59659 22.3771L3.56139 24.4475C3.3144 24.9415 2.71374 25.1416 2.21975 24.8947C1.72578 24.6476 1.52555 24.0469 1.77254 23.5531L2.80774 21.4827C2.85466 21.3888 2.85466 21.2783 2.80774 21.1845L2.07068 19.7104C1.74223 19.0535 1.74223 18.2803 2.07068 17.6233L2.80774 16.1493C2.85466 16.0555 2.85466 15.9449 2.80774 15.8512L2.07068 14.3771C1.74223 13.7201 1.74223 12.9469 2.07068 12.2901L2.80774 10.816C2.85466 10.7221 2.85466 10.6117 2.80774 10.5178L1.77254 8.44743C1.52555 7.95346 1.72578 7.35279 2.21975 7.10579ZM29.7809 7.10579C30.2749 7.35279 30.475 7.95346 30.2281 8.44743L29.1929 10.5178C29.1459 10.6117 29.1459 10.7221 29.1929 10.816L29.9299 12.2901C30.2583 12.9469 30.2583 13.7201 29.9299 14.3771L29.1929 15.8512C29.1459 15.9449 29.1459 16.0555 29.1929 16.1493L29.9299 17.6233C30.2583 18.2803 30.2583 19.0535 29.9299 19.7104L29.1929 21.1845C29.1459 21.2783 29.1459 21.3888 29.1929 21.4827L30.2281 23.5531C30.475 24.0469 30.2749 24.6476 29.7809 24.8947C29.2869 25.1416 28.6862 24.9415 28.4391 24.4475L27.4039 22.3771C27.0756 21.7201 27.0756 20.9469 27.4039 20.29L28.141 18.816C28.1879 18.7221 28.1879 18.6116 28.141 18.5179L27.4039 17.0437C27.0756 16.3868 27.0756 15.6136 27.4039 14.9567L28.141 13.4827C28.1879 13.3888 28.1879 13.2783 28.141 13.1845L27.4039 11.7104C27.0756 11.0535 27.0756 10.2803 27.4039 9.62339L28.4391 7.553C28.6862 7.05903 29.2869 6.8588 29.7809 7.10579Z"
-                fill="#216BF4" />
-            </svg> Telegram</li>
-          <li data-value="2" onclick="selectRole('Instagram', 2)"> <svg xmlns="http://www.w3.org/2000/svg" width="32"
-              height="32" viewBox="0 0 32 32" fill="none">
-              <path opacity="0.5"
-                d="M7.83832 3.8382C6.66675 5.00977 6.66675 6.89539 6.66675 10.6666V21.3333C6.66675 25.1045 6.66675 26.9901 7.83832 28.1617C9.00989 29.3333 10.8955 29.3333 14.6667 29.3333H17.3334C21.1046 29.3333 22.9902 29.3333 24.1618 28.1617C25.3334 26.9901 25.3334 25.1045 25.3334 21.3333V10.6666C25.3334 6.89539 25.3334 5.00977 24.1618 3.8382C22.9902 2.66663 21.1046 2.66663 17.3334 2.66663H14.6667C10.8955 2.66663 9.00989 2.66663 7.83832 3.8382Z"
-                fill="#216BF4" />
-              <path
-                d="M12.6667 24.3334C12.1145 24.3334 11.6667 24.7811 11.6667 25.3334C11.6667 25.8856 12.1145 26.3334 12.6667 26.3334H19.3334C19.8857 26.3334 20.3334 25.8856 20.3334 25.3334C20.3334 24.7811 19.8857 24.3334 19.3334 24.3334H12.6667Z"
-                fill="#216BF4" />
-              <path fill-rule="evenodd" clip-rule="evenodd"
-                d="M2.21975 7.10579C2.71374 6.8588 3.3144 7.05903 3.56139 7.553L4.59659 9.62339C4.92503 10.2803 4.92503 11.0535 4.59659 11.7104L3.85954 13.1845C3.81262 13.2783 3.81262 13.3888 3.85954 13.4827L4.59659 14.9567C4.92503 15.6136 4.92503 16.3868 4.59659 17.0437L3.85954 18.5179C3.81262 18.6116 3.81262 18.7221 3.85954 18.816L4.59659 20.29C4.92503 20.9469 4.92503 21.7201 4.59659 22.3771L3.56139 24.4475C3.3144 24.9415 2.71374 25.1416 2.21975 24.8947C1.72578 24.6476 1.52555 24.0469 1.77254 23.5531L2.80774 21.4827C2.85466 21.3888 2.85466 21.2783 2.80774 21.1845L2.07068 19.7104C1.74223 19.0535 1.74223 18.2803 2.07068 17.6233L2.80774 16.1493C2.85466 16.0555 2.85466 15.9449 2.80774 15.8512L2.07068 14.3771C1.74223 13.7201 1.74223 12.9469 2.07068 12.2901L2.80774 10.816C2.85466 10.7221 2.85466 10.6117 2.80774 10.5178L1.77254 8.44743C1.52555 7.95346 1.72578 7.35279 2.21975 7.10579ZM29.7809 7.10579C30.2749 7.35279 30.475 7.95346 30.2281 8.44743L29.1929 10.5178C29.1459 10.6117 29.1459 10.7221 29.1929 10.816L29.9299 12.2901C30.2583 12.9469 30.2583 13.7201 29.9299 14.3771L29.1929 15.8512C29.1459 15.9449 29.1459 16.0555 29.1929 16.1493L29.9299 17.6233C30.2583 18.2803 30.2583 19.0535 29.9299 19.7104L29.1929 21.1845C29.1459 21.2783 29.1459 21.3888 29.1929 21.4827L30.2281 23.5531C30.475 24.0469 30.2749 24.6476 29.7809 24.8947C29.2869 25.1416 28.6862 24.9415 28.4391 24.4475L27.4039 22.3771C27.0756 21.7201 27.0756 20.9469 27.4039 20.29L28.141 18.816C28.1879 18.7221 28.1879 18.6116 28.141 18.5179L27.4039 17.0437C27.0756 16.3868 27.0756 15.6136 27.4039 14.9567L28.141 13.4827C28.1879 13.3888 28.1879 13.2783 28.141 13.1845L27.4039 11.7104C27.0756 11.0535 27.0756 10.2803 27.4039 9.62339L28.4391 7.553C28.6862 7.05903 29.2869 6.8588 29.7809 7.10579Z"
-                fill="#216BF4" />
-            </svg>Instagram</li>
-          <li data-value="4" onclick="selectRole('Пеший', 4)"> <svg xmlns="http://www.w3.org/2000/svg" width="32"
-              height="32" viewBox="0 0 32 32" fill="none">
-              <path opacity="0.5"
-                d="M7.83832 3.8382C6.66675 5.00977 6.66675 6.89539 6.66675 10.6666V21.3333C6.66675 25.1045 6.66675 26.9901 7.83832 28.1617C9.00989 29.3333 10.8955 29.3333 14.6667 29.3333H17.3334C21.1046 29.3333 22.9902 29.3333 24.1618 28.1617C25.3334 26.9901 25.3334 25.1045 25.3334 21.3333V10.6666C25.3334 6.89539 25.3334 5.00977 24.1618 3.8382C22.9902 2.66663 21.1046 2.66663 17.3334 2.66663H14.6667C10.8955 2.66663 9.00989 2.66663 7.83832 3.8382Z"
-                fill="#216BF4" />
-              <path
-                d="M12.6667 24.3334C12.1145 24.3334 11.6667 24.7811 11.6667 25.3334C11.6667 25.8856 12.1145 26.3334 12.6667 26.3334H19.3334C19.8857 26.3334 20.3334 25.8856 20.3334 25.3334C20.3334 24.7811 19.8857 24.3334 19.3334 24.3334H12.6667Z"
-                fill="#216BF4" />
-              <path fill-rule="evenodd" clip-rule="evenodd"
-                d="M2.21975 7.10579C2.71374 6.8588 3.3144 7.05903 3.56139 7.553L4.59659 9.62339C4.92503 10.2803 4.92503 11.0535 4.59659 11.7104L3.85954 13.1845C3.81262 13.2783 3.81262 13.3888 3.85954 13.4827L4.59659 14.9567C4.92503 15.6136 4.92503 16.3868 4.59659 17.0437L3.85954 18.5179C3.81262 18.6116 3.81262 18.7221 3.85954 18.816L4.59659 20.29C4.92503 20.9469 4.92503 21.7201 4.59659 22.3771L3.56139 24.4475C3.3144 24.9415 2.71374 25.1416 2.21975 24.8947C1.72578 24.6476 1.52555 24.0469 1.77254 23.5531L2.80774 21.4827C2.85466 21.3888 2.85466 21.2783 2.80774 21.1845L2.07068 19.7104C1.74223 19.0535 1.74223 18.2803 2.07068 17.6233L2.80774 16.1493C2.85466 16.0555 2.85466 15.9449 2.80774 15.8512L2.07068 14.3771C1.74223 13.7201 1.74223 12.9469 2.07068 12.2901L2.80774 10.816C2.85466 10.7221 2.85466 10.6117 2.80774 10.5178L1.77254 8.44743C1.52555 7.95346 1.72578 7.35279 2.21975 7.10579ZM29.7809 7.10579C30.2749 7.35279 30.475 7.95346 30.2281 8.44743L29.1929 10.5178C29.1459 10.6117 29.1459 10.7221 29.1929 10.816L29.9299 12.2901C30.2583 12.9469 30.2583 13.7201 29.9299 14.3771L29.1929 15.8512C29.1459 15.9449 29.1459 16.0555 29.1929 16.1493L29.9299 17.6233C30.2583 18.2803 30.2583 19.0535 29.9299 19.7104L29.1929 21.1845C29.1459 21.2783 29.1459 21.3888 29.1929 21.4827L30.2281 23.5531C30.475 24.0469 30.2749 24.6476 29.7809 24.8947C29.2869 25.1416 28.6862 24.9415 28.4391 24.4475L27.4039 22.3771C27.0756 21.7201 27.0756 20.9469 27.4039 20.29L28.141 18.816C28.1879 18.7221 28.1879 18.6116 28.141 18.5179L27.4039 17.0437C27.0756 16.3868 27.0756 15.6136 27.4039 14.9567L28.141 13.4827C28.1879 13.3888 28.1879 13.2783 28.141 13.1845L27.4039 11.7104C27.0756 11.0535 27.0756 10.2803 27.4039 9.62339L28.4391 7.553C28.6862 7.05903 29.2869 6.8588 29.7809 7.10579Z"
-                fill="#216BF4" />
-            </svg>Пеший</li>
-          <li data-value="3" onclick="selectRole('Телефонный звонок', 3)"><svg xmlns="http://www.w3.org/2000/svg"
-              width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path fill-rule="evenodd" clip-rule="evenodd"
-                d="M14.2487 8.63884L13.3834 7.08827C12.2041 4.97529 9.24093 4.72575 7.38367 6.58301C6.26765 7.69901 5.39928 9.06617 5.34199 10.5775C5.26773 12.5362 5.63229 15.5479 7.78184 18.8082L13.4862 13.1038C14.7162 11.8738 15.0297 10.0381 14.2487 8.63884ZM18.8962 18.5138L13.1918 24.2182C16.4521 26.3676 19.4638 26.7322 21.4225 26.6579C22.9338 26.6007 24.301 25.7323 25.417 24.6163C27.2742 22.759 27.0247 19.7958 24.9117 18.6166L23.3611 17.7512C21.9618 16.9703 20.1262 17.2838 18.8962 18.5138Z"
-                fill="#216BF4" />
-              <path opacity="0.5"
-                d="M14.6994 17.301C11.9944 14.5961 13.4863 13.1041 13.4863 13.1041L7.78198 18.8085C8.42444 19.7829 9.22636 20.7794 10.2237 21.7768C11.221 22.7741 12.2176 23.576 13.192 24.2185L18.8963 18.5141C18.8963 18.5141 17.4043 20.006 14.6994 17.301Z"
-                fill="#216BF4" />
-            </svg> Телефонный звонок</li>
-        </ul>
-      </div>
+                <!-- Даты -->
+                <div class="form-section">
+                    <div class="section-title">Период проведения</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="launch_date">Дата запуска *</label>
+                            <input type="date" id="launch_date" name="launch_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="end_date">Дата окончания</label>
+                            <input type="date" id="end_date" name="end_date">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Бюджет -->
+                <div class="form-section">
+                    <div class="section-title">Бюджет (USD)</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="planned_budget">Планируемый бюджет</label>
+                            <input type="number" id="planned_budget" name="planned_budget" placeholder="1000" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="spent_budget">Уже потрачено</label>
+                            <input type="number" id="spent_budget" name="spent_budget" placeholder="0" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Начальные метрики -->
+                <div class="form-section">
+                    <div class="section-title">Начальные метрики</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="views">Просмотры</label>
+                            <input type="number" id="views" name="views" placeholder="0" min="0" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="clicks">Переходы (клики)</label>
+                            <input type="number" id="clicks" name="clicks" placeholder="0" min="0" value="0">
+                        </div>
+                    </div>
+                    <p class="info-text">Переходы будут автоматически отслеживаться через UTM-ссылку</p>
+                </div>
+
+                <!-- UTM Preview -->
+                <div class="utm-preview">
+                    <div class="utm-preview-title">UTM-ссылка будет сгенерирована автоматически после создания</div>
+                    <div class="utm-preview-link">https://t.me/bahor_lc_bot/app?startapp=<span id="utmPreview">XXXXXXXX</span></div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Создать кампанию
+                </button>
+            </form>
+        </div>
     </div>
-    <div class="profile-form-info">
-      <!-- Campaign Creatives -->
-      <section class="creatives-section">
-        <h2 class="section-title">Креативы</h2>
-        <div class="creatives-grid">
-          <div class="creative-upload">
-            <span class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33"
-                fill="none">
-                <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd"
-                  d="M4 19.5C4.55228 19.5 5 19.9477 5 20.5C5 22.4139 5.00212 23.7487 5.13753 24.7559C5.26907 25.7343 5.50967 26.2523 5.87868 26.6213C6.24769 26.9904 6.7658 27.2309 7.74416 27.3625C8.75129 27.4979 10.0861 27.5 12 27.5H20C21.9139 27.5 23.2487 27.4979 24.2559 27.3625C25.2343 27.2309 25.7523 26.9904 26.1213 26.6213C26.4904 26.2523 26.7309 25.7343 26.8625 24.7559C26.9979 23.7487 27 22.4139 27 20.5C27 19.9477 27.4477 19.5 28 19.5C28.5523 19.5 29 19.9477 29 20.5V20.5732C29 22.3967 29 23.8664 28.8447 25.0224C28.6833 26.2225 28.3381 27.2329 27.5356 28.0355C26.7329 28.8381 25.7225 29.1833 24.5224 29.3447C23.3664 29.5 21.8967 29.5 20.0732 29.5H11.9268C10.1034 29.5 8.63363 29.5 7.47767 29.3447C6.27752 29.1833 5.26703 28.8381 4.46447 28.0356C3.66191 27.2329 3.31672 26.2225 3.15536 25.0224C2.99995 23.8664 2.99997 22.3967 3 20.5732C3 20.5488 3 20.5244 3 20.5C3 19.9477 3.44772 19.5 4 19.5Z"
-                  fill="#216BF4" />
-                <path fill-rule="evenodd" clip-rule="evenodd"
-                  d="M15.9994 3.5C16.2802 3.5 16.5479 3.61803 16.7374 3.82523L22.0707 9.65856C22.4434 10.0662 22.4151 10.6987 22.0075 11.0714C21.5999 11.444 20.9674 11.4157 20.5947 11.0081L16.9994 7.07573V21.8333C16.9994 22.3856 16.5516 22.8333 15.9994 22.8333C15.4471 22.8333 14.9994 22.3856 14.9994 21.8333V7.07573L11.4041 11.0081C11.0314 11.4157 10.3989 11.444 9.99126 11.0714C9.58366 10.6987 9.55532 10.0662 9.92799 9.65856L15.2614 3.82523C15.4508 3.61803 15.7186 3.5 15.9994 3.5Z"
-                  fill="#216BF4" />
-              </svg></span>
-            <span class="upload-text">Загрузить</span>
-          </div>
-        </div>
-      </section>
 
-      <!-- Description and Campaign Type -->
-      <h2 class="section-title">Описание</h2>
+    <script>
+        const API_BASE = '/api/marketing';
+        let selectedPlatform = '';
 
-      <div class="description-and-type">
-        <input type="text" class="description-input" placeholder="Описание поста">
-        <div class="campaign-type-tabs">
-          <button type="button" class="type-button active">Трафик</button>
-          <button type="button" class="type-button">Вовлечённость</button>
-          <button type="button" class="type-button">Генер. лидов</button>
-        </div>
-      </div>
-
-      <!-- Additional Information -->
-      <section class="additional-info">
-        <h2 class="section-title">Дополнительная информация</h2>
-        <div class="info-grid">
-          <div class="info-item">
-            <label>Дата начала</label>
-            <input type="date" class="date-input">
-          </div>
-          <div class="info-item">
-            <label>Дата окончания</label>
-            <input type="date" class="date-input">
-          </div>
-          <div class="info-item">
-            <label>Запланированный бюджет</label>
-            <div class="budget-input-container">
-              <input type="number" class="budget-input" placeholder="Сумма">
-              <span class="currency">UZS</span>
-            </div>
-          </div>
-          <div class="info-item">
-            <label>Платформа</label>
-            <div class="platform-buttons">
-              <button type="button" class="platform-button active">Telegram</button>
-              <button type="button" class="platform-button">Instagram</button>
-              <button type="button" class="platform-button">Facebook</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Create Button -->
-      <div class="create-button-container">
-        <button class="create-button">Создать →</button>
-      </div>
-    </div>
-  </form>
-  <div id="image-viewer-modal" class="image-viewer-modal">
-    <span id="image-viewer-close" class="image-viewer-close">&times;</span>
-    <img id="image-viewer-img" class="image-viewer-img" src="" alt="Preview">
-  </div>
-
-  <!-- Image Viewer Modal -->
-
-
-
-  <script src="/static/add-lead-scripts.js"></script>
-  <script src="/static/search-lead-scripts.js"></script>
-  <script src="/static/sales_style/complex_add_lead.js"></script>
-  <script>
-
-    document.addEventListener('DOMContentLoaded', function () {
-
-      // Logic for dynamic creative items
-      const creativesGrid = document.querySelector('.creatives-grid');
-      const uploadCard = creativesGrid.querySelector('.creative-upload');
-
-      // Create hidden file input
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.accept = 'image/*';
-      fileInput.multiple = true;
-      fileInput.style.display = 'none';
-      document.body.appendChild(fileInput);
-
-      // Trigger file dialog on click
-      uploadCard.addEventListener('click', () => {
-        fileInput.click();
-      });
-
-      // Handle file selection
-      fileInput.addEventListener('change', (event) => {
-        Array.from(event.target.files).forEach((file) => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            // Create creative item
-            const item = document.createElement('div');
-            item.className = 'creative-item';
-
-            // Close button
-            const btn = document.createElement('button');
-            btn.className = 'creative-close-btn';
-            btn.textContent = '×';
-            btn.addEventListener('click', () => item.remove());
-
-            // Image preview
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.alt = 'Креатив';
-
-            // Assemble and insert before upload card
-            item.appendChild(btn);
-            item.appendChild(img);
-            creativesGrid.insertBefore(item, uploadCard);
-          };
-          reader.readAsDataURL(file);
+        // Platform selector
+        document.querySelectorAll('.platform-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedPlatform = btn.dataset.platform;
+                document.getElementById('platform').value = selectedPlatform;
+            });
         });
-        // Reset input
-        fileInput.value = '';
-      });
 
-      // Image viewer logic (if modal is present)
-      const modal = document.getElementById('image-viewer-modal');
-      const modalImg = modal ? document.getElementById('image-viewer-img') : null;
-      const modalClose = modal ? document.getElementById('image-viewer-close') : null;
+        // Set default date to today
+        document.getElementById('launch_date').valueAsDate = new Date();
 
-      if (modal && modalImg && modalClose) {
-        creativesGrid.addEventListener('click', function (e) {
-          if (e.target.tagName === 'IMG' && e.target.closest('.creative-item')) {
-            modalImg.src = e.target.src;
-            modal.classList.add('active');
-          }
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        // Form submission
+        document.getElementById('campaignForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!selectedPlatform) {
+                showNotification('Выберите платформу', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Создание...';
+
+            const formData = {
+                name: document.getElementById('name').value,
+                platform: selectedPlatform,
+                account: document.getElementById('account').value || null,
+                launch_date: document.getElementById('launch_date').value,
+                end_date: document.getElementById('end_date').value || null,
+                planned_budget: parseFloat(document.getElementById('planned_budget').value) || 0,
+                spent_budget: parseFloat(document.getElementById('spent_budget').value) || 0,
+                views: parseInt(document.getElementById('views').value) || 0,
+                clicks: parseInt(document.getElementById('clicks').value) || 0
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/campaigns`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showNotification('Кампания успешно создана!', 'success');
+
+                    // Show UTM link
+                    if (data.utm_link) {
+                        document.getElementById('utmPreview').textContent = data.utm_source;
+                    }
+
+                    // Redirect after delay
+                    setTimeout(() => {
+                        window.location.href = '/dashboard/admin/marketing';
+                    }, 2000);
+                } else {
+                    const errorMsg = data.error?.message || data.detail || 'Ошибка создания кампании';
+                    showNotification(errorMsg, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Создать кампанию';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Ошибка сети. Попробуйте позже.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Создать кампанию';
+            }
         });
-        modalClose.addEventListener('click', function () {
-          modal.classList.remove('active');
-        });
-        modal.addEventListener('click', function (e) {
-          if (e.target === modal) {
-            modal.classList.remove('active');
-          }
-        });
-      }
-
-      // Generic tab switcher
-      function switchTab(button, className) {
-        const tabs = button.parentElement.querySelectorAll(`.${className}`);
-        tabs.forEach(tab => tab.classList.remove('active'));
-        button.classList.add('active');
-      }
-
-      // Campaign type tab clicks
-      const typeButtons = document.querySelectorAll('.type-button');
-      typeButtons.forEach(button => {
-        button.addEventListener('click', () => switchTab(button, 'type-button'));
-      });
-
-      // Platform button clicks
-      const platformButtons = document.querySelectorAll('.platform-button');
-      platformButtons.forEach(button => {
-        button.addEventListener('click', () => switchTab(button, 'platform-button'));
-      });
-    });
-
-  </script>
-
-
-
-
+    </script>
 </body>
-
 </html>

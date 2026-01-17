@@ -58,8 +58,7 @@ from backend.api.draws.main import router as draw_users_router
 from backend.api.payment_options.main import router as payment_options_router
 # from backend.api.excel_utils import router as excel_router
 from backend.api.test_excel import router as test_excel
-from backend.api.instagram.main import router as instagram_router
-
+from backend.api.marketing.main import router as marketing_router
 # Инициализация логирования
 setup_logging()
 
@@ -78,9 +77,21 @@ app.add_middleware(NoCacheMiddleware)  # Предотвращаем кеширо
 app.add_middleware(DatabaseConnectionMiddleware)
 app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
 
+# Custom 404 handler для показа HTML страницы
+async def custom_404_handler(request: Request, exc: HTTPException):
+    """Обработчик 404 - показывает красивую страницу вместо JSON."""
+    if exc.status_code == 404:
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request},
+            status_code=404
+        )
+    # Для остальных HTTP ошибок используем стандартный обработчик
+    return await http_exception_handler(request, exc)
+
 # Добавляем обработчики ошибок
-app.add_exception_handler(HTTPException, http_exception_handler)
-app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(HTTPException, custom_404_handler)
+app.add_exception_handler(StarletteHTTPException, custom_404_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
@@ -100,7 +111,7 @@ app.include_router(draw_users_router)
 app.include_router(payment_options_router)
 # app.include_router(excel_router)
 app.include_router(test_excel)
-app.include_router(instagram_router)
+app.include_router(marketing_router)
 
 app.mount(
     "/media",
@@ -215,6 +226,7 @@ async def login_form(request: Request):
 
 @app.post("/login")
 async def login(
+        request: Request,
         username: str = Form(...),
         password: str = Form(...),
 ):
@@ -223,7 +235,11 @@ async def login(
     user = get_user_by_login(login=username)
     if not user or not verify_password(password, user.hashed_password):
         logger.info("Invalid credentials")
-        raise HTTPException(status_code=400, detail="Неверное имя пользователя или пароль")
+        return templates.TemplateResponse(
+            "login_form.html",
+            {"request": request, "error": "Неверный логин или пароль"},
+            status_code=400
+        )
 
     token = create_access_token(
         data={"sub": user.login, "role_id": user.role_id},
@@ -274,98 +290,122 @@ async def logout():
     return response
 
 
-# @app.middleware("http")
-# async def auth_middleware(request: Request, call_next):
-#     path = request.url.path
-#     logger.info(f"Request path: {path}")
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    path = request.url.path
+    logger.info(f"Request path: {path}")
 
-#     # --- Публичные пути ---
-#     # Пути, которые НЕ требуют аутентификации
-#     # Используем startswith для /static и /docs и т.д.
-#     public_paths_exact = {"/", "/login", "/register", "/api/auth/login", "/api/auth/register", "/complexes", "/rassvet", "/bahor"}
-#     public_paths_startswith = {"/static", "/docs",
-#                                "/openapi.json", "/complexes", "/api/complexes",
-#                                "/excel", "/shaxmatki", "/api/shaxmatki",
-#                                "/webhook", "/api/payment-options"}  # Добавь сюда /docs и /openapi.json, если используешь Swagger/OpenAPI UI
+    # --- Публичные пути ---
+    # Пути, которые НЕ требуют аутентификации
+    # Используем startswith для /static и /docs и т.д.
+    public_paths_exact = {"/", "/login", "/register", "/api/auth/login", "/api/auth/register", "/complexes", "/rassvet", "/bahor"}
+    public_paths_startswith = {"/static", "/docs",
+                               "/openapi.json", "/complexes", "/api/complexes",
+                               "/excel", "/shaxmatki", "/api/shaxmatki",
+                               "/webhook", "/api/payment-options"}  # Добавь сюда /docs и /openapi.json, если используешь Swagger/OpenAPI UI
 
-#     is_public = False
-#     if path in public_paths_exact:
-#         is_public = True
-#     else:
-#         for public_prefix in public_paths_startswith:
-#             if path.startswith(public_prefix):
-#                 is_public = True
-#                 break
+    # --- Известные защищённые пути ---
+    # Если путь не публичный и не начинается с защищённого префикса - это 404
+    protected_paths_startswith = {"/dashboard", "/api/leads", "/api/users", "/api/finance",
+                                   "/api/mop", "/api/rop", "/api/marketing", "/api/draws",
+                                   "/profile", "/logout", "/user", "/media"}
 
-#     if is_public:
-#         logger.info(f"Public path accessed: {path}")
-#         response = await call_next(request)
-#         return response
+    is_public = False
+    if path in public_paths_exact:
+        is_public = True
+    else:
+        for public_prefix in public_paths_startswith:
+            if path.startswith(public_prefix):
+                is_public = True
+                break
 
-#     # --- Логика для защищенных путей ---
-#     token = request.cookies.get("access_token")
-#     logger.info(f"Cookie token: {'Token found' if token else 'No token'}")  # Не логируй сам токен целиком в продакшене
+    if is_public:
+        logger.info(f"Public path accessed: {path}")
+        response = await call_next(request)
+        return response
 
-#     if not token:
-#         logger.info("No token found for protected path, redirecting to login")
-#         return RedirectResponse(url="/login", status_code=303)
+    # --- Проверяем известные защищённые пути ---
+    is_protected = False
+    for protected_prefix in protected_paths_startswith:
+        if path.startswith(protected_prefix):
+            is_protected = True
+            break
 
-#     try:
-#         # Извлекаем токен из формата "Bearer {token}", если он есть
-#         # В твоем случае токен берется из cookie, префикс "Bearer " маловероятен,
-#         # но оставим на всякий случай, если источник токена изменится.
-#         if token.startswith("Bearer "):
-#             token = token.split(" ")[1]
-#             logger.info("Extracted token from Bearer format.")
+    # Если путь не публичный и не защищённый - это 404
+    if not is_protected:
+        logger.info(f"Unknown path (404): {path}")
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request},
+            status_code=404
+        )
 
-#         # Проверяем токен
-#         payload = jwt.decode(
-#             token,
-#             SECRET_KEY
-#         )
-#         logger.info(f"Token payload: {payload}")  # Будь осторожен с логированием payload в продакшене
+    # --- Логика для защищенных путей ---
+    token = request.cookies.get("access_token")
+    logger.info(f"Cookie token: {'Token found' if token else 'No token'}")  # Не логируй сам токен целиком в продакшене
 
-#         # Проверяем срок действия (exp)
-#         exp = payload.get("exp")
-#         # Используем timezone-aware datetime для корректного сравнения
-#         current_time = datetime.now(timezone.utc).timestamp()
+    if not token:
+        logger.info("No token found for protected path, redirecting to login")
+        return RedirectResponse(url="/login", status_code=303)
 
-#         # Логируем время для отладки
-#         logger.debug(f"Token expires at (timestamp): {exp}")
-#         logger.debug(f"Current time (timestamp): {current_time}")
-#         if exp:
-#             logger.info(f"Token expires at (datetime): {datetime.fromtimestamp(exp, timezone.utc)}")
-#             logger.info(f"Current time (datetime): {datetime.fromtimestamp(current_time, timezone.utc)}")
+    try:
+        # Извлекаем токен из формата "Bearer {token}", если он есть
+        # В твоем случае токен берется из cookie, префикс "Bearer " маловероятен,
+        # но оставим на всякий случай, если источник токена изменится.
+        if token.startswith("Bearer "):
+            token = token.split(" ")[1]
+            logger.info("Extracted token from Bearer format.")
 
-#         # if not exp or exp < current_time:
-#         #     logger.info("Token expired")
-#         #     response = RedirectResponse(url="/login", status_code=303)
-#         #     response.delete_cookie("access_token", path="/", domain=None, secure=True, httponly=True)  # Указывай параметры cookie для надежного удаления
-#         #     return response
+        # Проверяем токен
+        payload = jwt.decode(
+            token,
+            SECRET_KEY
+        )
+        logger.info(f"Token payload: {payload}")  # Будь осторожен с логированием payload в продакшене
 
-#         # Добавляем информацию о пользователе в request.state для использования в эндпоинтах
-#         request.state.user = payload
-#         logger.info("Token validated successfully")
+        # Проверяем срок действия (exp)
+        exp = payload.get("exp")
+        # Используем timezone-aware datetime для корректного сравнения
+        current_time = datetime.now(timezone.utc).timestamp()
 
-#         # Передаем запрос дальше по цепочке (к эндпоинту или другому middleware)
-#         response = await call_next(request)
-#         return response
+        # Логируем время для отладки
+        logger.debug(f"Token expires at (timestamp): {exp}")
+        logger.debug(f"Current time (timestamp): {current_time}")
+        if exp:
+            logger.info(f"Token expires at (datetime): {datetime.fromtimestamp(exp, timezone.utc)}")
+            logger.info(f"Current time (datetime): {datetime.fromtimestamp(current_time, timezone.utc)}")
 
-#     except JWTError as e:
-#         logger.error(f"JWT Error: {str(e)}")
-#         # Если токен невалиден (ошибка подписи, неверный формат и т.д.), перенаправляем на логин
-#         response = RedirectResponse(url="/login", status_code=303)
-#         response.delete_cookie("access_token", path="/", domain=None, secure=True,
-#                                httponly=True)  # Удаляем невалидный куки
-#         return response
+        # if not exp or exp < current_time:
+        #     logger.info("Token expired")
+        #     response = RedirectResponse(url="/login", status_code=303)
+        #     response.delete_cookie("access_token", path="/", domain=None, secure=True, httponly=True)  # Указывай параметры cookie для надежного удаления
+        #     return response
 
-#     except Exception as e:
-#         # Ловим другие возможные ошибки во время обработки
-#         logger.error(f"Auth middleware error: {str(e)}", exc_info=True)  # exc_info=True добавит traceback в лог
-#         # В случае неожиданной ошибки лучше вернуть 500 или перенаправить на страницу ошибки,
-#         # но для простоты пока оставим редирект на логин.
-#         # Consider returning Response("Internal Server Error", status_code=500)
-#         response = RedirectResponse(url="/login", status_code=303)  # Или на страницу ошибки
-#         response.delete_cookie("access_token", path="/", domain=None, secure=True, httponly=True,
-#                                samesite='Lax')  # Попытаемся удалить куки на всякий случай
-#         return response
+        # Добавляем информацию о пользователе в request.state для использования в эндпоинтах
+        request.state.user = payload
+        logger.info("Token validated successfully")
+
+        # Передаем запрос дальше по цепочке (к эндпоинту или другому middleware)
+        response = await call_next(request)
+        return response
+
+    except JWTError as e:
+        logger.error(f"JWT Error: {str(e)}")
+        # Если токен невалиден (ошибка подписи, неверный формат и т.д.), перенаправляем на логин
+        response = RedirectResponse(url="/login", status_code=303)
+        response.delete_cookie("access_token", path="/", domain=None, secure=True,
+                               httponly=True)  # Удаляем невалидный куки
+        return response
+
+    except Exception as e:
+        # Ловим другие возможные ошибки во время обработки
+        logger.error(f"Auth middleware error: {str(e)}", exc_info=True)  # exc_info=True добавит traceback в лог
+        # В случае неожиданной ошибки лучше вернуть 500 или перенаправить на страницу ошибки,
+        # но для простоты пока оставим редирект на логин.
+        # Consider returning Response("Internal Server Error", status_code=500)
+        response = RedirectResponse(url="/login", status_code=303)  # Или на страницу ошибки
+        response.delete_cookie("access_token", path="/", domain=None, secure=True, httponly=True,
+                               samesite='Lax')  # Попытаемся удалить куки на всякий случай
+        return response
+
+

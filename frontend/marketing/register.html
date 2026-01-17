@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seller CRM Prototype</title>
+    <title>Маркетинг - Дашборд</title>
     <link rel="stylesheet" href="/static/marekting-style/main-style.css">
     <style>
-        head{
-            height: 100%;
-        }
         body {
             background-size: 120%;
             background-position: bottom;
@@ -17,8 +14,127 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: #333;
-            background: {% if user and user.background_theme %} url('{{ user.background_theme }}')  lightgray 50% / cover no-repeat {% else %} #ffffff {% endif %};
+            background: {% if user and user.background_theme %} url('{{ user.background_theme }}') lightgray 50% / cover no-repeat {% else %} #f5f7fa {% endif %};
             transition: background 0.5s ease;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #216BF4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Health status colors */
+        .health-danger { border-left: 4px solid #ef4444 !important; }
+        .health-success { border-left: 4px solid #22c55e !important; }
+        .health-warning_sales { border-left: 4px solid #f59e0b !important; }
+        .health-warning_creative { border-left: 4px solid #f97316 !important; }
+        .health-neutral { border-left: 4px solid #94a3b8 !important; }
+
+        /* Metric highlights */
+        .metric-highlight {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+        .metric-good { background: #dcfce7; color: #166534; }
+        .metric-bad { background: #fee2e2; color: #991b1b; }
+        .metric-neutral { background: #f1f5f9; color: #475569; }
+
+        /* UTM link section */
+        .utm-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #e2e8f0;
+        }
+        .utm-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .utm-link input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 12px;
+            background: #f8fafc;
+        }
+        .utm-link button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #216BF4;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .utm-link button:hover {
+            background: #1d5ed9;
+        }
+
+        /* Conversion metrics row */
+        .conversion-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        .conv-metric {
+            text-align: center;
+        }
+        .conv-metric-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .conv-metric-label {
+            font-size: 10px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .empty-state h3 {
+            margin: 0 0 8px;
+            color: #1e293b;
+        }
+        .empty-state p {
+            margin: 0 0 20px;
+            color: #64748b;
+        }
+        .empty-state a {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #216BF4;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -26,304 +142,338 @@
     <div class="main-container">
         <!-- Header -->
         <div class="header">
-            <a class="header-text" href="/dashboard/admin">Seller CRM Prototype</a>
+            <a class="header-text" href="/dashboard/admin">Отдел маркетинга</a>
             <div class="header-controls">
                 <div class="dropdown-container">
-                    <select class="dropdown">
-                        <option>Статус</option>
-                        <option>Активна</option>
-                        <option>Пауза</option>
+                    <select class="dropdown" id="filterStatus">
+                        <option value="">Все статусы</option>
+                        <option value="ACTIVE">Активна</option>
+                        <option value="PAUSED">Пауза</option>
+                        <option value="COMPLETED">Завершена</option>
                     </select>
-                    <select class="dropdown">
-                        <option>Источник</option>
-                        <option>Instagram</option>
-                        <option>Facebook</option>
-                        <option>Telegram</option>
-                    </select>
-                    <select class="dropdown">
-                        <option>Период</option>
-                        <option>За день</option>
-                        <option>За неделю</option>
-                        <option>За месяц</option>
-                    </select>
-                    <select class="dropdown">
-                        <option>Сводка</option>
+                    <select class="dropdown" id="filterPlatform">
+                        <option value="">Все платформы</option>
+                        <option value="INSTAGRAM">Instagram</option>
+                        <option value="FACEBOOK">Facebook</option>
+                        <option value="TELEGRAM">Telegram</option>
+                        <option value="GOOGLE">Google</option>
+                        <option value="TIKTOK">TikTok</option>
                     </select>
                 </div>
-                <input type="text" class="search-box" placeholder="Поиск">
-                <a href="/dashboard/admin/marketing/add-campaigns" class="user-avatar">+</a>
-                <a href="{{ url_for('user_profile') }}" class="user-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 48 48" fill="none">
-  <path d="M24 21C28.4183 21 32 17.4183 32 13C32 8.58172 28.4183 5 24 5C19.5817 5 16 8.58172 16 13C16 17.4183 19.5817 21 24 21Z" fill="#216BF4"/>
-  <path d="M24 43.002C31.732 43.002 38 39.4203 38 35.002C38 30.5837 31.732 27.002 24 27.002C16.268 27.002 10 30.5837 10 35.002C10 39.4203 16.268 43.002 24 43.002Z" fill="#216BF4"/>
-</svg></a>
+                <input type="text" class="search-box" id="searchBox" placeholder="Поиск кампании...">
+                <a href="/dashboard/admin/marketing/add-campaigns" class="user-avatar" title="Создать кампанию">+</a>
+                <a href="/dashboard/admin" class="user-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 48 48" fill="none">
+                        <path d="M24 21C28.4183 21 32 17.4183 32 13C32 8.58172 28.4183 5 24 5C19.5817 5 16 8.58172 16 13C16 17.4183 19.5817 21 24 21Z" fill="#216BF4"/>
+                        <path d="M24 43.002C31.732 43.002 38 39.4203 38 35.002C38 30.5837 31.732 27.002 24 27.002C16.268 27.002 10 30.5837 10 35.002C10 39.4203 16.268 43.002 24 43.002Z" fill="#216BF4"/>
+                    </svg>
+                </a>
             </div>
         </div>
+
         <!-- Metrics Section -->
-        <div class="metrics-grid">
+        <div class="metrics-grid" id="metricsGrid">
             <div class="metric-card">
-                <div class="metric-value">203$</div>
+                <div class="metric-value" id="totalClicks">-</div>
+                <div class="metric-label">Общ переходов</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="totalLeads">-</div>
+                <div class="metric-label">Общ ЛИД</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="totalDeals">-</div>
+                <div class="metric-label">Общ Сделок</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="totalSpent">-</div>
                 <div class="metric-label">Бюджет потрачен</div>
-                <div class="metric-change positive">
-                    <span>↗</span> +12%
-                </div>
             </div>
             <div class="metric-card">
-                <div class="metric-value">2.4$</div>
-                <div class="metric-label">Процент лидов, перешедших в сделку</div>
-                <div class="metric-change negative">
-                    <span>↗</span> +5%
-                </div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value">13%</div>
-                <div class="metric-label">Процент успешных лидов</div>
+                <div class="metric-value" id="activeCampaigns">-</div>
+                <div class="metric-label">Активных кампаний</div>
             </div>
         </div>
+
         <!-- Campaigns Section -->
         <section class="campaigns-section">
-  <!-- Header секции -->
-  <div class="section-header">
-    <h2 class="section-title">Кампании</h2>
-    <div class="section-count">5</div>
-  </div>
+            <div class="section-header">
+                <h2 class="section-title">Кампании</h2>
+                <div class="section-count" id="campaignsCount">0</div>
+            </div>
 
-  <!-- Сетка карточек -->
-  <div class="campaigns-grid">
-    <!-- Повторяйте этот блок 5 раз -->
-    <div class="campaign-card">
-      <div class="campaign-header">
-        <h3 class="campaign-name">Таргет ЖК</h3>
-        <div class="campaign-platform">
-          <span class="platform-name">Instagram</span>
-          <span class="platform-account">@Bahor.LC</span>
-        </div>
-      </div>
-      <div class="campaign-stats">
-        <div class="stat-row">
-          <span class="stat-label">Дата запуска:</span>
-          <span class="stat-value">12.07.2025</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Дата окончания:</span>
-          <span class="stat-value">20.07.2025</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Планируемый бюджет:</span>
-          <span class="stat-value">120$</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Использовано:</span>
-          <span class="stat-value">80$</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Просмотры:</span>
-          <span class="stat-value">12 700</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Переходы:</span>
-          <span class="stat-value">2 902</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Получено лидов:</span>
-          <span class="stat-value">800</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Активных лидов:</span>
-          <span class="stat-value">710</span>
-        </div>
-      </div>
-      <div class="campaign-footer">
-        <span class="status-badge status-active">
-          <span class="status-dot"></span>
-          Активна
-        </span>
-        <a href="/dashboard/admin/marketing/campaigns/" class="btn-action">Открыть карточку</a>
-      </div>
+            <div id="campaignsContainer">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Загрузка кампаний...</p>
+                </div>
+            </div>
+        </section>
     </div>
-    <!-- /campaign-card -->
-    <!-- ... ещё 4 карточки ... -->
-    <div class="campaign-card">
-      <div class="campaign-header">
-        <h3 class="campaign-name">Таргет ЖК</h3>
-        <div class="campaign-platform">
-          <span class="platform-name">Instagram</span>
-          <span class="platform-account">@Bahor.LC</span>
-        </div>
-      </div>
-      <div class="campaign-stats">
-        <div class="stat-row">
-          <span class="stat-label">Дата запуска:</span>
-          <span class="stat-value">12.07.2025</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Дата окончания:</span>
-          <span class="stat-value">20.07.2025</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Планируемый бюджет:</span>
-          <span class="stat-value">120$</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Использовано:</span>
-          <span class="stat-value">80$</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Просмотры:</span>
-          <span class="stat-value">12 700</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Переходы:</span>
-          <span class="stat-value">2 902</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Получено лидов:</span>
-          <span class="stat-value">800</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Активных лидов:</span>
-          <span class="stat-value">710</span>
-        </div>
-      </div>
-      <div class="campaign-footer">
-        <span class="status-badge status-active">
-          <span class="status-dot"></span>
-          Активна
-        </span>
-        <a href="/dashboard/admin/marketing/campaigns/" class="btn-action">Открыть карточку</a>
-      </div>
-    </div>
-    <div class="campaign-card">
-      <div class="campaign-header">
-        <h3 class="campaign-name">Таргет ЖК</h3>
-        <div class="campaign-platform">
-          <span class="platform-name">Instagram</span>
-          <span class="platform-account">@Bahor.LC</span>
-        </div>
-      </div>
-      <div class="campaign-stats">
-        <div class="stat-row">
-          <span class="stat-label">Дата запуска:</span>
-          <span class="stat-value">12.07.2025</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Дата окончания:</span>
-          <span class="stat-value">20.07.2025</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Планируемый бюджет:</span>
-          <span class="stat-value">120$</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Использовано:</span>
-          <span class="stat-value">80$</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Просмотры:</span>
-          <span class="stat-value">12 700</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Переходы:</span>
-          <span class="stat-value">2 902</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Получено лидов:</span>
-          <span class="stat-value">800</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Активных лидов:</span>
-          <span class="stat-value">710</span>
-        </div>
-      </div>
-      <div class="campaign-footer">
-        <span class="status-badge status-active">
-          <span class="status-dot"></span>
-          Активна
-        </span>
-        <a href="/dashboard/admin/marketing/campaigns/" class="btn-action">Открыть карточку</a>
-      </div>
-    </div>
-    <div class="campaign-card">
-      <div class="campaign-header">
-        <h3 class="campaign-name">Таргет ЖК</h3>
-        <div class="campaign-platform">
-          <span class="platform-name">Instagram</span>
-          <span class="platform-account">@Bahor.LC</span>
-        </div>
-      </div>
-      <div class="campaign-stats">
-        <div class="stat-row">
-          <span class="stat-label">Дата запуска:</span>
-          <span class="stat-value">12.07.2025</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Дата окончания:</span>
-          <span class="stat-value">20.07.2025</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Планируемый бюджет:</span>
-          <span class="stat-value">120$</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Использовано:</span>
-          <span class="stat-value">80$</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Просмотры:</span>
-          <span class="stat-value">12 700</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Переходы:</span>
-          <span class="stat-value">2 902</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Получено лидов:</span>
-          <span class="stat-value">800</span>
-          <span class="stat-separator">•</span>
-          <span class="stat-label">Активных лидов:</span>
-          <span class="stat-value">710</span>
-        </div>
-      </div>
-      <div class="campaign-footer">
-        <span class="status-badge status-active">
-          <span class="status-dot"></span>
-          Активна
-        </span>
-        <a href="/dashboard/admin/marketing/campaigns/" class="btn-action">Открыть карточку</a>
-      </div>
-    </div>
-  </div>
-</section>
-    </div>
-<!--    <script>-->
-<!--        // Campaign card interactions-->
-<!--        document.querySelectorAll('.btn-action').forEach(button => {-->
-<!--            button.addEventListener('click', function() {-->
-<!--                const campaignName = this.closest('.campaign-card').querySelector('.campaign-name').textContent;-->
-<!--                alert(`Открытие карточки кампании: ${campaignName}`);-->
-<!--            });-->
-<!--        });-->
-<!--        // Create campaign button-->
-<!--        document.querySelector('.btn-primary').addEventListener('click', function() {-->
-<!--            alert('Создание новой кампании');-->
-<!--        });-->
-<!--        // Dropdown interactions-->
-<!--        document.querySelectorAll('.dropdown').forEach(dropdown => {-->
-<!--            dropdown.addEventListener('change', function() {-->
-<!--                console.log(`${this.options[0].text}: ${this.value}`);-->
-<!--            });-->
-<!--        });-->
-<!--        // Search functionality-->
-<!--        const searchBox = document.querySelector('.search-box');-->
-<!--        searchBox.addEventListener('input', function() {-->
-<!--            const searchTerm = this.value.toLowerCase();-->
-<!--            const campaignCards = document.querySelectorAll('.campaign-card');-->
-<!--            campaignCards.forEach(card => {-->
-<!--                const campaignName = card.querySelector('.campaign-name').textContent.toLowerCase();-->
-<!--                const campaignAccount = card.querySelector('.campaign-account').textContent.toLowerCase();-->
-<!--                if (campaignName.includes(searchTerm) || campaignAccount.includes(searchTerm)) {-->
-<!--                    card.style.display = 'block';-->
-<!--                } else {-->
-<!--                    card.style.display = searchTerm ? 'none' : 'block';-->
-<!--                }-->
-<!--            });-->
-<!--        });-->
-<!--        // Add smooth scroll behavior-->
-<!--        document.documentElement.style.scrollBehavior = 'smooth';-->
-<!--        // Add loading animation to cards-->
-<!--        document.querySelectorAll('.campaign-card').forEach((card, index) => {-->
-<!--            card.style.opacity = '0';-->
-<!--            card.style.transform = 'translateY(20px)';-->
-<!--            setTimeout(() => {-->
-<!--                card.style.transition = 'all 0.6s ease';-->
-<!--                card.style.opacity = '1';-->
-<!--                card.style.transform = 'translateY(0)';-->
-<!--            }, index * 100);-->
-<!--        });-->
-<!--    </script>-->
+
+    <script>
+        const API_BASE = '/api/marketing';
+        let allCampaigns = [];
+
+        // Format number with spaces
+        function formatNumber(num) {
+            if (num === null || num === undefined) return '-';
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+
+        // Format currency
+        function formatCurrency(num) {
+            if (num === null || num === undefined) return '-';
+            return formatNumber(Math.round(num)) + '$';
+        }
+
+        // Format percentage
+        function formatPercent(num) {
+            if (num === null || num === undefined) return '-';
+            return num.toFixed(1) + '%';
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        // Get health status label
+        function getHealthLabel(status) {
+            const labels = {
+                'danger': 'Выключить',
+                'success': 'Масштабировать',
+                'warning_sales': 'Проблема продаж',
+                'warning_creative': 'Проблема креатива',
+                'neutral': 'Нормально'
+            };
+            return labels[status] || 'Нормально';
+        }
+
+        // Get platform display name
+        function getPlatformName(platform) {
+            const names = {
+                'INSTAGRAM': 'Instagram',
+                'FACEBOOK': 'Facebook',
+                'TELEGRAM': 'Telegram',
+                'GOOGLE': 'Google',
+                'TIKTOK': 'TikTok'
+            };
+            return names[platform] || platform;
+        }
+
+        // Get status display name
+        function getStatusName(status) {
+            const names = {
+                'ACTIVE': 'Активна',
+                'PAUSED': 'Пауза',
+                'COMPLETED': 'Завершена'
+            };
+            return names[status] || status;
+        }
+
+        // Get status class
+        function getStatusClass(status) {
+            const classes = {
+                'ACTIVE': 'status-active',
+                'PAUSED': 'status-paused',
+                'COMPLETED': 'status-completed'
+            };
+            return classes[status] || '';
+        }
+
+        // Copy to clipboard
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Скопировано!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 1500);
+            });
+        }
+
+        // Render campaign card
+        function renderCampaignCard(campaign) {
+            const healthClass = `health-${campaign.health_status || 'neutral'}`;
+            const statusClass = getStatusClass(campaign.status);
+
+            return `
+                <div class="campaign-card ${healthClass}">
+                    <div class="campaign-header">
+                        <h3 class="campaign-name">${campaign.name}</h3>
+                        <div class="campaign-platform">
+                            <span class="platform-name">${getPlatformName(campaign.platform)}</span>
+                            ${campaign.account ? `<span class="platform-account">${campaign.account}</span>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="campaign-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Переходы:</span>
+                            <span class="stat-value">${formatNumber(campaign.clicks)}</span>
+                            <span class="stat-separator">•</span>
+                            <span class="stat-label">Лиды:</span>
+                            <span class="stat-value">${formatNumber(campaign.leads_count)}</span>
+                            <span class="stat-separator">•</span>
+                            <span class="stat-label">Сделки:</span>
+                            <span class="stat-value">${formatNumber(campaign.deals_count)}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Бюджет:</span>
+                            <span class="stat-value">${formatCurrency(campaign.planned_budget)}</span>
+                            <span class="stat-separator">•</span>
+                            <span class="stat-label">Потрачено:</span>
+                            <span class="stat-value">${formatCurrency(campaign.spent_budget)}</span>
+                        </div>
+                    </div>
+
+                    <div class="conversion-metrics">
+                        <div class="conv-metric">
+                            <div class="conv-metric-value">${formatPercent(campaign.cr_lead)}</div>
+                            <div class="conv-metric-label">CR Lead</div>
+                        </div>
+                        <div class="conv-metric">
+                            <div class="conv-metric-value">${formatPercent(campaign.cr_sale)}</div>
+                            <div class="conv-metric-label">CR Sale</div>
+                        </div>
+                        <div class="conv-metric">
+                            <div class="conv-metric-value">${formatPercent(campaign.cr_total)}</div>
+                            <div class="conv-metric-label">CR Total</div>
+                        </div>
+                    </div>
+
+                    <div class="conversion-metrics" style="margin-top: 8px;">
+                        <div class="conv-metric">
+                            <div class="conv-metric-value">${formatCurrency(campaign.cpa)}</div>
+                            <div class="conv-metric-label">CPA (за лид)</div>
+                        </div>
+                        <div class="conv-metric">
+                            <div class="conv-metric-value">${formatCurrency(campaign.cps)}</div>
+                            <div class="conv-metric-label">CPS (за сделку)</div>
+                        </div>
+                        <div class="conv-metric">
+                            <div class="conv-metric-value">${formatCurrency(campaign.cost_per_click)}</div>
+                            <div class="conv-metric-label">За клик</div>
+                        </div>
+                    </div>
+
+                    ${campaign.utm_link ? `
+                    <div class="utm-section">
+                        <div class="utm-link">
+                            <input type="text" value="${campaign.utm_link}" readonly id="utm-${campaign.campaign_id}">
+                            <button onclick="copyToClipboard('${campaign.utm_link}', this)">Копировать</button>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div class="campaign-footer">
+                        <span class="status-badge ${statusClass}">
+                            <span class="status-dot"></span>
+                            ${getStatusName(campaign.status)}
+                        </span>
+                        <span class="metric-highlight ${campaign.health_status === 'success' ? 'metric-good' : campaign.health_status === 'danger' ? 'metric-bad' : 'metric-neutral'}">
+                            ${getHealthLabel(campaign.health_status)}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render all campaigns
+        function renderCampaigns(campaigns) {
+            const container = document.getElementById('campaignsContainer');
+
+            if (!campaigns || campaigns.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Нет кампаний</h3>
+                        <p>Создайте первую рекламную кампанию для отслеживания метрик</p>
+                        <a href="/dashboard/admin/marketing/add-campaigns">Создать кампанию</a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="campaigns-grid">
+                    ${campaigns.map(c => renderCampaignCard(c)).join('')}
+                </div>
+            `;
+        }
+
+        // Update metrics
+        function updateMetrics(data) {
+            document.getElementById('totalClicks').textContent = formatNumber(data.total_clicks);
+            document.getElementById('totalLeads').textContent = formatNumber(data.total_leads);
+            document.getElementById('totalDeals').textContent = formatNumber(data.total_deals);
+            document.getElementById('totalSpent').textContent = formatCurrency(data.total_spent);
+            document.getElementById('activeCampaigns').textContent = data.active_campaigns;
+            document.getElementById('campaignsCount').textContent = data.campaigns?.length || 0;
+        }
+
+        // Filter campaigns
+        function filterCampaigns() {
+            const status = document.getElementById('filterStatus').value;
+            const platform = document.getElementById('filterPlatform').value;
+            const search = document.getElementById('searchBox').value.toLowerCase();
+
+            let filtered = allCampaigns;
+
+            if (status) {
+                filtered = filtered.filter(c => c.status === status);
+            }
+            if (platform) {
+                filtered = filtered.filter(c => c.platform === platform);
+            }
+            if (search) {
+                filtered = filtered.filter(c =>
+                    c.name.toLowerCase().includes(search) ||
+                    (c.account && c.account.toLowerCase().includes(search))
+                );
+            }
+
+            renderCampaigns(filtered);
+            document.getElementById('campaignsCount').textContent = filtered.length;
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/dashboard`);
+                if (!response.ok) throw new Error('Failed to load dashboard');
+
+                const data = await response.json();
+                allCampaigns = data.campaigns || [];
+
+                updateMetrics(data);
+                renderCampaigns(allCampaigns);
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                document.getElementById('campaignsContainer').innerHTML = `
+                    <div class="empty-state">
+                        <h3>Ошибка загрузки</h3>
+                        <p>Не удалось загрузить данные. Попробуйте обновить страницу.</p>
+                        <a href="javascript:location.reload()">Обновить</a>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+
+            // Add filter listeners
+            document.getElementById('filterStatus').addEventListener('change', filterCampaigns);
+            document.getElementById('filterPlatform').addEventListener('change', filterCampaigns);
+            document.getElementById('searchBox').addEventListener('input', filterCampaigns);
+        });
+
+        // Auto-refresh every 60 seconds
+        setInterval(loadDashboard, 60000);
+    </script>
 </body>
 </html>
