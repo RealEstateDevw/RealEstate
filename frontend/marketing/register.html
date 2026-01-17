@@ -442,7 +442,9 @@
         // Load dashboard data
         async function loadDashboard() {
             try {
-                const response = await fetch(`${API_BASE}/dashboard`);
+                const response = await fetch(`${API_BASE}/dashboard`, {
+                    credentials: 'include'
+                });
                 if (!response.ok) throw new Error('Failed to load dashboard');
 
                 const data = await response.json();

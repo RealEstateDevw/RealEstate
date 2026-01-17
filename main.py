@@ -344,8 +344,19 @@ async def auth_middleware(request: Request, call_next):
     token = request.cookies.get("access_token")
     logger.info(f"Cookie token: {'Token found' if token else 'No token'}")  # Не логируй сам токен целиком в продакшене
 
+    # Определяем, это API запрос или страница
+    is_api_request = path.startswith("/api/")
+
     if not token:
-        logger.info("No token found for protected path, redirecting to login")
+        logger.info("No token found for protected path")
+        if is_api_request:
+            # Для API возвращаем 401 JSON
+            from fastapi.responses import JSONResponse
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Not authenticated"}
+            )
+        # Для страниц - редирект на логин
         return RedirectResponse(url="/login", status_code=303)
 
     try:
@@ -391,21 +402,29 @@ async def auth_middleware(request: Request, call_next):
 
     except JWTError as e:
         logger.error(f"JWT Error: {str(e)}")
-        # Если токен невалиден (ошибка подписи, неверный формат и т.д.), перенаправляем на логин
+        # Если токен невалиден
+        if is_api_request:
+            from fastapi.responses import JSONResponse
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Invalid or expired token"}
+            )
         response = RedirectResponse(url="/login", status_code=303)
         response.delete_cookie("access_token", path="/", domain=None, secure=True,
-                               httponly=True)  # Удаляем невалидный куки
+                               httponly=True)
         return response
 
     except Exception as e:
-        # Ловим другие возможные ошибки во время обработки
-        logger.error(f"Auth middleware error: {str(e)}", exc_info=True)  # exc_info=True добавит traceback в лог
-        # В случае неожиданной ошибки лучше вернуть 500 или перенаправить на страницу ошибки,
-        # но для простоты пока оставим редирект на логин.
-        # Consider returning Response("Internal Server Error", status_code=500)
-        response = RedirectResponse(url="/login", status_code=303)  # Или на страницу ошибки
+        logger.error(f"Auth middleware error: {str(e)}", exc_info=True)
+        if is_api_request:
+            from fastapi.responses import JSONResponse
+            return JSONResponse(
+                status_code=500,
+                content={"detail": "Internal server error"}
+            )
+        response = RedirectResponse(url="/login", status_code=303)
         response.delete_cookie("access_token", path="/", domain=None, secure=True, httponly=True,
-                               samesite='Lax')  # Попытаемся удалить куки на всякий случай
+                               samesite='Lax')
         return response
 
 
